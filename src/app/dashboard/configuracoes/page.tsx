@@ -25,7 +25,8 @@ import {
     Filter as FilterIcon, 
     Car, 
     Edit3, 
-    PackageSearch 
+    PackageSearch,
+    Building
 } from "lucide-react";
 
 // Tipos de Alertas para Clientes
@@ -55,7 +56,6 @@ export default function ConfiguracoesPage() {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState("");
 
-  // Estados para os switches de alertas
   const [alertasCliente, setAlertasCliente] = useState<Record<string, boolean>>(
     alertasClienteTipos.reduce((acc, curr) => ({ ...acc, [curr.id]: true }), {})
   );
@@ -101,13 +101,13 @@ export default function ConfiguracoesPage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Configurações Gerais da Oficina</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Building className="h-5 w-5 text-primary"/> Configurações Gerais da Oficina</CardTitle>
           <CardDescription>
             Informações básicas da sua oficina e preferências globais.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+        <CardContent className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
                 <div>
                     <Label htmlFor="nomeOficina">Nome da Oficina</Label>
                     <Input id="nomeOficina" defaultValue="Mecânica Ágil LTDA" />
@@ -121,7 +121,7 @@ export default function ConfiguracoesPage() {
                 <Label htmlFor="enderecoOficina">Endereço Completo</Label>
                 <Input id="enderecoOficina" defaultValue="Rua das Palmeiras, 123, Bairro Flores, Cidade Exemplo - UF" />
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-6">
                 <div>
                     <Label htmlFor="telefoneOficina">Telefone Principal</Label>
                     <Input id="telefoneOficina" type="tel" defaultValue="(00) 1234-5678" />
@@ -132,7 +132,7 @@ export default function ConfiguracoesPage() {
                 </div>
             </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-end pt-6 border-t">
           <Button onClick={handleSaveGeneralSettings} className="w-full sm:w-auto">
             <Save className="mr-2 h-4 w-4" /> Salvar Configurações Gerais
           </Button>
@@ -141,13 +141,13 @@ export default function ConfiguracoesPage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><MessageSquare /> Configurações de Alertas por WhatsApp</CardTitle>
+          <CardTitle className="flex items-center gap-2"><MessageSquare className="h-5 w-5 text-primary"/> Configurações de Alertas por WhatsApp</CardTitle>
           <CardDescription>
             Gerencie as notificações automáticas enviadas para clientes e funcionários.
             É necessário configurar uma API de WhatsApp válida.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-8">
           <div>
             <Label htmlFor="whatsappApiKey">API Key / Token do WhatsApp</Label>
             <Input
@@ -163,13 +163,13 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary"/> Alertas para Clientes</h3>
-            <div className="grid md:grid-cols-2 gap-x-6 gap-y-4">
+            <h3 className="text-xl font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary"/> Alertas para Clientes</h3>
+            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
               {alertasClienteTipos.map((alerta) => (
-                <div key={alerta.id} className="flex items-center justify-between gap-2 p-3 border rounded-md bg-muted/20 hover:bg-muted/40 transition-colors">
-                  <Label htmlFor={`cliente-${alerta.id}`} className="flex-grow cursor-pointer flex items-center gap-2 min-w-0">
-                    {alerta.icon && <alerta.icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                    <span className="truncate">{alerta.label}</span>
+                <div key={alerta.id} className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors shadow-sm">
+                  <Label htmlFor={`cliente-${alerta.id}`} className="flex-grow cursor-pointer flex items-center gap-2.5 min-w-0">
+                    {alerta.icon && <alerta.icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />}
+                    <span className="text-sm">{alerta.label}</span>
                   </Label>
                   <Switch
                     id={`cliente-${alerta.id}`}
@@ -182,13 +182,13 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2"><UserCheck className="h-5 w-5 text-primary"/> Alertas para Funcionários</h3>
-            <div className="grid md:grid-cols-2 gap-x-6 gap-y-4">
+            <h3 className="text-xl font-semibold flex items-center gap-2"><UserCheck className="h-5 w-5 text-primary"/> Alertas para Funcionários</h3>
+            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
               {alertasFuncionarioTipos.map((alerta) => (
-                <div key={alerta.id} className="flex items-center justify-between gap-2 p-3 border rounded-md bg-muted/20 hover:bg-muted/40 transition-colors">
-                   <Label htmlFor={`func-${alerta.id}`} className="flex-grow cursor-pointer flex items-center gap-2 min-w-0">
-                    {alerta.icon && <alerta.icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                    <span className="truncate">{alerta.label}</span>
+                <div key={alerta.id} className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors shadow-sm">
+                   <Label htmlFor={`func-${alerta.id}`} className="flex-grow cursor-pointer flex items-center gap-2.5 min-w-0">
+                    {alerta.icon && <alerta.icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />}
+                    <span className="text-sm">{alerta.label}</span>
                   </Label>
                   <Switch
                     id={`func-${alerta.id}`}
@@ -200,7 +200,7 @@ export default function ConfiguracoesPage() {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-end pt-6 border-t">
           <Button onClick={handleSaveAlertSettings} className="w-full sm:w-auto">
             <Save className="mr-2 h-4 w-4" /> Salvar Configurações de Alertas
           </Button>
@@ -209,3 +209,5 @@ export default function ConfiguracoesPage() {
     </div>
   );
 }
+
+    
