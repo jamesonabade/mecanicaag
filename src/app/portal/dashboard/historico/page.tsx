@@ -1,13 +1,27 @@
+
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { History, Download } from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 export default function HistoricoServicosPage() {
+  const { toast } = useToast();
+
+  const handleDownloadClick = () => {
+    toast({
+      title: "Funcionalidade em Desenvolvimento",
+      description: "A opção de baixar o histórico em PDF será implementada em breve.",
+    });
+  };
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><History /> Histórico de Serviços</h1>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleDownloadClick}>
           <Download className="mr-2 h-4 w-4" /> Baixar Histórico (PDF)
         </Button>
       </div>
@@ -25,7 +39,9 @@ export default function HistoricoServicosPage() {
                 <h3 className="font-semibold text-primary">Revisão Completa - Honda Civic (ABC-1234)</h3>
                 <p className="text-sm">Data: 20/06/2024</p>
                 <p className="text-sm">Valor: R$ 450,00</p>
-                <Button variant="link" className="p-0 h-auto mt-1">Ver detalhes da OS</Button>
+                <Button variant="link" className="p-0 h-auto mt-1" asChild>
+                  <Link href="/servicos/acompanhamento/OS_EXEMPLO_HISTORICO">Ver detalhes da OS</Link>
+                </Button>
             </div>
           </div>
         </CardContent>

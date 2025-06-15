@@ -1,7 +1,11 @@
+
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Car, PlusCircle, AlertTriangle } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 // Sample vehicle data
 const sampleVehicles = [
@@ -14,8 +18,10 @@ export default function MeusVeiculosPage() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><Car /> Meus Veículos</h1>
-        <Button variant="outline">
-          <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Novo Veículo
+        <Button variant="outline" asChild>
+          <Link href="/portal/dashboard/meus-veiculos/novo">
+            <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Novo Veículo
+          </Link>
         </Button>
       </div>
       
@@ -34,8 +40,12 @@ export default function MeusVeiculosPage() {
                     Próxima revisão recomendada: {vehicle.nextRevision}
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="default" className="flex-1">Ver Histórico</Button>
-                    <Button variant="outline" className="flex-1">Agendar Serviço</Button>
+                    <Button variant="default" className="flex-1" asChild>
+                      <Link href={`/portal/dashboard/historico?veiculo=${vehicle.id}`}>Ver Histórico</Link>
+                    </Button>
+                    <Button variant="outline" className="flex-1" asChild>
+                      <Link href={`/portal/dashboard/agendar-servico?veiculo=${vehicle.id}`}>Agendar Serviço</Link>
+                    </Button>
                 </div>
               </CardContent>
             </Card>

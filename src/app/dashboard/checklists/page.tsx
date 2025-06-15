@@ -1,6 +1,11 @@
+
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckSquare, PlusCircle, FileText } from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 // Sample checklist data
 const sampleChecklists = [
@@ -11,12 +16,23 @@ const sampleChecklists = [
 
 
 export default function ChecklistsPage() {
+  const { toast } = useToast();
+
+  const handleEditClick = (id: string) => {
+    toast({
+      title: "Funcionalidade em Desenvolvimento",
+      description: `A edição do checklist ${id} será implementada em breve.`,
+    });
+  };
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold font-headline">Checklists Digitais</h1>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Criar Novo Checklist
+        <Button asChild>
+          <Link href="/dashboard/checklists/novo">
+            <PlusCircle className="mr-2 h-4 w-4" /> Criar Novo Checklist
+          </Link>
         </Button>
       </div>
 
@@ -36,10 +52,12 @@ export default function ChecklistsPage() {
                       {checklist.name}
                     </CardTitle>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <FileText className="mr-1 h-3 w-3" /> Visualizar
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/checklists/visualizar/${checklist.id}`}>
+                          <FileText className="mr-1 h-3 w-3" /> Visualizar
+                        </Link>
                       </Button>
-                      <Button variant="ghost" size="sm">Editar</Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(checklist.id)}>Editar</Button>
                     </div>
                   </CardHeader>
                   <CardContent>
