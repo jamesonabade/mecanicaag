@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input"; // Importar Input
+import { Input } from "@/components/ui/input"; 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
@@ -43,7 +43,7 @@ import {
   Send, 
   Search, 
   Filter,
-  Link2 // For Google Calendar link
+  Link2 
 } from "lucide-react";
 
 
@@ -124,21 +124,22 @@ const topProdutosServicos = [
 ];
 
 const agendamentosMock = [
-  { id: "ag001", data: "2024-07-29T09:00:00", horario: "09:00", cliente: "João da Silva", veiculo: "Honda Civic (ABC-1234)", servico: "Revisão Periódica", mecanico: "Carlos", status: "Confirmado" },
-  { id: "ag002", data: "2024-07-29T10:30:00", horario: "10:30", cliente: "Maria Oliveira", veiculo: "Toyota Corolla (GHI-9012)", servico: "Troca de Óleo", mecanico: "Pedro", status: "Confirmado" },
-  { id: "ag003", data: "2024-07-30T14:00:00", horario: "14:00", cliente: "Ana Costa", veiculo: "Fiat Strada (DEF-5678)", servico: "Diagnóstico de Freios", mecanico: "Carlos", status: "Aguardando" },
-  { id: "ag004", data: "2024-07-30T16:00:00", horario: "16:00", cliente: "Roberto Lima", veiculo: "VW Gol (JKL-3456)", servico: "Alinhamento", mecanico: "Ana", status: "Chegou" },
-  { id: "ag005", data: "2024-08-01T11:00:00", horario: "11:00", cliente: "Fernanda Souza", veiculo: "Hyundai HB20 (MNO-7890)", servico: "Revisão dos 10.000km", mecanico: "Pedro", status: "Confirmado" },
-  { id: "ag006", data: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"), horario: "15:00", cliente: "Cliente Teste Hoje", veiculo: "Carro Teste (XXX-0000)", servico: "Teste de Agendamento", mecanico: "Qualquer", status: "Confirmado"},
+  { id: "ag001", data: "2024-07-29T09:00:00Z", horario: "09:00", cliente: "João da Silva", veiculo: "Honda Civic (ABC-1234)", servico: "Revisão Periódica", mecanico: "Carlos", status: "Confirmado" },
+  { id: "ag002", data: "2024-07-29T10:30:00Z", horario: "10:30", cliente: "Maria Oliveira", veiculo: "Toyota Corolla (GHI-9012)", servico: "Troca de Óleo", mecanico: "Pedro", status: "Confirmado" },
+  { id: "ag003", data: "2024-07-30T14:00:00Z", horario: "14:00", cliente: "Ana Costa", veiculo: "Fiat Strada (DEF-5678)", servico: "Diagnóstico de Freios", mecanico: "Carlos", status: "Aguardando" },
+  { id: "ag004", data: "2024-07-30T16:00:00Z", horario: "16:00", cliente: "Roberto Lima", veiculo: "VW Gol (JKL-3456)", servico: "Alinhamento", mecanico: "Ana", status: "Chegou" },
+  { id: "ag005", data: "2024-08-01T11:00:00Z", horario: "11:00", cliente: "Fernanda Souza", veiculo: "Hyundai HB20 (MNO-7890)", servico: "Revisão dos 10.000km", mecanico: "Pedro", status: "Confirmado" },
+  // Static date for "today's" mock appointment to prevent hydration mismatch
+  { id: "ag006", data: new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate(), 15, 0, 0)).toISOString(), horario: "15:00", cliente: "Cliente Teste Hoje", veiculo: "Carro Teste (XXX-0000)", servico: "Teste de Agendamento", mecanico: "Qualquer", status: "Confirmado"},
 ];
 
 const ordensDeServicoConcluidasMock = [
   { id: "os001", clienteNome: "Juliana Alves", veiculoInfo: "VW Nivus - ABC1D23", dataConclusao: "2024-01-10", ultimoLembreteEnviado: null },
   { id: "os002", clienteNome: "Ricardo Mendes", veiculoInfo: "Chevrolet Onix - DEF4E56", dataConclusao: "2024-06-20", ultimoLembreteEnviado: null },
-  { id: "os003", clienteNome: "Beatriz Costa", veiculoInfo: "Hyundai Creta - GHI7F89", dataConclusao: "2023-11-01", ultimoLembreteEnviado: "2024-04-29" }, // Simula lembrete já enviado
+  { id: "os003", clienteNome: "Beatriz Costa", veiculoInfo: "Hyundai Creta - GHI7F89", dataConclusao: "2023-11-01", ultimoLembreteEnviado: "2024-04-29" }, 
   { id: "os004", clienteNome: "Fernando Lima", veiculoInfo: "Fiat Toro - JKL0G12", dataConclusao: "2023-12-05", ultimoLembreteEnviado: null },
-  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: format(addDays(new Date(), -182), "yyyy-MM-dd"), ultimoLembreteEnviado: null }, // Exatamente 182 dias atrás
-  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: format(addDays(new Date(), -30), "yyyy-MM-dd"), ultimoLembreteEnviado: null }, // Recente demais
+  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: format(addDays(new Date(), -182), "yyyy-MM-dd"), ultimoLembreteEnviado: null }, 
+  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: format(addDays(new Date(), -30), "yyyy-MM-dd"), ultimoLembreteEnviado: null }, 
 ];
 
 export default function DashboardPage() {
@@ -147,7 +148,6 @@ export default function DashboardPage() {
   const [contasAPagarAlertas, setContasAPagarAlertas] = useState<typeof contasAPagarAlertasMock>([]);
   const { toast } = useToast(); 
 
-  // Simulação das configurações de lembrete de revisão
   const [simulatedLembreteRevisaoAtivo, setSimulatedLembreteRevisaoAtivo] = useState(true);
   const [simulatedDiasParaRevisao, setSimulatedDiasParaRevisao] = useState(180);
 
@@ -183,7 +183,7 @@ export default function DashboardPage() {
     }
     const hoje = new Date();
     return ordensDeServicoConcluidasMock.filter(os => {
-      if (os.ultimoLembreteEnviado) return false; // Já foi lembrado
+      if (os.ultimoLembreteEnviado) return false; 
       const dataConclusao = parseISO(os.dataConclusao);
       const dataLembrete = addDays(dataConclusao, simulatedDiasParaRevisao);
       return isSameDay(dataLembrete, hoje) || isBefore(dataLembrete, hoje);
@@ -205,7 +205,7 @@ export default function DashboardPage() {
       title: "Busca no Estoque (Simulada)",
       description: `Buscando por: "${searchTerm}". Funcionalidade completa em desenvolvimento.`,
     });
-    // Futuramente: router.push(`/dashboard/produtos/estoque?q=${searchTerm}`);
+    
   };
 
   const handleFilterEstoque = () => {
@@ -213,7 +213,7 @@ export default function DashboardPage() {
       title: "Filtro de Estoque (Simulado)",
       description: "Opções de filtro de estoque serão implementadas aqui.",
     });
-    // Futuramente: abrir um modal/popover com opções de filtro
+    
   };
 
   const handleConnectGoogleCalendar = () => {
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                   IconComponent = AlertTriangle;
                   iconColorClass = "text-amber-600";
                 } else {
-                  const diasParaVencer = differenceInDays(vencimentoDate, hoje) +1; // Add 1 to make it inclusive of today
+                  const diasParaVencer = differenceInDays(vencimentoDate, hoje) +1; 
                   if (diasParaVencer <= 7) {
                     statusText = `Vence em ${diasParaVencer} dia(s) (${format(vencimentoDate, "dd/MM/yy", { locale: ptBR })})`;
                     statusClasses = "border-yellow-500/40 bg-yellow-500/10 text-yellow-600";
@@ -464,7 +464,7 @@ const lembretesRevisaoCard = (
           onSelect={handleDateSelect}
           className="rounded-md border p-3 w-full"
           locale={ptBR}
-          disabled={(d) => d < new Date(new Date().setDate(new Date().getDate() -1))} 
+          disabled={(d) => d < new Date(new Date().setDate(new Date().getDate() -1)) } 
           modifiers={{
             scheduled: scheduledDays
           }}
@@ -540,7 +540,7 @@ const lembretesRevisaoCard = (
   );
   
   const calendarAndAppointmentsSection = (
-     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* Adjusted for better layout on larger screens */}
+     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> 
         {calendarCard}
         {appointmentsCard}
     </div>
@@ -660,7 +660,7 @@ const lembretesRevisaoCard = (
           {financialKpiData.map(financialKpiCardComponent)}
         </div>
         
-        {calendarAndAppointmentsSection} {/* Moved calendar section here */}
+        {calendarAndAppointmentsSection} 
 
         {contasAPagarAlertsCard}
         {lembretesRevisaoCard}
