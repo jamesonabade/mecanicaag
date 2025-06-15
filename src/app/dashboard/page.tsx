@@ -9,15 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, LineChart as RechartsLineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, PieChart as RechartsPieChart, Pie, LineChart as RechartsLineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { format, isSameDay, parseISO } from "date-fns";
+import { format, isSameDay, parseISO, isPast, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-// Importação DayPickerDay removida
+
 import {
   DollarSign,
   Users,
@@ -34,7 +34,8 @@ import {
   AlertCircle,
   CheckCircle,
   ClockIcon,
-  ChevronRight
+  ChevronRight,
+  AlertTriangle, // Adicionado para os alertas
 } from "lucide-react";
 
 
@@ -52,6 +53,16 @@ const financialKpiData = [
   { title: "Faturamento Mês", value: "R$ 28.789,00", description: "Meta: R$ 35.000 (82%)", icon: DollarSign, trend: "up" as const, progress: 82 },
   { title: "Ticket Médio", value: "R$ 350,00", description: "Mês atual", icon: ShoppingCart, trend: "neutral" as const },
 ];
+
+const contasAPagarAlertasMock = [
+  { id: "cp001", descricao: "Fornecedor AutoPeças Gama", valor: "R$ 1.250,70", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 0)).toISOString().split('T')[0], tipo: "Peças Urgentes" },
+  { id: "cp002", descricao: "Aluguel da Oficina - Mês Corrente", valor: "R$ 3.500,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0], tipo: "Despesa Fixa" },
+  { id: "cp003", descricao: "Mensalidade Software CRM", valor: "R$ 280,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString().split('T')[0], tipo: "Software" },
+  { id: "cp004", descricao: "Conta de Energia Elétrica", valor: "R$ 450,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split('T')[0], tipo: "Concessionária" },
+  { id: "cp005", descricao: "Compra de Ferramentas Especiais", valor: "R$ 870,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0], tipo: "Investimento" },
+  { id: "cp006", descricao: "Pagamento Impostos SIMPLES", valor: "R$ 1.800,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0], tipo: "Impostos" },
+];
+
 
 const lucroChartData = [
   { name: 'Jan', lucro: 4000, orcamento: 2400 },
@@ -117,11 +128,14 @@ const agendamentosMock = [
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<typeof agendamentosMock>([]);
+  const [contasAPagarAlertas, setContasAPagarAlertas] = useState<typeof contasAPagarAlertasMock>([]);
+
 
   useEffect(() => {
     const today = new Date();
     setSelectedDate(today); 
     filterAppointmentsForDate(today);
+    setContasAPagarAlertas(contasAPagarAlertasMock.sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime()));
   }, []);
 
   const scheduledDays = useMemo(() => {
@@ -182,6 +196,91 @@ export default function DashboardPage() {
     </Card>
   );
 
+  const contasAPagarAlertsCard = (
+    <Card className="shadow-lg">
+      <CardHeader>
+        <CardTitle className="font-headline text-xl flex items-center">
+          <AlertCircle className="mr-2 h-6 w-6 text-amber-500" /> Alertas: Contas a Pagar
+        </CardTitle>
+        <CardDescription>Contas importantes que requerem sua atenção imediata.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {contasAPagarAlertas.length > 0 ? (
+          <ScrollArea className="max-h-[280px] pr-3">
+            <div className="space-y-4">
+              {contasAPagarAlertas.map(alerta => {
+                const hoje = new Date();
+                const vencimentoDate = parseISO(alerta.dataVencimento + "T00:00:00");
+
+                let statusText = "";
+                let statusClasses = "border-border text-muted-foreground";
+                let IconComponent = CalendarDays;
+                let iconColorClass = "text-muted-foreground";
+
+                if (isPast(vencimentoDate) && !isSameDay(vencimentoDate, hoje)) {
+                  statusText = `Vencido em ${format(vencimentoDate, "dd/MM/yy", { locale: ptBR })}`;
+                  statusClasses = "border-destructive/40 bg-destructive/10 text-destructive";
+                  IconComponent = AlertTriangle;
+                  iconColorClass = "text-destructive";
+                } else if (isSameDay(vencimentoDate, hoje)) {
+                  statusText = `Vence Hoje!`;
+                  statusClasses = "border-amber-500/40 bg-amber-500/10 text-amber-600";
+                  IconComponent = AlertTriangle;
+                  iconColorClass = "text-amber-600";
+                } else {
+                  const diasParaVencer = differenceInDays(vencimentoDate, hoje) +1; // Add 1 to make it inclusive of today
+                  if (diasParaVencer <= 7) {
+                    statusText = `Vence em ${diasParaVencer} dia(s) (${format(vencimentoDate, "dd/MM/yy", { locale: ptBR })})`;
+                    statusClasses = "border-yellow-500/40 bg-yellow-500/10 text-yellow-600";
+                    IconComponent = ClockIcon;
+                    iconColorClass = "text-yellow-600";
+                  } else {
+                    statusText = `Vence em ${format(vencimentoDate, "dd/MM/yyyy", { locale: ptBR })}`;
+                    IconComponent = CalendarDays;
+                    iconColorClass = "text-muted-foreground";
+                  }
+                }
+
+                return (
+                  <div key={alerta.id} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-3 rounded-lg border ${statusClasses.split(' ')[0]} ${statusClasses.split(' ')[1]}`}>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <IconComponent className={`h-6 w-6 sm:h-5 sm:w-5 shrink-0 ${iconColorClass}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate" title={alerta.descricao}>{alerta.descricao} <span className="text-xs font-normal text-muted-foreground">({alerta.tipo})</span></p>
+                        <p className={`text-xs ${statusClasses.split(' ')[2]}`}>{statusText}</p>
+                      </div>
+                    </div>
+                    <div className="text-right mt-2 sm:mt-0 shrink-0">
+                      <p className="font-bold text-base sm:text-sm">{alerta.valor}</p>
+                       <Button variant="link" size="sm" className="h-auto p-0 text-xs text-primary/90 hover:text-primary mt-0.5" asChild>
+                         <Link href={`/dashboard/financeiro/transacoes/${alerta.id}`}>Pagar/Ver</Link>
+                       </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        ) : (
+          <div className="p-4 text-center text-muted-foreground h-full flex flex-col justify-center items-center">
+            <CheckCircle className="h-12 w-12 text-green-500 mb-3" />
+            <p>Ótimo! Nenhuma conta a pagar com alerta no momento.</p>
+          </div>
+        )}
+      </CardContent>
+      {contasAPagarAlertas.length > 0 && (
+        <CardFooter className="pt-4 mt-2 border-t">
+            <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
+                <Link href="/dashboard/financeiro?tab=contas-a-pagar">
+                    <FileText className="mr-2 h-4 w-4"/> Ver Todas Contas a Pagar
+                </Link>
+            </Button>
+        </CardFooter>
+      )}
+    </Card>
+  );
+
+
   const mainChartSection = (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <Card className="shadow-lg lg:col-span-2">
@@ -235,12 +334,12 @@ export default function DashboardPage() {
         </CardTitle>
         <CardDescription>Selecione uma data para ver os compromissos.</CardDescription>
       </CardHeader>
-      <CardContent className="p-4 flex justify-center"> {/* Added flex justify-center */}
+      <CardContent className="p-4 flex justify-center">
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleDateSelect}
-          className="rounded-md border p-3" // Removed w-full, let parent control size via sm:max-w-md
+          className="rounded-md border p-3 w-full"
           locale={ptBR}
           disabled={(d) => d < new Date(new Date().setDate(new Date().getDate() -1))} 
           modifiers={{
@@ -313,7 +412,7 @@ export default function DashboardPage() {
   );
   
   const calendarAndAppointmentsSection = (
-     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"> {/* Changed to md:grid-cols-2 */}
+     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {calendarCard}
         {appointmentsCard}
     </div>
@@ -419,6 +518,8 @@ export default function DashboardPage() {
           {financialKpiData.map(financialKpiCardComponent)}
         </div>
         
+        {contasAPagarAlertsCard}
+
         {mainChartSection}
         {calendarAndAppointmentsSection}
         {tablesSection}
@@ -438,9 +539,4 @@ export default function DashboardPage() {
   );
 }
 
-// Helper to get the icon for change type
-const getChangeIcon = (changeType?: 'positive' | 'negative' | 'neutral') => {
-  if (changeType === 'positive') return <ArrowUp className="mr-1 h-3 w-3" />;
-  if (changeType === 'negative') return <ArrowDown className="mr-1 h-3 w-3" />;
-  return null;
-};
+    
