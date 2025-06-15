@@ -18,18 +18,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Assuming you might want a select for "Cliente" later
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, Car } from "lucide-react";
 
 const anoAtual = new Date().getFullYear();
 
 const veiculoFormSchema = z.object({
-  // Para simplificar, vamos pedir o nome e CPF/CNPJ do proprietário.
-  // Em um sistema real, aqui seria um Select buscando da tabela de Clientes.
   nomeProprietario: z.string().min(3, { message: "Nome do proprietário é obrigatório." }),
   documentoProprietario: z.string().min(11, { message: "CPF/CNPJ do proprietário inválido." }),
-  placa: z.string().min(7, { message: "Placa deve ter pelo menos 7 caracteres." }).max(8, {message: "Placa inválida."}), // AAA-9999 ou AAA9A99
+  placa: z.string().min(7, { message: "Placa deve ter pelo menos 7 caracteres." }).max(8, {message: "Placa inválida."}), 
   marca: z.string().min(2, { message: "Marca é obrigatória." }),
   modelo: z.string().min(2, { message: "Modelo é obrigatório." }),
   anoFabricacao: z.coerce.number()
@@ -75,8 +72,7 @@ export default function NovoVeiculoPage() {
       title: "Veículo Cadastrado (Simulado)",
       description: "O veículo foi salvo com sucesso (simulação).",
     });
-    // Aqui você faria a chamada para a API para salvar o veículo
-    // form.reset(); // Opcional: resetar o formulário
+    // form.reset(); 
   }
 
   return (
@@ -287,5 +283,3 @@ export default function NovoVeiculoPage() {
     </div>
   );
 }
-
-    
