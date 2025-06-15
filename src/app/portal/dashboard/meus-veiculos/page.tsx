@@ -9,8 +9,8 @@ import Link from "next/link";
 
 // Sample vehicle data
 const sampleVehicles = [
-  { id: "vec001", make: "Honda", model: "Civic", year: 2020, plate: "ABC-1234", mileage: "45.000 km", nextRevision: "01/12/2024", image: "https://placehold.co/600x400.png", imageHint: "sedan car" },
-  { id: "vec002", make: "Toyota", model: "Corolla", year: 2022, plate: "XYZ-5678", mileage: "22.000 km", nextRevision: "15/10/2024", image: "https://placehold.co/600x400.png", imageHint: "family car" },
+  { id: "vec001", make: "Honda", model: "Civic", year: 2020, plate: "ABC-1234", mileage: "45.000 km", nextRevision: "01/12/2024", imageUrl: "https://placehold.co/600x400.png", imageHint: "sedan car" },
+  { id: "vec002", make: "Toyota", model: "Corolla", year: 2022, plate: "XYZ-5678", mileage: "22.000 km", nextRevision: "15/10/2024", imageUrl: "https://placehold.co/600x400.png", imageHint: "family car" },
 ];
 
 export default function MeusVeiculosPage() {
@@ -29,7 +29,16 @@ export default function MeusVeiculosPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sampleVehicles.map((vehicle) => (
             <Card key={vehicle.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-              <Image src={vehicle.image} alt={`${vehicle.make} ${vehicle.model}`} data-ai-hint={vehicle.imageHint} width={600} height={300} className="w-full h-48 object-cover"/>
+              <div className="relative w-full h-48">
+                <Image 
+                  src={vehicle.imageUrl} 
+                  alt={`${vehicle.make} ${vehicle.model}`} 
+                  data-ai-hint={vehicle.imageHint} 
+                  layout="fill" 
+                  objectFit="cover" 
+                  className="rounded-t-lg"
+                />
+              </div>
               <CardHeader>
                 <CardTitle>{vehicle.make} {vehicle.model} <span className="text-base font-normal text-muted-foreground">({vehicle.year})</span></CardTitle>
                 <CardDescription>Placa: {vehicle.plate} | KM: {vehicle.mileage}</CardDescription>

@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, Car } from "lucide-react";
+import { ChevronLeft, Save, Car, Image as ImageIcon } from "lucide-react";
 
 const anoAtual = new Date().getFullYear();
 
@@ -41,6 +41,7 @@ const veiculoFormSchema = z.object({
   chassi: z.string().length(17, { message: "Chassi deve ter 17 caracteres." }).optional().or(z.literal('')),
   renavam: z.string().min(9, { message: "RENAVAM inválido."}).max(11, { message: "RENAVAM inválido."}).optional().or(z.literal('')),
   quilometragem: z.coerce.number().int().min(0, { message: "Quilometragem não pode ser negativa." }).optional(),
+  imageUrl: z.string().url({ message: "URL da imagem inválido. Ex: https://exemplo.com/imagem.png" }).optional().or(z.literal('')),
   observacoes: z.string().optional(),
 });
 
@@ -62,6 +63,7 @@ export default function NovoVeiculoPage() {
       chassi: "",
       renavam: "",
       quilometragem: undefined,
+      imageUrl: "",
       observacoes: "",
     },
   });
@@ -77,9 +79,9 @@ export default function NovoVeiculoPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 md:gap-2">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><Car /> Novo Veículo</h1>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="w-full md:w-auto">
           <Link href="/dashboard/veiculos">
             <ChevronLeft className="mr-2 h-4 w-4" /> Voltar para Lista de Veículos
           </Link>
@@ -238,7 +240,8 @@ export default function NovoVeiculoPage() {
                   )}
                 />
               </div>
-               <FormField
+
+              <FormField
                 control={form.control}
                 name="quilometragem"
                 render={({ field }) => (
@@ -251,6 +254,22 @@ export default function NovoVeiculoPage() {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1"><ImageIcon className="h-4 w-4 text-muted-foreground"/> URL da Imagem do Veículo (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input type="url" placeholder="https://exemplo.com/foto-do-carro.jpg" {...field} />
+                    </FormControl>
+                    <FormDescription>Cole o link de uma imagem do veículo. A imagem será exibida no portal do cliente.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
                <FormField
                 control={form.control}
                 name="observacoes"
@@ -269,11 +288,11 @@ export default function NovoVeiculoPage() {
                 )}
               />
             </CardContent>
-            <CardFooter className="flex justify-end gap-2 pt-6 border-t">
-              <Button type="button" variant="outline" asChild>
+            <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 pt-6 border-t">
+              <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/veiculos">Cancelar</Link>
               </Button>
-              <Button type="submit">
+              <Button type="submit" className="w-full sm:w-auto">
                 <Save className="mr-2 h-4 w-4" /> Salvar Veículo
               </Button>
             </CardFooter>
