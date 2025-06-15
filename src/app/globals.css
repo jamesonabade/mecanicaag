@@ -57,3 +57,12 @@
     @apply bg-background;
   }
 }
+
+@layer components {
+  /* Style for days with scheduled appointments in the Calendar */
+  .day-scheduled .react-day-picker-day {
+    font-weight: bold;
+    /* You can add more styles here, like a different background or border */
+  }
+  /* Style for the dot indicator - this is already handled by the inline span with absolute positioning and bg-accent */
+}

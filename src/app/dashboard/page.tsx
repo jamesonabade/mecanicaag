@@ -17,13 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { DayPickerDay } from "react-day-picker"; // Importação adicionada
+// Importação DayPickerDay removida
 import {
   DollarSign,
   Users,
   Wrench,
   Package,
-  Settings as SettingsIcon, // Renomeado para evitar conflito
+  Settings as SettingsIcon,
   ArrowUp,
   ArrowDown,
   TrendingUp,
@@ -104,13 +104,13 @@ const topProdutosServicos = [
   { id: 3, nome: "Filtro de Ar Condicionado", tipo: "Produto", vendas: 120, receita: "R$ 3.600,00" },
 ];
 
-// Mock data for appointments - ensure dates are strings for parseISO
 const agendamentosMock = [
   { id: "ag001", data: "2024-07-29T09:00:00", horario: "09:00", cliente: "João da Silva", veiculo: "Honda Civic (ABC-1234)", servico: "Revisão Periódica", mecanico: "Carlos", status: "Confirmado" },
   { id: "ag002", data: "2024-07-29T10:30:00", horario: "10:30", cliente: "Maria Oliveira", veiculo: "Toyota Corolla (GHI-9012)", servico: "Troca de Óleo", mecanico: "Pedro", status: "Confirmado" },
   { id: "ag003", data: "2024-07-30T14:00:00", horario: "14:00", cliente: "Ana Costa", veiculo: "Fiat Strada (DEF-5678)", servico: "Diagnóstico de Freios", mecanico: "Carlos", status: "Aguardando" },
   { id: "ag004", data: "2024-07-30T16:00:00", horario: "16:00", cliente: "Roberto Lima", veiculo: "VW Gol (JKL-3456)", servico: "Alinhamento", mecanico: "Ana", status: "Chegou" },
   { id: "ag005", data: "2024-08-01T11:00:00", horario: "11:00", cliente: "Fernanda Souza", veiculo: "Hyundai HB20 (MNO-7890)", servico: "Revisão dos 10.000km", mecanico: "Pedro", status: "Confirmado" },
+  { id: "ag006", data: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"), horario: "15:00", cliente: "Cliente Teste Hoje", veiculo: "Carro Teste (XXX-0000)", servico: "Teste de Agendamento", mecanico: "Qualquer", status: "Confirmado"},
 ];
 
 
@@ -120,12 +120,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const today = new Date();
-    setSelectedDate(today); // Set initial date on client-side
+    setSelectedDate(today); 
     filterAppointmentsForDate(today);
   }, []);
 
   const scheduledDays = useMemo(() => {
-    return agendamentosMock.map(ag => format(parseISO(ag.data), "yyyy-MM-dd"));
+    return agendamentosMock.map(ag => parseISO(ag.data));
   }, []);
 
   const filterAppointmentsForDate = (date: Date | undefined) => {
@@ -235,30 +235,30 @@ export default function DashboardPage() {
         </CardTitle>
         <CardDescription>Selecione uma data para ver os compromissos.</CardDescription>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-4 flex justify-center"> {/* Added flex justify-center */}
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleDateSelect}
-          className="rounded-md border p-3 w-full"
+          className="rounded-md border p-3" // Removed w-full, let parent control size via sm:max-w-md
           locale={ptBR}
-          disabled={(d) => d < new Date(new Date().setDate(new Date().getDate() -1))} // Disable past dates, allow today
+          disabled={(d) => d < new Date(new Date().setDate(new Date().getDate() -1))} 
           modifiers={{
-            scheduled: scheduledDays.map(d => new Date(d))
+            scheduled: scheduledDays
           }}
           modifiersClassNames={{
-            scheduled: 'day-scheduled'
+            scheduled: 'day-scheduled' 
           }}
           components={{
             DayContent: (props) => {
               const isScheduled = scheduledDays.some(scheduledDate =>
-                isSameDay(props.date, new Date(scheduledDate))
+                isSameDay(props.date, scheduledDate)
               );
               return (
-                <div className="relative">
-                  <DayPickerDay {...props} />
+                <>
+                  {props.date.getDate()}
                   {isScheduled && <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-accent"></span>}
-                </div>
+                </>
               );
             }
           }}
@@ -313,7 +313,7 @@ export default function DashboardPage() {
   );
   
   const calendarAndAppointmentsSection = (
-    <div className="grid grid-cols-1 gap-6"> {/* Changed to single column */}
+     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start"> {/* Changed to md:grid-cols-2 */}
         {calendarCard}
         {appointmentsCard}
     </div>
@@ -404,8 +404,8 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground">Bem-vindo de volta! Aqui está um resumo da sua oficina.</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="outline" size="sm"><CalendarDays className="mr-2 h-4 w-4"/>Agendar Cliente</Button>
-                <Button size="sm"><Wrench className="mr-2 h-4 w-4"/>Nova Ordem de Serviço</Button>
+                <Button variant="outline" size="sm" asChild><Link href="/dashboard/agendamento/novo"><CalendarDays className="mr-2 h-4 w-4"/>Agendar Cliente</Link></Button>
+                <Button size="sm" asChild><Link href="/dashboard/servicos/novo"><Wrench className="mr-2 h-4 w-4"/>Nova Ordem de Serviço</Link></Button>
             </div>
         </div>
         
@@ -422,8 +422,7 @@ export default function DashboardPage() {
         {mainChartSection}
         {calendarAndAppointmentsSection}
         {tablesSection}
-
-        {/* Placeholder for other sections like "Quer mais comodidade?" from image */}
+        
         <Card className="shadow-lg bg-gradient-to-r from-primary/80 to-accent/80 text-primary-foreground p-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
                 <h3 className="text-xl font-bold">Quer mais comodidade e eficiência?</h3>
