@@ -23,11 +23,11 @@ const mockClientes = [
 ];
 
 const mockVeiculos = [
-  { id: "vec001", clienteId: "cli001", modelo: "Honda Civic", placa: "ABC-1234" },
-  { id: "vec002", clienteId: "cli001", modelo: "Fiat Strada", placa: "DEF-5678" },
-  { id: "vec003", clienteId: "cli002", modelo: "Toyota Corolla", placa: "GHI-9012" },
-  { id: "vec004", clienteId: "cli003", modelo: "VW Nivus", placa: "JKL-3456" },
-  { id: "vec005", clienteId: "cli004", modelo: "Hyundai HB20", placa: "MNO-7890" },
+  { id: "vec001", clienteId: "cli001", modelo: "Honda Civic", placa: "ABC-1234", ano: "2020", cor: "Prata" },
+  { id: "vec002", clienteId: "cli001", modelo: "Fiat Strada", placa: "DEF-5678", ano: "2022", cor: "Branco" },
+  { id: "vec003", clienteId: "cli002", modelo: "Toyota Corolla", placa: "GHI-9012", ano: "2021", cor: "Preto" },
+  { id: "vec004", clienteId: "cli003", modelo: "VW Nivus", placa: "JKL-3456", ano: "2023", cor: "Cinza" },
+  { id: "vec005", clienteId: "cli004", modelo: "Hyundai HB20", placa: "MNO-7890", ano: "2019", cor: "Vermelho" },
 ];
 
 const mockMecanicos = [
@@ -36,70 +36,124 @@ const mockMecanicos = [
   { id: "mec003", nome: "Ana Beatriz" },
 ];
 
-const mockOrdensServico = [
+export const mockOrdensServico = [
   {
     id: "OS001",
     clienteId: "cli001",
     veiculoId: "vec001",
     dataEntrada: "2024-07-25T10:00:00Z",
+    dataPrevisaoEntrega: "2024-07-26T17:00:00Z",
     mecanicoId: "mec001",
     tipoServico: "Revisão Completa",
+    descricaoProblema: "Cliente solicitou revisão completa dos 40.000km. Verificar freios, suspensão e trocar óleo/filtros.",
+    servicosPecasPlanejadas: "Óleo 5W30 Sintético (4L)\nFiltro de Óleo\nFiltro de Ar\nFiltro de Combustível\nAlinhamento e Balanceamento",
+    observacoesInternas: "Veículo chegou com barulho leve na suspensão dianteira direita. Verificar durante a revisão.",
     status: "Em Andamento",
     valorEstimado: 550.00,
+    valorFinal: 0,
+    itensExecutados: [
+      {id: "item1_os1", descricao: "Troca de Óleo e Filtro", valor: 180.00, tipo: "servico"},
+      {id: "item2_os1", descricao: "Óleo 5W30 Sintético (4L)", valor: 160.00, tipo: "peca"},
+    ],
+    diagnosticoTecnico: "Suspensão dianteira direita com folga na bandeja. Necessário orçamento adicional para substituição.",
+    fotos: [
+      {url: "https://placehold.co/300x200.png", legenda: "Entrada do veículo", dataAiHint: "car mechanic"},
+      {url: "https://placehold.co/300x200.png", legenda: "Motor antes da limpeza", dataAiHint: "engine detail"},
+    ]
   },
   {
     id: "OS002",
     clienteId: "cli002",
     veiculoId: "vec003",
     dataEntrada: "2024-07-26T14:30:00Z",
+    dataPrevisaoEntrega: "2024-07-27T18:00:00Z",
     mecanicoId: "mec002",
     tipoServico: "Troca de pastilhas de freio",
+    descricaoProblema: "Pastilhas de freio fazendo barulho e pedal baixo.",
+    servicosPecasPlanejadas: "Jogo de Pastilhas de Freio Dianteiras\nFluido de Freio DOT4",
+    observacoesInternas: "Verificar discos de freio, podem precisar de retífica.",
     status: "Aguardando Aprovação",
     valorEstimado: 320.50,
+    valorFinal: 0,
+    itensExecutados: [],
+    diagnosticoTecnico: null,
+    fotos: []
   },
   {
     id: "OS003",
     clienteId: "cli003",
     veiculoId: "vec004",
     dataEntrada: "2024-07-27T09:15:00Z",
+    dataPrevisaoEntrega: "2024-07-27T12:00:00Z",
     mecanicoId: "mec001",
     tipoServico: "Diagnóstico de Motor",
+    descricaoProblema: "Luz da injeção acesa no painel e falha em baixa rotação.",
+    servicosPecasPlanejadas: "Diagnóstico com scanner\nVerificação de velas e bicos",
+    observacoesInternas: "",
     status: "Concluída",
     valorEstimado: 180.00,
+    valorFinal: 180.00,
+    itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 180.00, tipo: "servico"}],
+    diagnosticoTecnico: "Bobina do cilindro 3 com defeito. Substituição recomendada em orçamento futuro.",
+    fotos: []
   },
   {
     id: "OS004",
     clienteId: "cli001",
     veiculoId: "vec002",
     dataEntrada: "2024-07-28T11:00:00Z",
+    dataPrevisaoEntrega: "2024-07-29T10:00:00Z",
     mecanicoId: null,
     tipoServico: "Verificação de suspensão",
+    descricaoProblema: "Barulho na suspensão traseira ao passar em lombadas.",
+    servicosPecasPlanejadas: "Inspeção da suspensão traseira.",
+    observacoesInternas: "Cliente informou que o barulho começou após viagem longa.",
     status: "Aguardando Diagnóstico",
     valorEstimado: 0,
+    valorFinal: 0,
+    itensExecutados: [],
+    diagnosticoTecnico: null,
+    fotos: []
   },
   {
     id: "OS005",
     clienteId: "cli004",
     veiculoId: "vec005",
     dataEntrada: "2024-07-29T08:00:00Z",
+    dataPrevisaoEntrega: "2024-07-29T17:00:00Z",
     mecanicoId: "mec003",
     tipoServico: "Alinhamento e Balanceamento",
-    status: "Aguardando Peças",
+    descricaoProblema: "Veículo puxando para a direita e volante vibrando em alta velocidade.",
+    servicosPecasPlanejadas: "Alinhamento de direção\nBalanceamento das 4 rodas",
+    observacoesInternas: "Pneus aparentemente em bom estado.",
+    status: "Aguardando Peças", // Exemplo: aguardando pesos de balanceamento específicos
     valorEstimado: 150.00,
+    valorFinal: 0,
+    itensExecutados: [],
+    diagnosticoTecnico: null,
+    fotos: []
   },
    {
     id: "OS006",
     clienteId: "cli002",
     veiculoId: "vec003",
     dataEntrada: "2024-07-29T16:00:00Z",
+    dataPrevisaoEntrega: "2024-07-30T12:00:00Z",
     mecanicoId: "mec002",
     tipoServico: "Reparo Elétrico",
+    descricaoProblema: "Farol baixo do lado esquerdo não acende.",
+    servicosPecasPlanejadas: "Diagnóstico elétrico\nPossível troca de lâmpada ou reparo no chicote",
+    observacoesInternas: "Cliente já trocou a lâmpada e o problema persistiu.",
     status: "Cancelada",
     valorEstimado: 280.00,
+    valorFinal: 0,
+    itensExecutados: [],
+    diagnosticoTecnico: null,
+    fotos: []
   },
 ];
 
-type OSStatus = "Aguardando Diagnóstico" | "Aguardando Orçamento" | "Aguardando Aprovação" | "Aguardando Peças" | "Em Andamento" | "Concluída" | "Cancelada";
+export type OSStatus = "Aguardando Diagnóstico" | "Aguardando Orçamento" | "Aguardando Aprovação" | "Aguardando Peças" | "Em Andamento" | "Concluída" | "Cancelada";
 
 const statusOptions: { value: OSStatus; label: string }[] = [
   { value: "Aguardando Diagnóstico", label: "Aguardando Diagnóstico" },
@@ -124,14 +178,14 @@ export default function ServicosPage() {
 
   const getStatusBadgeVariant = (status: OSStatus): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
-      case "Concluída": return "default"; // Shadcn 'default' is often blueish/greenish, good for completed
-      case "Em Andamento": return "outline"; // Using outline for in-progress can be a different color like blue
+      case "Concluída": return "default"; 
+      case "Em Andamento": return "outline"; 
       case "Aguardando Aprovação":
       case "Aguardando Diagnóstico":
       case "Aguardando Orçamento":
       case "Aguardando Peças":
-        return "secondary"; // Yellow/Orange like, use secondary
-      case "Cancelada": return "destructive"; // Red
+        return "secondary"; 
+      case "Cancelada": return "destructive";
       default: return "secondary";
     }
   };
@@ -141,7 +195,12 @@ export default function ServicosPage() {
   };
   
   const handleAction = (action: string, osId: string) => {
-      toast({ title: `${action} OS ${osId} (Simulado)`, description: `A ação de ${action.toLowerCase()} para a OS ${osId} será implementada.`});
+      if (action === "Gerar Orçamento para") {
+        toast({ title: `${action} OS ${osId} (Simulado)`, description: `A OS ${osId} seria associada a um novo orçamento ou um existente.`});
+        // Idealmente, redirecionaria para /dashboard/orcamentos/novo?osId=${osId}
+      } else {
+        toast({ title: `${action} OS ${osId} (Simulado)`, description: `A ação de ${action.toLowerCase()} para a OS ${osId} será implementada.`});
+      }
   };
 
 
@@ -243,10 +302,9 @@ export default function ServicosPage() {
                     <TableCell className="text-right">{os.valorEstimado > 0 ? os.valorEstimado.toFixed(2) : "-"}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" asChild title="Visualizar Detalhes">
-                        {/* No futuro: <Link href={`/dashboard/servicos/${os.id}`}> */}
-                        <span onClick={() => handleAction("Visualizar", os.id)} className="cursor-pointer">
+                        <Link href={`/dashboard/servicos/${os.id}`}>
                           <Eye className="h-4 w-4" />
-                        </span>
+                        </Link>
                       </Button>
                       <Button variant="ghost" size="icon" title="Editar OS" onClick={() => handleAction("Editar", os.id)}>
                         <Edit className="h-4 w-4" />
