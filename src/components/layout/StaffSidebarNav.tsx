@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -15,6 +16,7 @@ import {
   ListChecks,
   Globe,
   LogOut,
+  Settings, // Ícone para Configurações
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
@@ -29,6 +31,7 @@ const navItems = [
   { href: '/dashboard/funcionarios', label: 'Funcionários', icon: UserCog },
   { href: '/dashboard/agendamento', label: 'Agendamentos', icon: CalendarDays },
   { href: '/dashboard/checklists', label: 'Checklists', icon: ListChecks },
+  { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings }, // Novo item
   { href: '/portal', label: 'Portal do Cliente', icon: Globe, target: "_blank" },
 ];
 
@@ -75,3 +78,5 @@ export function StaffSidebarNav() {
     </div>
   );
 }
+
+    
