@@ -93,10 +93,9 @@ const navItems: NavItemEntry[] = [
 export function StaffSidebarNav() {
   const pathname = usePathname();
 
+  // Default to no items open
   const defaultOpenAccordionItems = React.useMemo(() => {
-    return navItems
-      .filter(item => item.subItems && item.subItems.length > 0)
-      .map(item => item.id);
+    return [];
   }, []);
 
   return (
@@ -116,7 +115,7 @@ export function StaffSidebarNav() {
                   <AccordionTrigger
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground [&[data-state=open]>svg.lucide-chevron-down]:rotate-180',
-                      'uppercase font-semibold text-sm', // Added for styling
+                      'uppercase font-semibold text-sm', 
                       isParentActive && 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
                     )}
                   >
@@ -134,7 +133,7 @@ export function StaffSidebarNav() {
                             target={subItem.target}
                             className={cn(
                               'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground',
-                              'text-sm', // Sub-items remain text-sm
+                              'text-sm', 
                               isActiveSubItem && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
                             )}
                           >
@@ -155,7 +154,7 @@ export function StaffSidebarNav() {
                 target={item.target}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground',
-                  'uppercase font-semibold text-sm', // Added for styling
+                  'uppercase font-semibold text-sm', 
                   pathname === item.href && 'bg-sidebar-primary text-sidebar-primary-foreground',
                   'my-0.5'
                 )}
@@ -172,7 +171,7 @@ export function StaffSidebarNav() {
             href="/"
             className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground',
-                'text-sm' // Ensure logout also has consistent sizing if needed
+                'text-sm' 
             )}
             >
             <LogOut className="h-4 w-4" />
