@@ -21,11 +21,16 @@ import {
   FileSpreadsheet,
   FileArchive, // Icon for NF-e
   ShoppingCart, // Icon for PDV
+  Edit,
+  Save,
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import React from 'react';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+
 
 type NavSubItem = {
   href: string;
@@ -92,18 +97,42 @@ const navItems: NavItemEntry[] = [
 
 export function StaffSidebarNav() {
   const pathname = usePathname();
+  const { toast } = useToast();
+  const [isEditingOrder, setIsEditingOrder] = useState(false);
 
   // Default to no items open
   const defaultOpenAccordionItems = React.useMemo(() => {
     return [];
   }, []);
 
+  const toggleEditOrder = () => {
+    if (isEditingOrder) {
+      // Simulate saving
+      toast({
+        title: "Ordem Salva (Simulado)",
+        description: "A nova ordem dos menus foi salva (simulação).",
+      });
+    } else {
+      toast({
+        title: "Modo de Edição de Ordem Ativado",
+        description: "A funcionalidade de arrastar e soltar para reordenar está em desenvolvimento. Por enquanto, a ordem pode ser ajustada no código.",
+        duration: 5000,
+      });
+    }
+    setIsEditingOrder(!isEditingOrder);
+  };
+
+
   return (
     <div className="flex h-full max-h-screen flex-col text-sidebar-foreground">
-      <div className="flex h-16 items-center border-b border-sidebar-border px-4 lg:px-6">
+      <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4 lg:px-6">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
           <Logo />
         </Link>
+        <Button variant="ghost" size="icon" onClick={toggleEditOrder} className="text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent" title={isEditingOrder ? "Salvar Ordem" : "Editar Ordem dos Menus"}>
+          {isEditingOrder ? <Save className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+          <span className="sr-only">{isEditingOrder ? "Salvar Ordem" : "Editar Ordem dos Menus"}</span>
+        </Button>
       </div>
       <ScrollArea className="flex-1 py-4">
         <Accordion type="multiple" defaultValue={defaultOpenAccordionItems} className="w-full px-2 text-sm lg:px-4">
