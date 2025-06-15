@@ -19,12 +19,18 @@ import {
   LogOut,
   Settings,
   FileSpreadsheet,
-  FileArchive, 
-  ShoppingCart, 
+  FileArchive,
+  ShoppingCart,
   Edit,
   Save,
   ArrowUp,
   ArrowDown,
+  ClipboardList, // Novo para Operacional
+  LogIn, // Novo para Entrada de Veículo
+  ListOrdered, // Novo para Catálogo de Serviços
+  DollarSign, // Para Nova Transação Financeira
+  TrendingUp, // Para Fluxo de Caixa
+  FileText, // Para Relatórios Financeiros
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
@@ -50,54 +56,50 @@ type NavItemEntry = {
   subItems?: NavSubItem[];
 };
 
-// Default order of navigation items.
-// To customize the default order, reorder the objects within this 'initialNavItems' array.
 const initialNavItems: NavItemEntry[] = [
   { id: 'painel', href: '/dashboard', label: 'Painel Principal', icon: LayoutDashboard },
   {
-    id: 'gestao-oficina',
-    label: 'Gestão da Oficina',
-    icon: Wrench,
+    id: 'operacional',
+    label: 'OPERACIONAL',
+    icon: ClipboardList,
+    subItems: [
+      { href: '/dashboard/operacional/nova-entrada', label: 'Nova Entrada de Veículo', icon: LogIn },
+      { href: '/dashboard/servicos', label: 'Ordens de Serviço', icon: Wrench },
+      { href: '/dashboard/orcamentos', label: 'Orçamentos', icon: FileSpreadsheet },
+      { href: '/dashboard/pdv', label: 'PDV - Venda Balcão', icon: ShoppingCart },
+      { href: '/dashboard/agendamento', label: 'Agendamentos Oficina', icon: CalendarDays },
+    ],
+  },
+  {
+    id: 'cadastros',
+    label: 'CADASTROS',
+    icon: Users,
     subItems: [
       { href: '/dashboard/clientes', label: 'Clientes', icon: Users },
       { href: '/dashboard/veiculos', label: 'Veículos', icon: Car },
-      { href: '/dashboard/agendamento', label: 'Agendamentos', icon: CalendarDays },
-      { href: '/dashboard/orcamentos', label: 'Orçamentos', icon: FileSpreadsheet },
-      { href: '/dashboard/servicos', label: 'Serviços (OS)', icon: Wrench },
-      { href: '/dashboard/checklists', label: 'Checklists', icon: ListChecks },
-    ],
-  },
-  {
-    id: 'vendas',
-    label: 'Vendas',
-    icon: ShoppingCart,
-    subItems: [
-      { href: '/dashboard/pdv', label: 'PDV - Venda Balcão', icon: ShoppingCart },
-    ],
-  },
-  {
-    id: 'gestao-recursos',
-    label: 'Gestão de Recursos',
-    icon: Package,
-    subItems: [
-      { href: '/dashboard/produtos', label: 'Produtos/Estoque', icon: Package },
+      { href: '/dashboard/produtos', label: 'Produtos & Estoque', icon: Package },
+      { href: '/dashboard/cadastros/catalogo-servicos', label: 'Catálogo de Serviços', icon: ListOrdered },
+      { href: '/dashboard/checklists', label: 'Modelos de Checklist', icon: ListChecks },
       { href: '/dashboard/funcionarios', label: 'Funcionários', icon: UserCog },
     ],
   },
   {
-    id: 'administracao',
-    label: 'Administração',
-    icon: Settings,
+    id: 'financeiro',
+    label: 'FINANCEIRO',
+    icon: Landmark,
     subItems: [
-      { href: '/dashboard/financeiro', label: 'Financeiro', icon: Landmark },
-      { href: '/dashboard/financeiro/notas-fiscais', label: 'Gerenciar NF-e', icon: FileArchive },
-      { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings },
-    ],
+        { href: '/dashboard/financeiro', label: 'Visão Geral', icon: Landmark },
+        { href: '/dashboard/financeiro/transacoes/nova', label: 'Nova Transação', icon: DollarSign },
+        { href: '/dashboard/financeiro/fluxo-caixa', label: 'Fluxo de Caixa', icon: TrendingUp },
+        { href: '/dashboard/financeiro/notas-fiscais', label: 'Gerenciar NF-e', icon: FileArchive },
+        { href: '/dashboard/financeiro/relatorios', label: 'Relatórios', icon: FileText },
+    ]
   },
-  { id: 'portal', href: '/portal', label: 'Portal do Cliente', icon: Globe, target: "_blank" },
+  { id: 'configuracoes', href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings },
+  { id: 'portal_cliente', href: '/portal', label: 'Portal do Cliente', icon: Globe, target: "_blank" },
 ];
 
-const LOCAL_STORAGE_KEY = 'mecAgilSidebarOrder';
+const LOCAL_STORAGE_KEY = 'mecAgilSidebarOrder_v2'; // Use a new key if structure changes significantly
 
 export function StaffSidebarNav() {
   const pathname = usePathname();
@@ -120,13 +122,20 @@ export function StaffSidebarNav() {
             initialItemsMap.delete(id);
           }
         });
-        // Add any new items not in the saved order to the end
-        initialItemsMap.forEach(item => newOrderedItems.push(item));
+        // Add any new items (not in saved order) to the end, preserving their relative order from initialNavItems
+        initialNavItems.forEach(initialItem => {
+          if (initialItemsMap.has(initialItem.id)) {
+            newOrderedItems.push(initialItem);
+          }
+        });
         setOrderedNavItems(newOrderedItems);
       } catch (error) {
         console.error("Failed to parse saved sidebar order:", error);
         localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear invalid data
+        setOrderedNavItems(initialNavItems); // Fallback to default
       }
+    } else {
+        setOrderedNavItems(initialNavItems); // No saved order, use default
     }
   }, []);
 
@@ -136,7 +145,6 @@ export function StaffSidebarNav() {
 
   const handleToggleEditOrder = () => {
     if (isEditingOrder) {
-      // Save the current order to localStorage
       const currentOrderIds = orderedNavItems.map(item => item.id);
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentOrderIds));
       toast({
@@ -175,11 +183,11 @@ export function StaffSidebarNav() {
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
           <Logo />
         </Link>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handleToggleEditOrder} 
-          className="text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent" 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleToggleEditOrder}
+          className="text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
           title={isEditingOrder ? "Salvar Ordem dos Menus" : "Editar Ordem dos Menus"}
         >
           {isEditingOrder ? <Save className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
@@ -198,19 +206,19 @@ export function StaffSidebarNav() {
 
             const reorderControls = isEditingOrder && (
               <div className="flex items-center">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={(e) => { e.stopPropagation(); moveItem(index, 'up'); }} 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => { e.stopPropagation(); moveItem(index, 'up'); }}
                   disabled={index === 0}
                   className="h-7 w-7 text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent disabled:opacity-30"
                 >
                   <ArrowUp className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={(e) => { e.stopPropagation(); moveItem(index, 'down'); }} 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => { e.stopPropagation(); moveItem(index, 'down'); }}
                   disabled={index === orderedNavItems.length - 1}
                   className="h-7 w-7 text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent disabled:opacity-30"
                 >
@@ -226,7 +234,7 @@ export function StaffSidebarNav() {
                   <AccordionTrigger
                     className={cn(
                       'flex items-center gap-0 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground [&[data-state=open]>svg.lucide-chevron-down]:rotate-180',
-                      'uppercase font-semibold text-sm', 
+                      'uppercase font-semibold text-sm',
                       isParentActive && 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
                     )}
                   >
@@ -244,7 +252,7 @@ export function StaffSidebarNav() {
                             target={subItem.target}
                             className={cn(
                               'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground',
-                              'text-sm', 
+                              'text-sm',
                               isActiveSubItem && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
                             )}
                           >
@@ -258,12 +266,13 @@ export function StaffSidebarNav() {
                 </AccordionItem>
               );
             }
+            // Render direct links
             return (
               <div key={item.id} className={cn(
                 'flex items-center justify-between gap-0 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground',
-                'uppercase font-semibold text-sm', 
+                'uppercase font-semibold text-sm',
                 pathname === item.href && 'bg-sidebar-primary text-sidebar-primary-foreground',
-                'my-0.5' // consistent margin for direct links
+                'my-0.5'
               )}>
                 <Link
                   href={item.href!}
@@ -283,7 +292,7 @@ export function StaffSidebarNav() {
             href="/"
             className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground',
-                'text-sm' 
+                'text-sm'
             )}
             >
             <LogOut className="h-4 w-4" />
@@ -293,6 +302,3 @@ export function StaffSidebarNav() {
     </div>
   );
 }
-    
-
-    
