@@ -43,6 +43,8 @@ type NavItemEntry = {
   subItems?: NavSubItem[];
 };
 
+// IMPORTANT: To customize the order of the main menu items,
+// simply reorder the objects within this 'navItems' array.
 const navItems: NavItemEntry[] = [
   { id: 'painel', href: '/dashboard', label: 'Painel Principal', icon: LayoutDashboard },
   {
@@ -105,7 +107,7 @@ export function StaffSidebarNav() {
         </Link>
       </div>
       <ScrollArea className="flex-1 py-4">
-        <Accordion type="multiple" defaultValue={defaultOpenAccordionItems} className="w-full px-2 text-sm font-medium lg:px-4">
+        <Accordion type="multiple" defaultValue={defaultOpenAccordionItems} className="w-full px-2 text-sm lg:px-4">
           {navItems.map((item) => {
             if (item.subItems) {
               const isParentActive = item.subItems.some(subItem => pathname === subItem.href || pathname.startsWith(subItem.href + '/'));
@@ -114,6 +116,7 @@ export function StaffSidebarNav() {
                   <AccordionTrigger
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground [&[data-state=open]>svg.lucide-chevron-down]:rotate-180',
+                      'uppercase font-semibold text-sm', // Added for styling
                       isParentActive && 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
                     )}
                   >
@@ -131,6 +134,7 @@ export function StaffSidebarNav() {
                             target={subItem.target}
                             className={cn(
                               'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground',
+                              'text-sm', // Sub-items remain text-sm
                               isActiveSubItem && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
                             )}
                           >
@@ -151,6 +155,7 @@ export function StaffSidebarNav() {
                 target={item.target}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground',
+                  'uppercase font-semibold text-sm', // Added for styling
                   pathname === item.href && 'bg-sidebar-primary text-sidebar-primary-foreground',
                   'my-0.5'
                 )}
@@ -166,7 +171,8 @@ export function StaffSidebarNav() {
          <Link
             href="/"
             className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground'
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground',
+                'text-sm' // Ensure logout also has consistent sizing if needed
             )}
             >
             <LogOut className="h-4 w-4" />
