@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckSquare, PlusCircle, FileText } from "lucide-react";
+import { CheckSquare, PlusCircle, FileText, Edit } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,12 +57,14 @@ export default function ChecklistsPage() {
                           <FileText className="mr-1 h-3 w-3" /> Visualizar
                         </Link>
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(checklist.id)}>Editar</Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditClick(checklist.id)}>
+                        <Edit className="mr-1 h-3 w-3" /> Editar
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      {checklist.items} itens | Último uso: {checklist.lastUsed}
+                      {checklist.items} itens | Último uso: {new Date(checklist.lastUsed).toLocaleDateString('pt-BR', {year: 'numeric', month: '2-digit', day: '2-digit'})}
                     </p>
                   </CardContent>
                 </Card>
@@ -70,6 +72,7 @@ export default function ChecklistsPage() {
             </div>
           ) : (
             <div className="p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
+              <CheckSquare className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
               <p className="mb-2">Nenhum modelo de checklist cadastrado.</p>
               <p>Clique em "Criar Novo Checklist" para começar.</p>
             </div>
