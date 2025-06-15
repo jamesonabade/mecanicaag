@@ -41,8 +41,9 @@ import {
   PackageSearch,
   CalendarClock, 
   Send, 
-  Search, // Ícone para busca
-  Filter // Ícone para filtro
+  Search, 
+  Filter,
+  Link2 // For Google Calendar link
 } from "lucide-react";
 
 
@@ -213,6 +214,13 @@ export default function DashboardPage() {
       description: "Opções de filtro de estoque serão implementadas aqui.",
     });
     // Futuramente: abrir um modal/popover com opções de filtro
+  };
+
+  const handleConnectGoogleCalendar = () => {
+    toast({
+      title: "Integração com Google Agenda",
+      description: "Funcionalidade de conexão com Google Agenda em desenvolvimento.",
+    });
   };
 
 
@@ -445,9 +453,9 @@ const lembretesRevisaoCard = (
     <Card className="shadow-xl border-2 border-primary/30">
       <CardHeader>
         <CardTitle className="font-headline text-xl">
-          Calendário de Agendamentos
+          Calendário de Serviços (Integrado com Google Agenda - Simulação)
         </CardTitle>
-        <CardDescription>Selecione uma data para ver os compromissos.</CardDescription>
+        <CardDescription>Selecione uma data para ver os compromissos. Conecte sua agenda para sincronizar.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 flex justify-center">
         <Calendar
@@ -478,6 +486,11 @@ const lembretesRevisaoCard = (
           }}
         />
       </CardContent>
+      <CardFooter className="border-t pt-4">
+        <Button variant="outline" onClick={handleConnectGoogleCalendar} className="w-full">
+          <Link2 className="mr-2 h-4 w-4" /> Conectar com Google Agenda (Em Breve)
+        </Button>
+      </CardFooter>
     </Card>
   );
 
@@ -527,7 +540,7 @@ const lembretesRevisaoCard = (
   );
   
   const calendarAndAppointmentsSection = (
-     <div className="grid grid-cols-1 gap-6"> {/* Alterado para coluna única */}
+     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> {/* Adjusted for better layout on larger screens */}
         {calendarCard}
         {appointmentsCard}
     </div>
@@ -617,10 +630,9 @@ const lembretesRevisaoCard = (
                 <h1 className="text-2xl font-headline font-semibold md:text-3xl">Painel de Gestão - Mecânica Ágil</h1>
                 <p className="text-sm text-muted-foreground">Bem-vindo de volta! Aqui está um resumo da sua oficina.</p>
             </div>
-            <div className="flex gap-2 flex-wrap w-full sm:w-auto items-center"> {/* Alterado para items-center */}
+            <div className="flex gap-2 flex-wrap w-full sm:w-auto items-center">
                 <Button variant="outline" size="sm" asChild><Link href="/dashboard/agendamento/novo"><CalendarDays className="mr-2 h-4 w-4"/>Agendar Cliente</Link></Button>
                 <Button size="sm" asChild><Link href="/dashboard/servicos/novo"><Wrench className="mr-2 h-4 w-4"/>Nova Ordem de Serviço</Link></Button>
-                {/* Barra de Busca Estoque */}
                 <form onSubmit={handleSearchEstoque} className="flex gap-1 items-center">
                   <Input
                     type="search"
@@ -648,11 +660,12 @@ const lembretesRevisaoCard = (
           {financialKpiData.map(financialKpiCardComponent)}
         </div>
         
+        {calendarAndAppointmentsSection} {/* Moved calendar section here */}
+
         {contasAPagarAlertsCard}
         {lembretesRevisaoCard}
 
         {mainChartSection}
-        {calendarAndAppointmentsSection}
         {tablesSection}
         
         <Card className="shadow-lg bg-gradient-to-r from-primary/80 to-accent/80 text-primary-foreground p-6 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -669,5 +682,3 @@ const lembretesRevisaoCard = (
     </ScrollArea>
   );
 }
-
-    
