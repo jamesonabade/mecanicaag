@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight } from "lucide-react";
@@ -22,7 +22,7 @@ import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight } from "lu
 // --- Schemas e Tipos (Replicados/Adaptados de /clientes/novo e /veiculos/novo) ---
 
 const estadosBrasil = [
-  { value: "AC", label: "Acre" }, { value: "AL", label: "Alagoas" }, // ... (restante dos estados)
+  { value: "AC", label: "Acre" }, { value: "AL", label: "Alagoas" },
   { value: "AP", label: "Amapá" }, { value: "AM", label: "Amazonas" }, { value: "BA", label: "Bahia" },
   { value: "CE", label: "Ceará" }, { value: "DF", label: "Distrito Federal" }, { value: "ES", label: "Espírito Santo" },
   { value: "GO", label: "Goiás" }, { value: "MA", label: "Maranhão" }, { value: "MT", label: "Mato Grosso" },
@@ -426,3 +426,4 @@ export default function NovaEntradaVeiculoPage() {
     </div>
   );
 }
+
