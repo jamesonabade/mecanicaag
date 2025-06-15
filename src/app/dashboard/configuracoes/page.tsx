@@ -144,7 +144,7 @@ export default function ConfiguracoesPage() {
         </h1>
       </div>
 
-      <Accordion type="multiple" defaultValue={["general-settings", "alert-settings"]} className="w-full space-y-4">
+      <Accordion type="multiple" defaultValue={[]} className="w-full space-y-4">
         <AccordionItem value="general-settings">
           <Card className="shadow-lg">
             <AccordionTrigger className="p-0 hover:no-underline">
@@ -153,8 +153,6 @@ export default function ConfiguracoesPage() {
                         <CardTitle className="flex items-center gap-2"><Building className="h-5 w-5 text-primary"/> Configurações Gerais da Oficina</CardTitle>
                         <CardDescription>Informações básicas da sua oficina e preferências globais.</CardDescription>
                     </div>
-                    {/* AccordionTrigger already adds a chevron, so this one can be removed if preferred */}
-                    {/* <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" /> */}
                 </CardHeader>
             </AccordionTrigger>
             <AccordionContent>
@@ -401,6 +399,8 @@ export default function ConfiguracoesPage() {
     </div>
   );
 }
+    
+
     
 
     
