@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent } from "lucide-react";
+import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 // Mock data - reutilizar/importar de um local centralizado no futuro
@@ -41,9 +41,31 @@ const mockVeiculos = [
   { id: "vec003", clienteId: "cli002", modelo: "Toyota Corolla", placa: "GHI-9012" },
 ];
 
+// Catálogo de Serviços Pré-Cadastrados (mesmo mock da página de Nova OS)
+interface TipoServicoPadrao {
+  id: string;
+  nome: string;
+  descricaoCurta?: string;
+  valorPadrao?: number;
+  checklistModeloIdObrigatorio?: string;
+  nomeChecklistObrigatorio?: string;
+  categoria?: string;
+}
+const mockTiposServicoPadrao: TipoServicoPadrao[] = [
+  { id: "rev_simples", nome: "Revisão Simples (Óleo + Filtros)", valorPadrao: 250, checklistModeloIdObrigatorio: "chk003", nomeChecklistObrigatorio: "Checklist de Troca de Óleo", categoria: "Revisão" },
+  { id: "rev_completa", nome: "Revisão Completa (Preventiva)", valorPadrao: 650, checklistModeloIdObrigatorio: "chk001", nomeChecklistObrigatorio: "Checklist de Inspeção Pré-Serviço", categoria: "Revisão" },
+  { id: "troca_oleo", nome: "Troca de Óleo e Filtro de Óleo", valorPadrao: 180, checklistModeloIdObrigatorio: "chk003", nomeChecklistObrigatorio: "Checklist de Troca de Óleo", categoria: "Mecânica Geral" },
+  { id: "freio_diant", nome: "Serviço Freios Dianteiros (Pastilhas)", valorPadrao: 220, categoria: "Mecânica Geral" },
+  { id: "diag_scanner", nome: "Diagnóstico com Scanner", valorPadrao: 150, categoria: "Diagnóstico" },
+  { id: "alinh_balanc", nome: "Alinhamento e Balanceamento (4 rodas)", valorPadrao: 120, categoria: "Mecânica Geral" },
+  { id: "outro_serv", nome: "Outro Serviço (Manual)", valorPadrao: 0, categoria: "Diversos"},
+];
+
+
 // Schemas para itens e formulário principal
 const orcamentoItemServicoSchema = z.object({
   id: z.string().optional(),
+  servicoId: z.string().optional(), // ID do serviço pré-cadastrado, se houver
   descricao: z.string().min(3, "Descrição do serviço (mín. 3 caracteres)."),
   valor: z.coerce.number().min(0, "Valor do serviço deve ser positivo ou zero."),
 });
@@ -67,6 +89,7 @@ const orcamentoFormSchema = z.object({
   pecas: z.array(orcamentoItemPecaSchema).optional(),
   observacoes: z.string().optional(),
   descontoValor: z.coerce.number().min(0).optional().default(0),
+  servicoPreCadastradoSelecionado: z.string().optional(), // Campo auxiliar para o select de serviço
 }).refine(data => (data.servicos && data.servicos.length > 0) || (data.pecas && data.pecas.length > 0), {
   message: "Adicione pelo menos um serviço ou peça ao orçamento.",
   path: ["servicos"], 
@@ -83,14 +106,15 @@ export default function NovoOrcamentoPage() {
       veiculoId: "",
       dataOrcamento: new Date(),
       validadeDias: 7,
-      servicos: [{ id: crypto.randomUUID(), descricao: "", valor: 0 }],
+      servicos: [], // Começa vazio, usuário adiciona
       pecas: [],
       observacoes: "",
       descontoValor: 0,
+      servicoPreCadastradoSelecionado: "",
     },
   });
 
-  const { fields: servicoFields, append: appendServico, remove: removeServico } = useFieldArray({
+  const { fields: servicoFields, append: appendServico, remove: removeServico, update: updateServico } = useFieldArray({
     control: form.control,
     name: "servicos",
   });
@@ -115,6 +139,28 @@ export default function NovoOrcamentoPage() {
   const watchServicos = form.watch("servicos");
   const watchPecas = form.watch("pecas");
   const watchDesconto = form.watch("descontoValor");
+  const watchServicoPreCadastrado = form.watch("servicoPreCadastradoSelecionado");
+
+
+  React.useEffect(() => {
+    if (watchServicoPreCadastrado) {
+      const servico = mockTiposServicoPadrao.find(s => s.id === watchServicoPreCadastrado);
+      if (servico && servico.id !== "outro_serv") { // Não adiciona "Outro" automaticamente
+        const novoServico: OrcamentoItemServicoValues = {
+            id: crypto.randomUUID(),
+            servicoId: servico.id,
+            descricao: servico.nome,
+            valor: servico.valorPadrao || 0,
+        };
+        appendServico(novoServico);
+        form.setValue("servicoPreCadastradoSelecionado", ""); // Reseta o select
+      } else if (servico && servico.id === "outro_serv") {
+         appendServico({ id: crypto.randomUUID(), servicoId: "outro_serv", descricao: "", valor: 0 });
+         form.setValue("servicoPreCadastradoSelecionado", ""); // Reseta o select
+      }
+    }
+  }, [watchServicoPreCadastrado, appendServico, form]);
+
 
   const totalServicos = React.useMemo(() => {
     return watchServicos?.reduce((acc, servico) => acc + (servico.valor || 0), 0) || 0;
@@ -239,21 +285,42 @@ export default function NovoOrcamentoPage() {
               <CardDescription>Adicione os serviços a serem realizados.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+               <FormField
+                  control={form.control}
+                  name="servicoPreCadastradoSelecionado"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1"><ListPlus className="h-4 w-4"/> Adicionar Serviço Pré-Cadastrado</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Selecione um serviço para adicionar..." /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {mockTiposServicoPadrao.map(serv => (
+                            <SelectItem key={serv.id} value={serv.id}>
+                              {serv.nome} {serv.valorPadrao ? `(R$ ${serv.valorPadrao.toFixed(2)})` : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>Selecionar um serviço aqui o adicionará à lista abaixo. "Outro Serviço" adiciona um item em branco.</FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+              {servicoFields.length > 0 && <Separator className="my-4" />}
+
               {servicoFields.map((item, index) => (
                 <div key={item.id} className="p-4 border rounded-md space-y-3 bg-muted/30 relative">
                   <div className="flex justify-between items-center">
                     <FormLabel className="font-semibold">Serviço {index + 1}</FormLabel>
-                    {servicoFields.length > 1 && (
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removeServico(index)} className="text-destructive hover:text-destructive absolute top-2 right-2 h-7 w-7">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    )}
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeServico(index)} className="text-destructive hover:text-destructive absolute top-2 right-2 h-7 w-7">
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                   <FormField control={form.control} name={`servicos.${index}.descricao`}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Descrição do Serviço*</FormLabel>
-                        <FormControl><Input placeholder="Ex: Troca de pastilhas de freio dianteiras" {...field} /></FormControl>
+                        <FormControl><Input placeholder="Ex: Troca de pastilhas de freio dianteiras" {...field} disabled={item.servicoId !== undefined && item.servicoId !== "outro_serv"} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -269,8 +336,11 @@ export default function NovoOrcamentoPage() {
                   />
                 </div>
               ))}
+              {servicoFields.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-2">Nenhum serviço adicionado. Use o seletor acima ou adicione um serviço manual.</p>
+              )}
               <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => appendServico({ id: crypto.randomUUID(), descricao: "", valor: 0 })}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Serviço
+                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Serviço Manualmente
               </Button>
                <FormMessage>{form.formState.errors.servicos?.message || form.formState.errors.servicos?.root?.message}</FormMessage>
             </CardContent>

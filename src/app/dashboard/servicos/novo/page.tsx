@@ -45,18 +45,28 @@ const mockMecanicos = [
   { id: "mec002", nome: "Pedro Henrique" },
 ];
 
-const tiposServico = [
-    {value: "revisao_periodica", label: "Revisão Periódica"},
-    {value: "troca_oleo_filtros", label: "Troca de Óleo e Filtros"},
-    {value: "servico_freios", label: "Serviço de Freios"},
-    {value: "servico_suspensao", label: "Serviço de Suspensão"},
-    {value: "motor", label: "Motor"},
-    {value: "cambio", label: "Câmbio"},
-    {value: "eletrica", label: "Elétrica"},
-    {value: "diagnostico", label: "Diagnóstico Geral"},
-    {value: "alinhamento_balanceamento", label: "Alinhamento e Balanceamento"},
-    {value: "pneus", label: "Pneus"},
-    {value: "outro", label: "Outro (descrever)"},
+// Novo Mock para Serviços Pré-Cadastrados
+interface TipoServicoPadrao {
+  id: string;
+  nome: string;
+  descricaoCurta?: string;
+  valorPadrao?: number;
+  tempoEstimadoHoras?: number;
+  checklistModeloIdObrigatorio?: string;
+  nomeChecklistObrigatorio?: string; // Nome do checklist para exibição
+  categoria?: 'Mecânica Geral' | 'Elétrica' | 'Funilaria' | 'Revisão' | 'Diagnóstico';
+}
+
+const mockTiposServicoPadrao: TipoServicoPadrao[] = [
+  { id: "rev_simples", nome: "Revisão Simples (Óleo + Filtros)", valorPadrao: 250, checklistModeloIdObrigatorio: "chk003", nomeChecklistObrigatorio: "Checklist de Troca de Óleo", categoria: "Revisão" },
+  { id: "rev_completa", nome: "Revisão Completa (Preventiva)", valorPadrao: 650, checklistModeloIdObrigatorio: "chk001", nomeChecklistObrigatorio: "Checklist de Inspeção Pré-Serviço", categoria: "Revisão" },
+  { id: "troca_oleo", nome: "Troca de Óleo e Filtro de Óleo", valorPadrao: 180, checklistModeloIdObrigatorio: "chk003", nomeChecklistObrigatorio: "Checklist de Troca de Óleo", categoria: "Mecânica Geral" },
+  { id: "freio_diant", nome: "Serviço Freios Dianteiros (Pastilhas)", valorPadrao: 220, categoria: "Mecânica Geral" },
+  { id: "diag_scanner", nome: "Diagnóstico com Scanner", valorPadrao: 150, categoria: "Diagnóstico" },
+  { id: "alinh_balanc", nome: "Alinhamento e Balanceamento (4 rodas)", valorPadrao: 120, categoria: "Mecânica Geral" },
+  {id: "eletrica_basica", nome: "Verificação Elétrica Básica", valorPadrao: 90, categoria: "Elétrica"},
+  {id: "susp_check", nome: "Diagnóstico de Suspensão", valorPadrao: 100, categoria: "Mecânica Geral"},
+  {id: "outro", nome: "Outro (Descrever Manualmente)", valorPadrao: 0, categoria: "Mecânica Geral"},
 ];
 
 
@@ -64,7 +74,7 @@ const osFormSchema = z.object({
   clienteId: z.string({ required_error: "Selecione um cliente." }),
   veiculoId: z.string({ required_error: "Selecione um veículo." }),
   mecanicoId: z.string().optional(),
-  tipoServico: z.string({ required_error: "Selecione o tipo de serviço." }),
+  tipoServicoId: z.string({ required_error: "Selecione o tipo de serviço." }), // Mudado para tipoServicoId
   descricaoProblema: z.string().min(10, { message: "Descreva o problema com pelo menos 10 caracteres." }),
   servicosPecasPlanejadas: z.string().optional(),
   valorEstimado: z.coerce.number().min(0, {message: "Valor estimado deve ser positivo."}).optional(),
@@ -84,7 +94,7 @@ export default function NovaOrdemServicoPage() {
       clienteId: "",
       veiculoId: "",
       mecanicoId: "",
-      tipoServico: "",
+      tipoServicoId: "", // Mudado para tipoServicoId
       descricaoProblema: "",
       servicosPecasPlanejadas: "",
       valorEstimado: undefined,
@@ -96,25 +106,57 @@ export default function NovaOrdemServicoPage() {
   });
 
   const [veiculosCliente, setVeiculosCliente] = React.useState<typeof mockVeiculos>([]);
+  const [checklistRecomendado, setChecklistRecomendado] = React.useState<string | null>(null);
 
   const selectedClienteId = form.watch("clienteId");
+  const selectedTipoServicoId = form.watch("tipoServicoId");
 
   React.useEffect(() => {
     if (selectedClienteId) {
       setVeiculosCliente(mockVeiculos.filter(v => v.clienteId === selectedClienteId));
-      form.setValue("veiculoId", ""); // Reset vehicle if client changes
+      form.setValue("veiculoId", ""); 
     } else {
       setVeiculosCliente([]);
     }
   }, [selectedClienteId, form]);
 
+  React.useEffect(() => {
+    if (selectedTipoServicoId) {
+      const servicoSelecionado = mockTiposServicoPadrao.find(s => s.id === selectedTipoServicoId);
+      if (servicoSelecionado) {
+        if (servicoSelecionado.valorPadrao !== undefined && servicoSelecionado.valorPadrao > 0) {
+          form.setValue("valorEstimado", servicoSelecionado.valorPadrao);
+        } else {
+          // Se não houver valor padrão ou for zero (como em "Outro"), limpa o campo ou deixa como está para edição manual
+           if (form.getValues("valorEstimado") === servicoSelecionado.valorPadrao) { // só limpa se o valor atual for igual ao valor padrão (zero)
+             form.setValue("valorEstimado", undefined);
+           }
+        }
+        if (servicoSelecionado.checklistModeloIdObrigatorio && servicoSelecionado.nomeChecklistObrigatorio) {
+          setChecklistRecomendado(`Checklist recomendado/obrigatório: ${servicoSelecionado.nomeChecklistObrigatorio} (ID: ${servicoSelecionado.checklistModeloIdObrigatorio})`);
+        } else {
+          setChecklistRecomendado(null);
+        }
+      } else {
+        setChecklistRecomendado(null);
+      }
+    } else {
+      setChecklistRecomendado(null);
+    }
+  }, [selectedTipoServicoId, form]);
+
+
   async function onSubmit(data: OsFormValues) {
-    console.log(data);
+    const servicoSelecionado = mockTiposServicoPadrao.find(s => s.id === data.tipoServicoId);
+    const dataToSubmit = {
+        ...data,
+        tipoServicoNome: servicoSelecionado?.nome || "N/A" // Adiciona o nome do serviço para log
+    }
+    console.log(dataToSubmit);
     toast({
       title: "Ordem de Serviço Criada (Simulado)",
       description: "A OS foi salva com sucesso (simulação).",
     });
-    // form.reset(); 
   }
 
   return (
@@ -193,7 +235,7 @@ export default function NovaOrdemServicoPage() {
               
               <FormField
                   control={form.control}
-                  name="tipoServico"
+                  name="tipoServicoId" // Mudado para tipoServicoId
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Serviço Principal*</FormLabel>
@@ -204,11 +246,14 @@ export default function NovaOrdemServicoPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {tiposServico.map(tipo => (
-                            <SelectItem key={tipo.value} value={tipo.value}>{tipo.label}</SelectItem>
+                          {mockTiposServicoPadrao.map(tipo => (
+                            <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome} {tipo.valorPadrao ? `(R$ ${tipo.valorPadrao.toFixed(2)})` : ''}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {checklistRecomendado && (
+                        <FormDescription className="text-blue-600">{checklistRecomendado}</FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -324,7 +369,7 @@ export default function NovaOrdemServicoPage() {
                     <FormControl>
                       <Textarea placeholder="Liste peças e serviços adicionais planejados para o orçamento inicial. Ex: 1x Filtro de óleo; 1x Alinhamento..." {...field} rows={4} />
                     </FormControl>
-                    <FormDescription>Este campo ajuda na elaboração do orçamento inicial.</FormDescription>
+                    <FormDescription>Este campo ajuda na elaboração do orçamento inicial. Será preenchido automaticamente se o serviço principal tiver itens vinculados no futuro.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
