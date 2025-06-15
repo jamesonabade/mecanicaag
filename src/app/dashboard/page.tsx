@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Car, DollarSign, Users, Wrench, ListChecks } from "lucide-react";
@@ -12,7 +13,7 @@ export default function DashboardPage() {
   ];
 
   const actionButtons = [
-    { label: "Novo Agendamento", icon: CalendarDays, href: "/dashboard/agendamento", variant: "default" as const},
+    { label: "Novo Agendamento", icon: CalendarDays, href: "/dashboard/agendamento/novo", variant: "default" as const}, // Atualizado para /novo se houver página
     { label: "Nova Ordem de Serviço", icon: Wrench, href: "/dashboard/servicos/novo", variant: "secondary" as const},
     { label: "Ver Checklists", icon: ListChecks, href: "/dashboard/checklists", variant: "outline" as const},
   ]
@@ -85,3 +86,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

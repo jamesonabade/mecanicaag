@@ -24,11 +24,13 @@ export default function ServicosPage() {
         </CardHeader>
         <CardContent>
           <div className="p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-            <p className="mb-2">Funcionalidade de Gestão de Serviços em desenvolvimento.</p>
-            <p>Aqui você poderá gerar orçamentos, emitir OS, controlar status e apontar horas.</p>
+            <p className="mb-2">A listagem de Ordens de Serviço será exibida aqui.</p>
+            <p>Você poderá filtrar, visualizar detalhes e gerenciar o status de cada OS.</p>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+
+    
