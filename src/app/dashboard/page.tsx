@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, isSameDay, parseISO, isPast, differenceInDays, addDays, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast"; // Importação adicionada
 
 import {
   DollarSign,
@@ -140,7 +141,7 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<typeof agendamentosMock>([]);
   const [contasAPagarAlertas, setContasAPagarAlertas] = useState<typeof contasAPagarAlertasMock>([]);
-  const { toast } = useToast(); // Adicionado para simular envio de lembrete
+  const { toast } = useToast(); 
 
   // Simulação das configurações de lembrete de revisão
   const [simulatedLembreteRevisaoAtivo, setSimulatedLembreteRevisaoAtivo] = useState(true);
