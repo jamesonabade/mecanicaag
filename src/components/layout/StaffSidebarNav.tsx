@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import type { LucideIcon } from 'lucide-react'; 
+import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +20,7 @@ import {
   Settings,
   FileSpreadsheet,
   FileArchive, // Icon for NF-e
+  ShoppingCart, // Icon for PDV
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
@@ -55,6 +56,14 @@ const navItems: NavItemEntry[] = [
       { href: '/dashboard/orcamentos', label: 'Orçamentos', icon: FileSpreadsheet },
       { href: '/dashboard/servicos', label: 'Serviços (OS)', icon: Wrench },
       { href: '/dashboard/checklists', label: 'Checklists', icon: ListChecks },
+    ],
+  },
+  {
+    id: 'vendas',
+    label: 'Vendas',
+    icon: ShoppingCart,
+    subItems: [
+      { href: '/dashboard/pdv', label: 'PDV - Venda Balcão', icon: ShoppingCart },
     ],
   },
   {
@@ -141,7 +150,7 @@ export function StaffSidebarNav() {
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
                   pathname === item.href && 'bg-accent text-accent-foreground hover:text-accent-foreground hover:bg-accent/90',
-                  'my-0.5' 
+                  'my-0.5'
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -165,5 +174,4 @@ export function StaffSidebarNav() {
     </div>
   );
 }
-
     
