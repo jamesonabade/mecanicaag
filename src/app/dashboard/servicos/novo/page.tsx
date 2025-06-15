@@ -1,11 +1,12 @@
 
 "use client";
 
-import React from "react"; // Added React import
+import React, { useEffect } from "react"; // Adicionado useEffect
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation"; // Adicionado useSearchParams e useRouter
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -28,16 +29,29 @@ import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, CalendarIcon, Wrench, User, Car } from "lucide-react";
 
-// Mock data - substituir por chamadas de API no futuro
-const mockClientes = [
+// Mock data - Mover para um arquivo central no futuro
+interface Cliente {
+  id: string;
+  nome: string;
+  cpfCnpj: string;
+}
+interface Veiculo {
+  id: string;
+  clienteId: string;
+  modelo: string;
+  placa: string;
+  marca?: string;
+}
+
+const mockClientes: Cliente[] = [
   { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11" },
   { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22" },
 ];
 
-const mockVeiculos = [
-  { id: "vec001", clienteId: "cli001", modelo: "Honda Civic", placa: "ABC-1234" },
-  { id: "vec002", clienteId: "cli001", modelo: "Fiat Strada", placa: "DEF-5678" },
-  { id: "vec003", clienteId: "cli002", modelo: "Toyota Corolla", placa: "GHI-9012" },
+const mockVeiculos: Veiculo[] = [
+  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Honda Civic", placa: "ABC-1234" },
+  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Fiat Strada", placa: "DEF-5678" },
+  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Toyota Corolla", placa: "GHI-9012" },
 ];
 
 const mockMecanicos = [
@@ -45,7 +59,6 @@ const mockMecanicos = [
   { id: "mec002", nome: "Pedro Henrique" },
 ];
 
-// Novo Mock para Serviços Pré-Cadastrados
 interface TipoServicoPadrao {
   id: string;
   nome: string;
@@ -53,7 +66,7 @@ interface TipoServicoPadrao {
   valorPadrao?: number;
   tempoEstimadoHoras?: number;
   checklistModeloIdObrigatorio?: string;
-  nomeChecklistObrigatorio?: string; // Nome do checklist para exibição
+  nomeChecklistObrigatorio?: string; 
   categoria?: 'Mecânica Geral' | 'Elétrica' | 'Funilaria' | 'Revisão' | 'Diagnóstico';
 }
 
@@ -74,7 +87,7 @@ const osFormSchema = z.object({
   clienteId: z.string({ required_error: "Selecione um cliente." }),
   veiculoId: z.string({ required_error: "Selecione um veículo." }),
   mecanicoId: z.string().optional(),
-  tipoServicoId: z.string({ required_error: "Selecione o tipo de serviço." }), // Mudado para tipoServicoId
+  tipoServicoId: z.string({ required_error: "Selecione o tipo de serviço." }), 
   descricaoProblema: z.string().min(10, { message: "Descreva o problema com pelo menos 10 caracteres." }),
   servicosPecasPlanejadas: z.string().optional(),
   valorEstimado: z.coerce.number().min(0, {message: "Valor estimado deve ser positivo."}).optional(),
@@ -88,13 +101,16 @@ type OsFormValues = z.infer<typeof osFormSchema>;
 
 export default function NovaOrdemServicoPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const form = useForm<OsFormValues>({
     resolver: zodResolver(osFormSchema),
     defaultValues: {
       clienteId: "",
       veiculoId: "",
       mecanicoId: "",
-      tipoServicoId: "", // Mudado para tipoServicoId
+      tipoServicoId: "", 
       descricaoProblema: "",
       servicosPecasPlanejadas: "",
       valorEstimado: undefined,
@@ -105,18 +121,42 @@ export default function NovaOrdemServicoPage() {
     },
   });
 
-  const [veiculosCliente, setVeiculosCliente] = React.useState<typeof mockVeiculos>([]);
+  const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const [checklistRecomendado, setChecklistRecomendado] = React.useState<string | null>(null);
 
   const selectedClienteId = form.watch("clienteId");
   const selectedTipoServicoId = form.watch("tipoServicoId");
 
+   // Preencher cliente e veículo se vierem da query
+   useEffect(() => {
+    const queryClienteId = searchParams.get("clienteId");
+    const queryVeiculoId = searchParams.get("veiculoId");
+    const queryOrcamentoId = searchParams.get("orcamentoId"); // Para futura conversão de orçamento em OS
+
+    if (queryClienteId) {
+      form.setValue("clienteId", queryClienteId);
+    }
+    if (queryVeiculoId) {
+      form.setValue("veiculoId", queryVeiculoId);
+    }
+    if (queryOrcamentoId) {
+        // Lógica para carregar dados do orçamento e preencher o form da OS
+        toast({ title: "Info", description: `Carregando dados do orçamento ${queryOrcamentoId} para nova OS.`});
+    }
+  }, [searchParams, form, toast]);
+
+
   React.useEffect(() => {
     if (selectedClienteId) {
-      setVeiculosCliente(mockVeiculos.filter(v => v.clienteId === selectedClienteId));
-      form.setValue("veiculoId", ""); 
+      const clienteTemVeiculos = mockVeiculos.filter(v => v.clienteId === selectedClienteId);
+      setVeiculosCliente(clienteTemVeiculos);
+      const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === form.getValues("veiculoId"));
+      if (!veiculoAtualPertenceAoCliente) {
+         form.setValue("veiculoId", ""); 
+      }
     } else {
       setVeiculosCliente([]);
+       form.setValue("veiculoId", ""); 
     }
   }, [selectedClienteId, form]);
 
@@ -127,8 +167,7 @@ export default function NovaOrdemServicoPage() {
         if (servicoSelecionado.valorPadrao !== undefined && servicoSelecionado.valorPadrao > 0) {
           form.setValue("valorEstimado", servicoSelecionado.valorPadrao);
         } else {
-          // Se não houver valor padrão ou for zero (como em "Outro"), limpa o campo ou deixa como está para edição manual
-           if (form.getValues("valorEstimado") === servicoSelecionado.valorPadrao) { // só limpa se o valor atual for igual ao valor padrão (zero)
+           if (form.getValues("valorEstimado") === servicoSelecionado.valorPadrao) { 
              form.setValue("valorEstimado", undefined);
            }
         }
@@ -150,13 +189,14 @@ export default function NovaOrdemServicoPage() {
     const servicoSelecionado = mockTiposServicoPadrao.find(s => s.id === data.tipoServicoId);
     const dataToSubmit = {
         ...data,
-        tipoServicoNome: servicoSelecionado?.nome || "N/A" // Adiciona o nome do serviço para log
+        tipoServicoNome: servicoSelecionado?.nome || "N/A" 
     }
     console.log(dataToSubmit);
     toast({
       title: "Ordem de Serviço Criada (Simulado)",
       description: "A OS foi salva com sucesso (simulação).",
     });
+    // router.push("/dashboard/servicos"); // Redirecionar após salvar
   }
 
   return (
@@ -188,7 +228,7 @@ export default function NovaOrdemServicoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1"><User className="h-4 w-4" /> Cliente*</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o cliente" />
@@ -218,14 +258,14 @@ export default function NovaOrdemServicoPage() {
                         </FormControl>
                         <SelectContent>
                           {veiculosCliente.map(veiculo => (
-                            <SelectItem key={veiculo.id} value={veiculo.id}>{veiculo.modelo} - {veiculo.placa}</SelectItem>
+                            <SelectItem key={veiculo.id} value={veiculo.id}>{veiculo.marca} {veiculo.modelo} - {veiculo.placa}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
                        {selectedClienteId && veiculosCliente.length === 0 && (
                         <FormDescription className="text-xs text-orange-600">
-                          Este cliente não possui veículos cadastrados. <Link href="/dashboard/veiculos/novo" className="underline">Cadastrar veículo?</Link>
+                          Este cliente não possui veículos cadastrados. <Link href={`/dashboard/veiculos/novo?clienteId=${selectedClienteId}`} className="underline">Cadastrar veículo?</Link>
                         </FormDescription>
                       )}
                     </FormItem>
@@ -235,7 +275,7 @@ export default function NovaOrdemServicoPage() {
               
               <FormField
                   control={form.control}
-                  name="tipoServicoId" // Mudado para tipoServicoId
+                  name="tipoServicoId" 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Serviço Principal*</FormLabel>
@@ -466,3 +506,4 @@ export default function NovaOrdemServicoPage() {
     </div>
   );
 }
+

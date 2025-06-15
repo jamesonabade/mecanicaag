@@ -10,20 +10,33 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import React from "react"; // Import React
+import React from "react"; 
 
-// Mock de clientes e veículos (pode ser importado de um arquivo compartilhado no futuro)
-const mockClientes = [
-  { id: "cli001", nome: "João da Silva" },
-  { id: "cli002", nome: "Maria Oliveira" },
-  { id: "cli003", nome: "Carlos Pereira" },
+// Mock data - Mover para um arquivo central no futuro
+interface Cliente {
+  id: string;
+  nome: string;
+  cpfCnpj?: string; // Adicionado para consistência
+}
+interface Veiculo {
+  id: string;
+  clienteId: string;
+  modelo: string;
+  placa: string;
+  marca?: string; // Adicionado para consistência
+}
+
+const mockClientes: Cliente[] = [
+  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11" },
+  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22" },
+  { id: "cli003", nome: "Carlos Pereira", cpfCnpj: "333.333.333-33" },
 ];
 
-const mockVeiculos = [
-  { id: "vec001", clienteId: "cli001", modelo: "Honda Civic", placa: "ABC-1234" },
-  { id: "vec002", clienteId: "cli001", modelo: "Fiat Strada", placa: "DEF-5678" },
-  { id: "vec003", clienteId: "cli002", modelo: "Toyota Corolla", placa: "GHI-9012" },
-  { id: "vec004", clienteId: "cli003", modelo: "VW Nivus", placa: "JKL-3456" },
+const mockVeiculos: Veiculo[] = [
+  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234" },
+  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678" },
+  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012" },
+  { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456" },
 ];
 
 const mockOrcamentosData = [
@@ -71,20 +84,20 @@ export default function OrcamentosPage() {
   const getClienteNome = (clienteId: string) => mockClientes.find(c => c.id === clienteId)?.nome || "Desconhecido";
   const getVeiculoDescricao = (veiculoId: string) => {
     const veiculo = mockVeiculos.find(v => v.id === veiculoId);
-    return veiculo ? `${veiculo.modelo} (${veiculo.placa})` : "Desconhecido";
+    return veiculo ? `${veiculo.marca} ${veiculo.modelo} (${veiculo.placa})` : "Desconhecido";
   };
 
   const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case "Aprovado":
-        return "default"; // Normalmente verde, mas 'default' é azul aqui
+        return "default"; 
       case "Pendente":
-        return "secondary"; // Amarelo/cinza
+        return "secondary"; 
       case "Rejeitado":
       case "Cancelado":
-        return "destructive"; // Vermelho
+        return "destructive"; 
       case "ConvertidoOS":
-        return "outline"; // Pode ser um ciano ou algo diferente
+        return "outline"; 
       default:
         return "secondary";
     }
@@ -181,3 +194,4 @@ export default function OrcamentosPage() {
     </div>
   );
 }
+

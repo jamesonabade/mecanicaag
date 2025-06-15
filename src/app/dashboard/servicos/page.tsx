@@ -14,20 +14,36 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// Mock data - Em uma aplicação real, isso viria de uma API
-const mockClientes = [
-  { id: "cli001", nome: "João da Silva" },
-  { id: "cli002", nome: "Maria Oliveira" },
-  { id: "cli003", nome: "Carlos Pereira" },
-  { id: "cli004", nome: "Ana Costa" },
+// Mock data - Mover para um arquivo central no futuro
+interface Cliente {
+  id: string;
+  nome: string;
+  cpfCnpj?: string; // Adicionado para consistência
+}
+interface Veiculo {
+  id: string;
+  clienteId: string; // Adicionado para associação
+  modelo: string;
+  placa: string;
+  marca?: string; // Adicionado para consistência
+  ano?: string;
+  cor?: string;
+  km?: string;
+}
+
+const mockClientes: Cliente[] = [
+  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11" },
+  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22" },
+  { id: "cli003", nome: "Carlos Pereira", cpfCnpj: "333.333.333-33" },
+  { id: "cli004", nome: "Ana Costa", cpfCnpj: "444.444.444-44" },
 ];
 
-const mockVeiculos = [
-  { id: "vec001", clienteId: "cli001", modelo: "Honda Civic", placa: "ABC-1234", ano: "2020", cor: "Prata" },
-  { id: "vec002", clienteId: "cli001", modelo: "Fiat Strada", placa: "DEF-5678", ano: "2022", cor: "Branco" },
-  { id: "vec003", clienteId: "cli002", modelo: "Toyota Corolla", placa: "GHI-9012", ano: "2021", cor: "Preto" },
-  { id: "vec004", clienteId: "cli003", modelo: "VW Nivus", placa: "JKL-3456", ano: "2023", cor: "Cinza" },
-  { id: "vec005", clienteId: "cli004", modelo: "Hyundai HB20", placa: "MNO-7890", ano: "2019", cor: "Vermelho" },
+const mockVeiculos: Veiculo[] = [
+  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234", ano: "2020", cor: "Prata", km: "40500" },
+  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022", cor: "Branco", km: "15200" },
+  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", ano: "2021", cor: "Preto", km: "33000" },
+  { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456", ano: "2023", cor: "Cinza", km: "8900" },
+  { id: "vec005", clienteId: "cli004", marca: "Hyundai", modelo: "HB20", placa: "MNO-7890", ano: "2019", cor: "Vermelho", km: "55100" },
 ];
 
 const mockMecanicos = [
@@ -44,14 +60,18 @@ export interface ItemOS {
   quantidade?: number; 
 }
 
-// Interface para Checklist Preenchido (a ser usada dentro de mockOrdensServico)
+interface FotoOS {
+    url: string;
+    legenda: string;
+    dataAiHint?: string;
+}
+
 interface FilledChecklistInfo {
-  id: string; // ID da instância preenchida
+  id: string; 
   modelId: string;
   modelName: string;
   dataPreenchimento: string;
   responsavel: string;
-  // Não vamos armazenar todas as respostas aqui para manter o mock da OS leve
 }
 
 
@@ -79,7 +99,7 @@ export const mockOrdensServico = [
     fotos: [
       {url: "https://placehold.co/300x200.png", legenda: "Entrada do veículo", dataAiHint: "car mechanic"},
       {url: "https://placehold.co/300x200.png", legenda: "Motor antes da limpeza", dataAiHint: "engine detail"},
-    ],
+    ] as FotoOS[],
     checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
   {
@@ -98,7 +118,7 @@ export const mockOrdensServico = [
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
-    fotos: [],
+    fotos: [] as FotoOS[],
     checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
   {
@@ -117,7 +137,7 @@ export const mockOrdensServico = [
     valorFinal: 180.00,
     itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 180.00, tipo: "servico"}] as ItemOS[],
     diagnosticoTecnico: "Bobina do cilindro 3 com defeito. Substituição recomendada em orçamento futuro.",
-    fotos: [],
+    fotos: [] as FotoOS[],
     checklistsPreenchidos: [
         { id: "filled_chk_os003_1", modelId: "chk_model_001", modelName: "Checklist de Inspeção Veicular Pré-Serviço", dataPreenchimento: "2024-07-27T09:20:00Z", responsavel: "Carlos Alberto" }
     ] as FilledChecklistInfo[],
@@ -138,7 +158,7 @@ export const mockOrdensServico = [
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
-    fotos: [],
+    fotos: [] as FotoOS[],
     checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
   {
@@ -157,7 +177,7 @@ export const mockOrdensServico = [
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
-    fotos: [],
+    fotos: [] as FotoOS[],
     checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
    {
@@ -176,7 +196,7 @@ export const mockOrdensServico = [
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
-    fotos: [],
+    fotos: [] as FotoOS[],
     checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
 ];
@@ -200,7 +220,7 @@ export default function ServicosPage() {
   const getClienteNome = (clienteId: string) => mockClientes.find(c => c.id === clienteId)?.nome || "N/A";
   const getVeiculoDesc = (veiculoId: string) => {
     const veiculo = mockVeiculos.find(v => v.id === veiculoId);
-    return veiculo ? `${veiculo.modelo} (${veiculo.placa})` : "N/A";
+    return veiculo ? `${veiculo.marca} ${veiculo.modelo} (${veiculo.placa})` : "N/A";
   };
   const getMecanicoNome = (mecanicoId: string | null) => mockMecanicos.find(m => m.id === mecanicoId)?.nome || "Não atribuído";
 

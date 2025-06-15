@@ -28,16 +28,29 @@ import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, CalendarIcon, User, Car, Wrench, Clock } from "lucide-react";
 
-// Mock data - substituir por chamadas de API no futuro
-const mockClientes = [
-  { id: "cli001", nome: "João da Silva" },
-  { id: "cli002", nome: "Maria Oliveira" },
+// Mock data - Mover para um arquivo central no futuro
+interface Cliente {
+  id: string;
+  nome: string; // Ajustado para corresponder ao uso
+  cpfCnpj?: string; // Adicionado para consistência
+}
+interface Veiculo {
+  id: string;
+  clienteId: string;
+  modelo: string;
+  placa: string;
+  marca?: string; // Adicionado para consistência
+}
+
+const mockClientes: Cliente[] = [
+  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11" },
+  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22" },
 ];
 
-const mockVeiculos = [
-  { id: "vec001", clienteId: "cli001", modelo: "Honda Civic", placa: "ABC-1234" },
-  { id: "vec002", clienteId: "cli001", modelo: "Fiat Strada", placa: "DEF-5678" },
-  { id: "vec003", clienteId: "cli002", modelo: "Toyota Corolla", placa: "GHI-9012" },
+const mockVeiculos: Veiculo[] = [
+  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Honda Civic", placa: "ABC-1234" },
+  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Fiat Strada", placa: "DEF-5678" },
+  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Toyota Corolla", placa: "GHI-9012" },
 ];
 
 const mockMecanicos = [
@@ -87,7 +100,7 @@ export default function NovoAgendamentoPage() {
     },
   });
 
-  const [veiculosCliente, setVeiculosCliente] = React.useState<typeof mockVeiculos>([]);
+  const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const selectedClienteId = form.watch("clienteId");
 
   React.useEffect(() => {
@@ -145,7 +158,7 @@ export default function NovoAgendamentoPage() {
                         </FormControl>
                         <SelectContent>
                           {mockClientes.map(cliente => (
-                            <SelectItem key={cliente.id} value={cliente.id}>{cliente.nome}</SelectItem>
+                            <SelectItem key={cliente.id} value={cliente.id}>{cliente.nome} {cliente.cpfCnpj ? `(${cliente.cpfCnpj})` : ''}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -167,7 +180,7 @@ export default function NovoAgendamentoPage() {
                         </FormControl>
                         <SelectContent>
                           {veiculosCliente.map(veiculo => (
-                            <SelectItem key={veiculo.id} value={veiculo.id}>{veiculo.modelo} - {veiculo.placa}</SelectItem>
+                            <SelectItem key={veiculo.id} value={veiculo.id}>{veiculo.marca} {veiculo.modelo} - {veiculo.placa}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -321,3 +334,4 @@ export default function NovoAgendamentoPage() {
     </div>
   );
 }
+

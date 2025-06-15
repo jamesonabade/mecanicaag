@@ -14,14 +14,30 @@ import React from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// Mock data - Em uma aplicação real, isso viria de um state management ou API
-const mockClientes = [
-  { id: "cli001", nome: "João da Silva", telefone: "(11) 98765-4321", email: "joao.silva@example.com" },
-  { id: "cli002", nome: "Maria Oliveira", telefone: "(21) 91234-5678", email: "maria.oliveira@example.com" },
-  { id: "cli003", nome: "Carlos Pereira", telefone: "(31) 95555-5555", email: "carlos.p@example.com" },
+// Mock data - Mover para um arquivo central no futuro
+interface Cliente {
+  id: string;
+  nome: string;
+  telefone: string;
+  email: string;
+  cpfCnpj?: string; // Adicionado para consistência
+}
+interface Veiculo {
+  id: string;
+  clienteId: string;
+  marca: string;
+  modelo: string;
+  placa: string;
+  ano: string;
+}
+
+const mockClientes: Cliente[] = [
+  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11", telefone: "(11) 98765-4321", email: "joao.silva@example.com" },
+  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21) 91234-5678", email: "maria.oliveira@example.com" },
+  { id: "cli003", nome: "Carlos Pereira", cpfCnpj: "333.333.333-33", telefone: "(31) 95555-5555", email: "carlos.p@example.com" },
 ];
 
-const mockVeiculos = [
+const mockVeiculos: Veiculo[] = [
   { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234", ano: "2020" },
   { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022" },
   { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", ano: "2021" },
@@ -154,7 +170,7 @@ export default function VisualizarOrcamentoPage() {
       case "Aprovado": return "default";
       case "Pendente": return "secondary";
       case "Rejeitado": case "Cancelado": return "destructive";
-      case "ConvertidoOS": return "outline"; // Usando 'outline' para diferenciado (pode ser verde customizado)
+      case "ConvertidoOS": return "outline"; 
       default: return "secondary";
     }
   };

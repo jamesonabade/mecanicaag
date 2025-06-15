@@ -1,11 +1,12 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react"; // Adicionado useEffect
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation"; // Adicionado useSearchParams e useRouter
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -29,19 +30,33 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
-// Mock data - reutilizar/importar de um local centralizado no futuro
-const mockClientes = [
-  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11" },
-  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22" },
+// Mock data - Mover para um arquivo central no futuro
+interface Cliente {
+  id: string;
+  nomeCompleto: string;
+  cpfCnpj: string; // Adicionado para consistência
+  telefone?: string;
+  email?: string;
+}
+interface Veiculo {
+  id: string;
+  clienteId: string;
+  modelo: string;
+  placa: string;
+  marca?: string; // Adicionado para consistência
+}
+
+const mockClientes: Cliente[] = [
+  { id: "cli001", nomeCompleto: "João da Silva", cpfCnpj: "111.111.111-11", telefone: "(11)999990001", email: "joao@example.com" },
+  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21)988880002", email: "maria@example.com" },
 ];
 
-const mockVeiculos = [
-  { id: "vec001", clienteId: "cli001", modelo: "Honda Civic", placa: "ABC-1234" },
-  { id: "vec002", clienteId: "cli001", modelo: "Fiat Strada", placa: "DEF-5678" },
-  { id: "vec003", clienteId: "cli002", modelo: "Toyota Corolla", placa: "GHI-9012" },
+const mockVeiculos: Veiculo[] = [
+  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234" },
+  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678" },
+  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012" },
 ];
 
-// Catálogo de Serviços Pré-Cadastrados (mesmo mock da página de Nova OS)
 interface TipoServicoPadrao {
   id: string;
   nome: string;
@@ -65,7 +80,7 @@ const mockTiposServicoPadrao: TipoServicoPadrao[] = [
 // Schemas para itens e formulário principal
 const orcamentoItemServicoSchema = z.object({
   id: z.string().optional(),
-  servicoId: z.string().optional(), // ID do serviço pré-cadastrado, se houver
+  servicoId: z.string().optional(), 
   descricao: z.string().min(3, "Descrição do serviço (mín. 3 caracteres)."),
   valor: z.coerce.number().min(0, "Valor do serviço deve ser positivo ou zero."),
 });
@@ -89,7 +104,7 @@ const orcamentoFormSchema = z.object({
   pecas: z.array(orcamentoItemPecaSchema).optional(),
   observacoes: z.string().optional(),
   descontoValor: z.coerce.number().min(0).optional().default(0),
-  servicoPreCadastradoSelecionado: z.string().optional(), // Campo auxiliar para o select de serviço
+  servicoPreCadastradoSelecionado: z.string().optional(), 
 }).refine(data => (data.servicos && data.servicos.length > 0) || (data.pecas && data.pecas.length > 0), {
   message: "Adicione pelo menos um serviço ou peça ao orçamento.",
   path: ["servicos"], 
@@ -99,6 +114,9 @@ type OrcamentoFormValues = z.infer<typeof orcamentoFormSchema>;
 
 export default function NovoOrcamentoPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const form = useForm<OrcamentoFormValues>({
     resolver: zodResolver(orcamentoFormSchema),
     defaultValues: {
@@ -106,7 +124,7 @@ export default function NovoOrcamentoPage() {
       veiculoId: "",
       dataOrcamento: new Date(),
       validadeDias: 7,
-      servicos: [], // Começa vazio, usuário adiciona
+      servicos: [], 
       pecas: [],
       observacoes: "",
       descontoValor: 0,
@@ -124,17 +142,40 @@ export default function NovoOrcamentoPage() {
     name: "pecas",
   });
 
-  const [veiculosCliente, setVeiculosCliente] = React.useState<typeof mockVeiculos>([]);
+  const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const selectedClienteId = form.watch("clienteId");
+
+  // Preencher cliente e veículo se vierem da query
+  useEffect(() => {
+    const queryClienteId = searchParams.get("clienteId");
+    const queryVeiculoId = searchParams.get("veiculoId");
+
+    if (queryClienteId) {
+      form.setValue("clienteId", queryClienteId);
+      // A lógica de carregar veículos do cliente será ativada pelo watch de selectedClienteId
+    }
+    if (queryVeiculoId) {
+      form.setValue("veiculoId", queryVeiculoId);
+    }
+  }, [searchParams, form]);
+
 
   React.useEffect(() => {
     if (selectedClienteId) {
-      setVeiculosCliente(mockVeiculos.filter(v => v.clienteId === selectedClienteId));
-      form.setValue("veiculoId", "");
+      const clienteTemVeiculos = mockVeiculos.filter(v => v.clienteId === selectedClienteId);
+      setVeiculosCliente(clienteTemVeiculos);
+      // Se o clienteId mudou E o veiculoId atual não pertence mais a este cliente, reseta veiculoId
+      // Ou se o cliente não tem veículos.
+      const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === form.getValues("veiculoId"));
+      if (!veiculoAtualPertenceAoCliente) {
+        form.setValue("veiculoId", "");
+      }
     } else {
       setVeiculosCliente([]);
+      form.setValue("veiculoId", "");
     }
   }, [selectedClienteId, form]);
+
 
   const watchServicos = form.watch("servicos");
   const watchPecas = form.watch("pecas");
@@ -145,7 +186,7 @@ export default function NovoOrcamentoPage() {
   React.useEffect(() => {
     if (watchServicoPreCadastrado) {
       const servico = mockTiposServicoPadrao.find(s => s.id === watchServicoPreCadastrado);
-      if (servico && servico.id !== "outro_serv") { // Não adiciona "Outro" automaticamente
+      if (servico && servico.id !== "outro_serv") { 
         const novoServico: OrcamentoItemServicoValues = {
             id: crypto.randomUUID(),
             servicoId: servico.id,
@@ -153,10 +194,10 @@ export default function NovoOrcamentoPage() {
             valor: servico.valorPadrao || 0,
         };
         appendServico(novoServico);
-        form.setValue("servicoPreCadastradoSelecionado", ""); // Reseta o select
+        form.setValue("servicoPreCadastradoSelecionado", ""); 
       } else if (servico && servico.id === "outro_serv") {
          appendServico({ id: crypto.randomUUID(), servicoId: "outro_serv", descricao: "", valor: 0 });
-         form.setValue("servicoPreCadastradoSelecionado", ""); // Reseta o select
+         form.setValue("servicoPreCadastradoSelecionado", ""); 
       }
     }
   }, [watchServicoPreCadastrado, appendServico, form]);
@@ -211,11 +252,11 @@ export default function NovoOrcamentoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1"><User className="h-4 w-4" /> Cliente*</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger></FormControl>
                         <SelectContent>
                           {mockClientes.map(cliente => (
-                            <SelectItem key={cliente.id} value={cliente.id}>{cliente.nome} ({cliente.cpfCnpj})</SelectItem>
+                            <SelectItem key={cliente.id} value={cliente.id}>{cliente.nomeCompleto} ({cliente.cpfCnpj})</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -233,10 +274,15 @@ export default function NovoOrcamentoPage() {
                         <FormControl><SelectTrigger><SelectValue placeholder={!selectedClienteId ? "Selecione um cliente" : (veiculosCliente.length === 0 ? "Nenhum veículo" : "Selecione o veículo")} /></SelectTrigger></FormControl>
                         <SelectContent>
                           {veiculosCliente.map(veiculo => (
-                            <SelectItem key={veiculo.id} value={veiculo.id}>{veiculo.modelo} - {veiculo.placa}</SelectItem>
+                            <SelectItem key={veiculo.id} value={veiculo.id}>{veiculo.marca} {veiculo.modelo} - {veiculo.placa}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {selectedClienteId && veiculosCliente.length === 0 && (
+                        <FormDescription className="text-xs text-destructive">
+                          Este cliente não possui veículos cadastrados. <Link href={`/dashboard/veiculos/novo?clienteId=${selectedClienteId}`} className="underline">Cadastrar veículo?</Link>
+                        </FormDescription>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -451,3 +497,4 @@ export default function NovoOrcamentoPage() {
     </div>
   );
 }
+
