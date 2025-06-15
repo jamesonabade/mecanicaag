@@ -74,43 +74,8 @@ export default function CustomerDashboardPage() {
         <p className="text-lg text-muted-foreground">Aqui você gerencia seus veículos e serviços de forma fácil e rápida.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><History className="text-primary"/> Histórico de Serviços</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Image src="https://placehold.co/600x400.png" alt="Histórico de Serviços" data-ai-hint="repair history" width={600} height={400} className="rounded-md mb-4 w-full h-auto aspect-video object-cover" />
-            <p className="text-sm text-muted-foreground mb-4">Consulte todos os serviços realizados em seus veículos.</p>
-            <Button asChild className="w-full"><Link href="/portal/dashboard/historico">Ver Histórico</Link></Button>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Car className="text-primary"/> Meus Veículos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Image src="https://placehold.co/600x400.png" alt="Meus Veículos" data-ai-hint="cars garage" width={600} height={400} className="rounded-md mb-4 w-full h-auto aspect-video object-cover" />
-            <p className="text-sm text-muted-foreground mb-4">Veja os detalhes dos seus veículos cadastrados.</p>
-            <Button asChild className="w-full"><Link href="/portal/dashboard/meus-veiculos">Gerenciar Veículos</Link></Button>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><CalendarPlus className="text-primary"/> Agendar Novo Serviço</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Image src="https://placehold.co/600x400.png" alt="Agendar Serviço" data-ai-hint="calendar schedule" width={600} height={400} className="rounded-md mb-4 w-full h-auto aspect-video object-cover" />
-            <p className="text-sm text-muted-foreground mb-4">Marque sua próxima visita à oficina de forma online.</p>
-            <Button asChild className="w-full"><Link href="/portal/dashboard/agendar-servico">Agendar Agora</Link></Button>
-          </CardContent>
-        </Card>
-      </div>
-
       {currentServiceStatusMock && currentServiceStatusMock.isServiceStarted && (
-        <Card className="shadow-lg">
+        <Card className="shadow-lg mb-8">
           <CardHeader>
             <CardTitle className="font-headline">Status do Serviço Atual</CardTitle>
             <CardDescription>Acompanhe o progresso do seu veículo na oficina.</CardDescription>
@@ -176,8 +141,41 @@ export default function CustomerDashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><History className="text-primary"/> Histórico de Serviços</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Image src="https://placehold.co/600x400.png" alt="Histórico de Serviços" data-ai-hint="repair history" width={600} height={400} className="rounded-md mb-4 w-full h-auto aspect-video object-cover" />
+            <p className="text-sm text-muted-foreground mb-4">Consulte todos os serviços realizados em seus veículos.</p>
+            <Button asChild className="w-full"><Link href="/portal/dashboard/historico">Ver Histórico</Link></Button>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Car className="text-primary"/> Meus Veículos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Image src="https://placehold.co/600x400.png" alt="Meus Veículos" data-ai-hint="cars garage" width={600} height={400} className="rounded-md mb-4 w-full h-auto aspect-video object-cover" />
+            <p className="text-sm text-muted-foreground mb-4">Veja os detalhes dos seus veículos cadastrados.</p>
+            <Button asChild className="w-full"><Link href="/portal/dashboard/meus-veiculos">Gerenciar Veículos</Link></Button>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><CalendarPlus className="text-primary"/> Agendar Novo Serviço</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Image src="https://placehold.co/600x400.png" alt="Agendar Serviço" data-ai-hint="calendar schedule" width={600} height={400} className="rounded-md mb-4 w-full h-auto aspect-video object-cover" />
+            <p className="text-sm text-muted-foreground mb-4">Marque sua próxima visita à oficina de forma online.</p>
+            <Button asChild className="w-full"><Link href="/portal/dashboard/agendar-servico">Agendar Agora</Link></Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
-
-    
