@@ -1,12 +1,12 @@
 
 "use client";
 
-import React, { useEffect } from "react"; // Adicionado useEffect
+import React, { useEffect } from "react"; 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation"; // Adicionado useSearchParams e useRouter
+import { useRouter, useSearchParams } from "next/navigation"; 
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -164,11 +164,15 @@ export default function NovaOrdemServicoPage() {
     if (selectedTipoServicoId) {
       const servicoSelecionado = mockTiposServicoPadrao.find(s => s.id === selectedTipoServicoId);
       if (servicoSelecionado) {
-        if (servicoSelecionado.valorPadrao !== undefined && servicoSelecionado.valorPadrao > 0) {
+        if (servicoSelecionado.valorPadrao !== undefined && servicoSelecionado.valorPadrao >= 0) { // Allow 0 for "Outro"
           form.setValue("valorEstimado", servicoSelecionado.valorPadrao);
         } else {
-           if (form.getValues("valorEstimado") === servicoSelecionado.valorPadrao) { 
-             form.setValue("valorEstimado", undefined);
+           // If no valorPadrao, clear it only if it was previously set by another service
+           // This avoids clearing a manually entered value if user re-selects "Outro"
+           const currentValorEstimado = form.getValues("valorEstimado");
+           const previousServicoWithValor = mockTiposServicoPadrao.find(s => s.valorPadrao === currentValorEstimado && s.id !== selectedTipoServicoId);
+           if (previousServicoWithValor && !servicoSelecionado.valorPadrao) {
+              form.setValue("valorEstimado", undefined);
            }
         }
         if (servicoSelecionado.checklistModeloIdObrigatorio && servicoSelecionado.nomeChecklistObrigatorio) {
@@ -279,7 +283,7 @@ export default function NovaOrdemServicoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Serviço Principal*</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o tipo de serviço" />
@@ -287,7 +291,7 @@ export default function NovaOrdemServicoPage() {
                         </FormControl>
                         <SelectContent>
                           {mockTiposServicoPadrao.map(tipo => (
-                            <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome} {tipo.valorPadrao ? `(R$ ${tipo.valorPadrao.toFixed(2)})` : ''}</SelectItem>
+                            <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome} {tipo.valorPadrao && tipo.valorPadrao > 0 ? `(R$ ${tipo.valorPadrao.toFixed(2)})` : (tipo.valorPadrao === 0 ? '(Valor a definir)' : '')}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -435,7 +439,7 @@ export default function NovaOrdemServicoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Mecânico Responsável (Opcional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione um mecânico" />
@@ -472,7 +476,7 @@ export default function NovaOrdemServicoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status Inicial da OS</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o status inicial" />

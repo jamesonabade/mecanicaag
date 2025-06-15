@@ -20,7 +20,7 @@ interface Cliente {
   nome: string;
   telefone: string;
   email: string;
-  cpfCnpj?: string; // Adicionado para consistência
+  cpfCnpj?: string; 
 }
 interface Veiculo {
   id: string;

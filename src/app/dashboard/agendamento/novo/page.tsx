@@ -31,15 +31,15 @@ import { ChevronLeft, Save, CalendarIcon, User, Car, Wrench, Clock } from "lucid
 // Mock data - Mover para um arquivo central no futuro
 interface Cliente {
   id: string;
-  nome: string; // Ajustado para corresponder ao uso
-  cpfCnpj?: string; // Adicionado para consistência
+  nome: string; 
+  cpfCnpj?: string; 
 }
 interface Veiculo {
   id: string;
   clienteId: string;
   modelo: string;
   placa: string;
-  marca?: string; // Adicionado para consistência
+  marca?: string; 
 }
 
 const mockClientes: Cliente[] = [
@@ -150,7 +150,7 @@ export default function NovoAgendamentoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1"><User className="h-4 w-4" /> Cliente*</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o cliente" />
@@ -201,7 +201,7 @@ export default function NovoAgendamentoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1"><Wrench className="h-4 w-4"/> Tipo de Serviço Principal*</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o tipo de serviço" />
@@ -265,7 +265,7 @@ export default function NovoAgendamentoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1"><Clock className="h-4 w-4"/> Horário*</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger disabled={!form.getValues("dataAgendamento")}>
                             <SelectValue placeholder={!form.getValues("dataAgendamento") ? "Escolha uma data primeiro" : "Selecione um horário"} />
@@ -289,7 +289,7 @@ export default function NovoAgendamentoPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Mecânico (Opcional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Atribuir a um mecânico (opcional)" />

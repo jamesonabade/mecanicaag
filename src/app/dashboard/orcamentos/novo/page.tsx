@@ -1,12 +1,12 @@
 
 "use client";
 
-import React, { useEffect } from "react"; // Adicionado useEffect
+import React, { useEffect } from "react"; 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation"; // Adicionado useSearchParams e useRouter
+import { useRouter, useSearchParams } from "next/navigation"; 
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -33,8 +33,8 @@ import { Separator } from "@/components/ui/separator";
 // Mock data - Mover para um arquivo central no futuro
 interface Cliente {
   id: string;
-  nomeCompleto: string;
-  cpfCnpj: string; // Adicionado para consistência
+  nomeCompleto: string; // nome -> nomeCompleto
+  cpfCnpj: string; 
   telefone?: string;
   email?: string;
 }
@@ -43,7 +43,7 @@ interface Veiculo {
   clienteId: string;
   modelo: string;
   placa: string;
-  marca?: string; // Adicionado para consistência
+  marca?: string; 
 }
 
 const mockClientes: Cliente[] = [
@@ -164,17 +164,24 @@ export default function NovoOrcamentoPage() {
     if (selectedClienteId) {
       const clienteTemVeiculos = mockVeiculos.filter(v => v.clienteId === selectedClienteId);
       setVeiculosCliente(clienteTemVeiculos);
-      // Se o clienteId mudou E o veiculoId atual não pertence mais a este cliente, reseta veiculoId
-      // Ou se o cliente não tem veículos.
-      const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === form.getValues("veiculoId"));
-      if (!veiculoAtualPertenceAoCliente) {
-        form.setValue("veiculoId", "");
+      
+      const veiculoAtualValor = form.getValues("veiculoId");
+      const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === veiculoAtualValor);
+
+      // Se o veículo selecionado via query params não pertence ao cliente carregado via query params, ou se o cliente não tem veículos, reseta.
+      const queryVeiculoId = searchParams.get("veiculoId");
+      if (queryVeiculoId && !veiculoAtualPertenceAoCliente) {
+          form.setValue("veiculoId", ""); // Reseta se o veículo da URL não for do cliente da URL
+      } else if (!veiculoAtualPertenceAoCliente && veiculoAtualValor) {
+          // Se o cliente mudou E o veiculoId atual não pertence mais a este cliente, reseta veiculoId
+          form.setValue("veiculoId", "");
       }
+
     } else {
       setVeiculosCliente([]);
       form.setValue("veiculoId", "");
     }
-  }, [selectedClienteId, form]);
+  }, [selectedClienteId, form, searchParams]);
 
 
   const watchServicos = form.watch("servicos");

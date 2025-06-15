@@ -16,14 +16,14 @@ import React from "react";
 interface Cliente {
   id: string;
   nome: string;
-  cpfCnpj?: string; // Adicionado para consistência
+  cpfCnpj?: string; 
 }
 interface Veiculo {
   id: string;
   clienteId: string;
   modelo: string;
   placa: string;
-  marca?: string; // Adicionado para consistência
+  marca?: string; 
 }
 
 const mockClientes: Cliente[] = [

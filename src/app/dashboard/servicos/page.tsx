@@ -18,14 +18,14 @@ import { ptBR } from "date-fns/locale";
 interface Cliente {
   id: string;
   nome: string;
-  cpfCnpj?: string; // Adicionado para consistência
+  cpfCnpj?: string; 
 }
 interface Veiculo {
   id: string;
-  clienteId: string; // Adicionado para associação
+  clienteId: string; 
   modelo: string;
   placa: string;
-  marca?: string; // Adicionado para consistência
+  marca?: string; 
   ano?: string;
   cor?: string;
   km?: string;
@@ -72,6 +72,7 @@ interface FilledChecklistInfo {
   modelName: string;
   dataPreenchimento: string;
   responsavel: string;
+  // respostas: FilledChecklistItemAnswer[]; // Se quiser guardar as respostas aqui também
 }
 
 
@@ -91,9 +92,9 @@ export const mockOrdensServico = [
     valorEstimado: 550.00,
     valorFinal: 0,
     itensExecutados: [
-      {id: "item1_os1", descricao: "Troca de Óleo e Filtro", valor: 180.00, tipo: "servico"},
-      {id: "item2_os1", descricao: "Óleo 5W30 Sintético", valor: 45.00, quantidade: 4, tipo: "peca"},
-      {id: "item3_os1", descricao: "Filtro de Óleo", valor: 35.00, quantidade: 1, tipo: "peca"},
+      {id: "item1_os1", descricao: "Troca de Óleo e Filtro", valor: 180.00, tipo: "servico" as const},
+      {id: "item2_os1", descricao: "Óleo 5W30 Sintético", valor: 45.00, quantidade: 4, tipo: "peca" as const},
+      {id: "item3_os1", descricao: "Filtro de Óleo", valor: 35.00, quantidade: 1, tipo: "peca" as const},
     ] as ItemOS[],
     diagnosticoTecnico: "Suspensão dianteira direita com folga na bandeja. Necessário orçamento adicional para substituição.",
     fotos: [
@@ -135,7 +136,7 @@ export const mockOrdensServico = [
     status: "Concluída",
     valorEstimado: 180.00,
     valorFinal: 180.00,
-    itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 180.00, tipo: "servico"}] as ItemOS[],
+    itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 180.00, tipo: "servico" as const}] as ItemOS[],
     diagnosticoTecnico: "Bobina do cilindro 3 com defeito. Substituição recomendada em orçamento futuro.",
     fotos: [] as FotoOS[],
     checklistsPreenchidos: [
@@ -381,4 +382,4 @@ export default function ServicosPage() {
     </div>
   );
 }
-    
+
