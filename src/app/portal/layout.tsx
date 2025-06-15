@@ -1,5 +1,5 @@
 import { Logo } from '@/components/shared/Logo';
-// import { ThemeToggle } from '@/components/shared/ThemeToggle'; // ThemeToggle removed
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -13,7 +13,7 @@ export default function CustomerPortalBaseLayout({
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6">
         <Logo />
         <div className="flex items-center gap-2">
-          {/* <ThemeToggle /> ThemeToggle removed */}
+          <ThemeToggle />
            <Button variant="outline" asChild>
               <Link href="/">Acesso Oficina</Link>
             </Button>

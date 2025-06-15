@@ -4,6 +4,45 @@
 
 @layer base {
   :root {
+    --background: 0 0% 100%; /* White */
+    --foreground: 224 71% 4%; /* Almost Black */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 224 71% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+    --primary: 217 89% 61%; /* #4285F4 */
+    --primary-foreground: 0 0% 98%; /* White */
+    --secondary: 220 13% 91%; /* Light Gray */
+    --secondary-foreground: 224 71% 4%;
+    --muted: 220 13% 91%;
+    --muted-foreground: 220 9% 46%; /* Medium Gray */
+    --accent: 174 100% 29%; /* #009688 */
+    --accent-foreground: 0 0% 98%; /* White */
+    --destructive: 0 72% 51%; /* Red */
+    --destructive-foreground: 0 0% 98%; /* White */
+    --border: 220 13% 86%; /* Slightly darker gray border */
+    --input: 220 13% 86%;
+    --ring: 217 89% 61%;
+    --radius: 0.5rem;
+
+    --chart-1: 217 89% 61%;
+    --chart-2: 174 100% 29%;
+    --chart-3: 197 37% 34%;
+    --chart-4: 43 74% 56%;
+    --chart-5: 27 87% 57%;
+
+    /* Sidebar specific colors for light theme */
+    --sidebar-background: 220 15% 97%; /* Very Light Gray */
+    --sidebar-foreground: 224 71% 4%; /* Almost Black */
+    --sidebar-primary: 217 89% 61%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 174 100% 29%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 220 13% 88%; /* Light gray border */
+    --sidebar-ring: 217 89% 61%;
+  }
+
+  .dark {
     --background: 217 63% 10%; /* approx #081527 */
     --foreground: 0 0% 98%; /* White for text */
     --card: 216 44% 13%; /* approx #121E2E */
@@ -23,15 +62,10 @@
     --border: 216 27% 19%; /* approx #232E3C */
     --input: 216 27% 19%; /* approx #232E3C */
     --ring: 217 89% 61%; /* Primary color for focus */
-    --radius: 0.5rem;
 
-    --chart-1: 217 89% 61%;
-    --chart-2: 174 100% 29%;
-    --chart-3: 197 37% 34%;
-    --chart-4: 43 74% 56%;
-    --chart-5: 27 87% 57%;
+    /* Chart colors remain the same as defined in :root */
 
-    /* Sidebar specific colors */
+    /* Sidebar specific colors for dark theme */
     --sidebar-background: 215 58% 10%; /* #0A1727 - darkest */
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 217 89% 61%;
@@ -41,8 +75,6 @@
     --sidebar-border: 216 44% 13%; /* #121E2E */
     --sidebar-ring: 217 89% 61%;
   }
-
-  /* Removed .dark block as :root is now the dark theme */
 }
 
 @layer base {
@@ -52,17 +84,13 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
   }
-  /* Ensure HTML also gets dark background if not covered by body */
   html {
     @apply bg-background;
   }
 }
 
 @layer components {
-  /* Style for days with scheduled appointments in the Calendar */
   .day-scheduled .react-day-picker-day {
     font-weight: bold;
-    /* You can add more styles here, like a different background or border */
   }
-  /* Style for the dot indicator - this is already handled by the inline span with absolute positioning and bg-accent */
 }

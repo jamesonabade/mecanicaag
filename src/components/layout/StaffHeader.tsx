@@ -10,8 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SheetTrigger } from '@/components/ui/sheet'; // For mobile sidebar toggle
-import { Logo } from '@/components/shared/Logo';
-// import { ThemeToggle } from '@/components/shared/ThemeToggle'; // ThemeToggle removed
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { PanelLeft, Search, Info, Bell } from 'lucide-react'; 
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,11 +27,6 @@ export function StaffHeader() {
         </SheetTrigger>
       </div>
       
-      {/* Desktop: Logo is in sidebar, so header might not need it, or a smaller one */}
-      {/* <div className="hidden md:block">
-        <Logo />
-      </div> */}
-
       <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
         {/* Search Bar */}
         <div className="relative ml-auto flex-1 md:grow-0">
@@ -50,9 +44,8 @@ export function StaffHeader() {
           <span>ATENÇÃO: Sua assinatura expira em 7 dias.</span>
           <Button variant="link" className="text-destructive-foreground h-auto p-0 underline text-xs">Renovar</Button>
         </div>
-
-
-        {/* <ThemeToggle /> ThemeToggle removed */}
+        
+        <ThemeToggle />
 
         <Button variant="ghost" size="icon" className="rounded-full text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent">
           <Info className="h-5 w-5" />

@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Logo } from '@/components/shared/Logo';
-// import { ThemeToggle } from '@/components/shared/ThemeToggle'; // ThemeToggle removed
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { PanelLeft } from 'lucide-react'; 
 import { SheetTrigger } from '@/components/ui/sheet';
 
@@ -32,7 +32,7 @@ export function CustomerHeader() {
         <div className="ml-auto flex-1 sm:flex-initial">
           {/* Optional elements like search or quick links */}
         </div>
-        {/* <ThemeToggle /> ThemeToggle removed */}
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
