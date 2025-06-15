@@ -19,7 +19,7 @@ import {
   LogOut,
   Settings,
   FileSpreadsheet,
-  ChevronDown,
+  // ChevronDown, // No longer needed here as AccordionTrigger provides it
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
@@ -110,7 +110,7 @@ export function StaffSidebarNav() {
                   >
                     <item.icon className="h-4 w-4" />
                     {item.label}
-                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-auto" />
+                    {/* The manually added ChevronDown icon was here and has been removed */}
                   </AccordionTrigger>
                   <AccordionContent className="pl-4 pt-1 pb-0">
                     <nav className="grid gap-1">
