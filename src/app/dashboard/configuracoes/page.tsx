@@ -30,6 +30,7 @@ import {
     CalendarCheck,
     FileArchive, // Icon for NF-e
     Info, // Icon for Documentation
+    AlertTriangle, // Added AlertTriangle
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -371,6 +372,8 @@ export default function ConfiguracoesPage() {
     </div>
   );
 }
+    
+
     
 
     
