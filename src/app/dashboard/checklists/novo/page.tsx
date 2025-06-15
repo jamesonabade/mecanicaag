@@ -77,11 +77,11 @@ export default function NovoChecklistPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 md:gap-2">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
           <PlusCircle className="h-7 w-7"/> Novo Modelo de Checklist
         </h1>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="w-full md:w-auto">
           <Link href="/dashboard/checklists">
             <ChevronLeft className="mr-2 h-4 w-4" /> Voltar para Checklists
           </Link>
@@ -263,11 +263,11 @@ export default function NovoChecklistPage() {
               </Button>
               <FormMessage>{form.formState.errors.itens?.message || form.formState.errors.itens?.root?.message}</FormMessage>
             </CardContent>
-             <CardFooter className="flex justify-end gap-2 pt-6 border-t">
-              <Button type="button" variant="outline" asChild>
+             <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 pt-6 border-t">
+              <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/checklists">Cancelar</Link>
               </Button>
-              <Button type="submit">
+              <Button type="submit" className="w-full sm:w-auto">
                 <Save className="mr-2 h-4 w-4" /> Salvar Modelo de Checklist
               </Button>
             </CardFooter>

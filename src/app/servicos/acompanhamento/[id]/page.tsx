@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock, FileText, Wrench, UserCircle, Car } from "lucide-react";
@@ -81,15 +82,15 @@ export default function ServiceTrackingPage({ params }: { params: { id: string }
       <div className="max-w-3xl mx-auto">
         <Card className="shadow-2xl overflow-hidden">
           <CardHeader className="bg-primary text-primary-foreground p-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
-                <CardTitle className="text-3xl font-headline">Acompanhamento de Serviço</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl font-headline">Acompanhamento de Serviço</CardTitle>
                 <CardDescription className="text-primary-foreground/80">Ordem de Serviço: {serviceOrder.id}</CardDescription>
               </div>
-              <Wrench className="h-12 w-12 text-primary-foreground/70" />
+              <Wrench className="h-10 w-10 sm:h-12 sm:w-12 text-primary-foreground/70" />
             </div>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-4 sm:p-6 space-y-6">
             
             <div className="grid md:grid-cols-2 gap-6 text-sm">
               <div className="space-y-1">
@@ -143,7 +144,7 @@ export default function ServiceTrackingPage({ params }: { params: { id: string }
             <Separator />
 
             <div className="text-center mt-6">
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="w-full sm:w-auto">
                 <Link href="/portal">Voltar ao Portal do Cliente</Link>
               </Button>
               <p className="text-xs text-muted-foreground mt-3">

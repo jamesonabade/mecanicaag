@@ -22,7 +22,7 @@ import {
     Clock, 
     Wrench, 
     FileText, 
-    Filter as FilterIcon, // Renomeado para evitar conflito com a função de filtro
+    Filter as FilterIcon, 
     Car, 
     Edit3, 
     PackageSearch 
@@ -93,7 +93,7 @@ export default function ConfiguracoesPage() {
 
   return (
     <div className="container mx-auto py-10 space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 md:gap-2">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
           <Settings className="h-7 w-7" /> Configurações do Sistema
         </h1>
@@ -133,7 +133,7 @@ export default function ConfiguracoesPage() {
             </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSaveGeneralSettings}>
+          <Button onClick={handleSaveGeneralSettings} className="w-full sm:w-auto">
             <Save className="mr-2 h-4 w-4" /> Salvar Configurações Gerais
           </Button>
         </CardFooter>
@@ -166,10 +166,10 @@ export default function ConfiguracoesPage() {
             <h3 className="text-lg font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary"/> Alertas para Clientes</h3>
             <div className="grid md:grid-cols-2 gap-x-6 gap-y-4">
               {alertasClienteTipos.map((alerta) => (
-                <div key={alerta.id} className="flex items-center justify-between space-x-2 p-3 border rounded-md bg-muted/20 hover:bg-muted/40 transition-colors">
-                  <Label htmlFor={`cliente-${alerta.id}`} className="flex-1 cursor-pointer flex items-center gap-2">
-                    {alerta.icon && <alerta.icon className="h-4 w-4 text-muted-foreground" />}
-                    {alerta.label}
+                <div key={alerta.id} className="flex items-center justify-between gap-2 p-3 border rounded-md bg-muted/20 hover:bg-muted/40 transition-colors">
+                  <Label htmlFor={`cliente-${alerta.id}`} className="flex-grow cursor-pointer flex items-center gap-2 min-w-0">
+                    {alerta.icon && <alerta.icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                    <span className="truncate">{alerta.label}</span>
                   </Label>
                   <Switch
                     id={`cliente-${alerta.id}`}
@@ -185,10 +185,10 @@ export default function ConfiguracoesPage() {
             <h3 className="text-lg font-semibold flex items-center gap-2"><UserCheck className="h-5 w-5 text-primary"/> Alertas para Funcionários</h3>
             <div className="grid md:grid-cols-2 gap-x-6 gap-y-4">
               {alertasFuncionarioTipos.map((alerta) => (
-                <div key={alerta.id} className="flex items-center justify-between space-x-2 p-3 border rounded-md bg-muted/20 hover:bg-muted/40 transition-colors">
-                   <Label htmlFor={`func-${alerta.id}`} className="flex-1 cursor-pointer flex items-center gap-2">
-                    {alerta.icon && <alerta.icon className="h-4 w-4 text-muted-foreground" />}
-                    {alerta.label}
+                <div key={alerta.id} className="flex items-center justify-between gap-2 p-3 border rounded-md bg-muted/20 hover:bg-muted/40 transition-colors">
+                   <Label htmlFor={`func-${alerta.id}`} className="flex-grow cursor-pointer flex items-center gap-2 min-w-0">
+                    {alerta.icon && <alerta.icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                    <span className="truncate">{alerta.label}</span>
                   </Label>
                   <Switch
                     id={`func-${alerta.id}`}
@@ -201,7 +201,7 @@ export default function ConfiguracoesPage() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSaveAlertSettings}>
+          <Button onClick={handleSaveAlertSettings} className="w-full sm:w-auto">
             <Save className="mr-2 h-4 w-4" /> Salvar Configurações de Alertas
           </Button>
         </CardFooter>
@@ -209,4 +209,3 @@ export default function ConfiguracoesPage() {
     </div>
   );
 }
-    

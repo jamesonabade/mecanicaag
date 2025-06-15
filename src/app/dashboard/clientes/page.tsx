@@ -9,9 +9,9 @@ import Link from "next/link";
 export default function ClientesPage() {
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 md:gap-2">
         <h1 className="text-3xl font-bold font-headline">Gestão de Clientes</h1>
-        <Button asChild>
+        <Button asChild className="w-full md:w-auto">
           <Link href="/dashboard/clientes/novo">
             <PlusCircle className="mr-2 h-4 w-4" /> Novo Cliente
           </Link>

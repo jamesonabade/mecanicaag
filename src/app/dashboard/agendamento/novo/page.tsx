@@ -110,11 +110,11 @@ export default function NovoAgendamentoPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 md:gap-2">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
           <CalendarIcon className="h-7 w-7"/> Novo Agendamento
         </h1>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="w-full md:w-auto">
           <Link href="/dashboard/agendamento">
             <ChevronLeft className="mr-2 h-4 w-4" /> Voltar para Agenda
           </Link>
@@ -307,11 +307,11 @@ export default function NovoAgendamentoPage() {
                 )}
               />
             </CardContent>
-            <CardFooter className="flex justify-end gap-2 pt-6 border-t">
-              <Button type="button" variant="outline" asChild>
+            <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 pt-6 border-t">
+              <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/agendamento">Cancelar</Link>
               </Button>
-              <Button type="submit">
+              <Button type="submit" className="w-full sm:w-auto">
                 <Save className="mr-2 h-4 w-4" /> Salvar Agendamento
               </Button>
             </CardFooter>
@@ -321,5 +321,3 @@ export default function NovoAgendamentoPage() {
     </div>
   );
 }
-
-    
