@@ -16,7 +16,8 @@ import {
   ListChecks,
   Globe,
   LogOut,
-  Settings, // Ícone para Configurações
+  Settings,
+  FileSpreadsheet, // Ícone para Orçamentos
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
@@ -25,13 +26,14 @@ const navItems = [
   { href: '/dashboard', label: 'Painel Principal', icon: LayoutDashboard },
   { href: '/dashboard/clientes', label: 'Clientes', icon: Users },
   { href: '/dashboard/veiculos', label: 'Veículos', icon: Car },
-  { href: '/dashboard/servicos', label: 'Serviços', icon: Wrench },
+  { href: '/dashboard/servicos', label: 'Serviços (OS)', icon: Wrench },
+  { href: '/dashboard/orcamentos', label: 'Orçamentos', icon: FileSpreadsheet }, // Novo item
   { href: '/dashboard/produtos', label: 'Produtos/Estoque', icon: Package },
   { href: '/dashboard/financeiro', label: 'Financeiro', icon: Landmark },
   { href: '/dashboard/funcionarios', label: 'Funcionários', icon: UserCog },
   { href: '/dashboard/agendamento', label: 'Agendamentos', icon: CalendarDays },
   { href: '/dashboard/checklists', label: 'Checklists', icon: ListChecks },
-  { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings }, // Novo item
+  { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings },
   { href: '/portal', label: 'Portal do Cliente', icon: Globe, target: "_blank" },
 ];
 
@@ -78,5 +80,4 @@ export function StaffSidebarNav() {
     </div>
   );
 }
-
     
