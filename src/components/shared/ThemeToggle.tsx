@@ -1,33 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const [theme, setThemeState] = React.useState<"theme-light" | "dark" | "system">("system");
-
+  // Component now renders nothing, effectively removing the theme toggle.
+  // The app will use the dark theme defined in :root in globals.css by default.
+  
   React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    setThemeState(isDarkMode ? "dark" : "theme-light");
+    // Ensure the 'dark' class is removed if it was previously set by this component,
+    // as the theme is now controlled by :root styles.
+    // Or, ensure 'dark' class is on html if tailwind config still relies on it for dark: variants
+    // For simplicity with current setup, let's assume direct :root styling is enough.
+    // If Tailwind dark: variants are needed, html should have 'dark' class.
+    // The current globals.css is structured to make :root dark, so this might not be strictly needed.
+    // However, to be safe and ensure Tailwind's dark: prefix works if used elsewhere based on the class:
+    document.documentElement.classList.add("dark");
   }, []);
 
-  React.useEffect(() => {
-    const isDark =
-      theme === "dark" ||
-      (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.classList[isDark ? "add" : "remove"]("dark");
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setThemeState(prevTheme => prevTheme === "dark" ? "theme-light" : "dark");
-  }
-
-  return (
-    <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </Button>
-  );
+  return null;
 }

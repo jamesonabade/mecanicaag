@@ -10,13 +10,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Logo } from '@/components/shared/Logo';
-import { ThemeToggle } from '@/components/shared/ThemeToggle';
-import { PanelLeft } from 'lucide-react'; // For sidebar toggle icon
+// import { ThemeToggle } from '@/components/shared/ThemeToggle'; // ThemeToggle removed
+import { PanelLeft } from 'lucide-react'; 
 import { SheetTrigger } from '@/components/ui/sheet';
 
 export function CustomerHeader() {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6">
       <div className="md:hidden"> {/* Mobile sidebar toggle */}
          <SheetTrigger asChild> 
           <Button size="icon" variant="outline">
@@ -32,7 +32,7 @@ export function CustomerHeader() {
         <div className="ml-auto flex-1 sm:flex-initial">
           {/* Optional elements like search or quick links */}
         </div>
-        <ThemeToggle />
+        {/* <ThemeToggle /> ThemeToggle removed */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
