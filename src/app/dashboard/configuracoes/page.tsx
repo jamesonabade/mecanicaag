@@ -26,7 +26,8 @@ import {
     Car, 
     Edit3, 
     PackageSearch,
-    Building
+    Building,
+    CalendarCheck, // Adicionado para revisão pós OS
 } from "lucide-react";
 
 // Tipos de Alertas para Clientes
@@ -39,6 +40,7 @@ const alertasClienteTipos = [
   { id: "orcamentoPronto", label: "Orçamento Pronto para Aprovação", icon: FileText },
   { id: "pesquisaSatisfacao", label: "Pesquisa de Satisfação pós-serviço", icon: MessageSquare },
   { id: "lembreteRevisaoPeriodica", label: "Lembrete de Revisão Periódica (ex: 6 meses)", icon: Repeat },
+  { id: "lembreteRevisaoPosServico", label: "Lembrete de Revisão Pós-OS (Dias)", icon: CalendarCheck, hasDaysInput: true }, // Novo alerta
   { id: "lembreteTrocaOleo", label: "Lembrete de Troca de Óleo (KM/Tempo)", icon: FilterIcon },
   { id: "ofertaAniversario", label: "Oferta Especial de Aniversário do Cliente", icon: Gift },
   { id: "checkupPosServico", label: "Check-up Pós-Serviço (ex: 1 semana depois)", icon: HeartHandshake },
@@ -62,6 +64,17 @@ export default function ConfiguracoesPage() {
   const [alertasFuncionario, setAlertasFuncionario] = useState<Record<string, boolean>>(
     alertasFuncionarioTipos.reduce((acc, curr) => ({ ...acc, [curr.id]: true }), {})
   );
+  
+  // Estado para os dias configuráveis dos alertas
+  const [diasParaLembretes, setDiasParaLembretes] = useState<Record<string, number>>(
+    alertasClienteTipos.reduce((acc, curr) => {
+      if (curr.id === "lembreteRevisaoPosServico") {
+        return { ...acc, [curr.id]: 180 }; // Default 180 days
+      }
+      return acc;
+    }, {})
+  );
+
 
   const handleAlertChange = (
     type: "cliente" | "funcionario",
@@ -75,8 +88,18 @@ export default function ConfiguracoesPage() {
     }
   };
 
+  const handleDiasLembreteChange = (id: string, value: string) => {
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue) && numValue >= 0) {
+      setDiasParaLembretes(prev => ({ ...prev, [id]: numValue }));
+    } else if (value === "") {
+      setDiasParaLembretes(prev => ({ ...prev, [id]: 0 }));
+    }
+  };
+
+
   const handleSaveAlertSettings = () => {
-    console.log("Configurações de Alertas Salvas (Simulado):", { apiKey, alertasCliente, alertasFuncionario });
+    console.log("Configurações de Alertas Salvas (Simulado):", { apiKey, alertasCliente, alertasFuncionario, diasParaLembretes });
     toast({
       title: "Configurações Salvas (Simulado)",
       description: "Suas preferências de alerta foram salvas.",
@@ -164,18 +187,34 @@ export default function ConfiguracoesPage() {
 
           <div className="space-y-4">
             <h3 className="text-xl font-semibold flex items-center gap-2"><Users className="h-5 w-5 text-primary"/> Alertas para Clientes</h3>
-            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-4">
               {alertasClienteTipos.map((alerta) => (
-                <div key={alerta.id} className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors shadow-sm">
-                  <Label htmlFor={`cliente-${alerta.id}`} className="flex-grow cursor-pointer flex items-center gap-2.5 min-w-0">
-                    {alerta.icon && <alerta.icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />}
-                    <span className="text-sm">{alerta.label}</span>
-                  </Label>
-                  <Switch
-                    id={`cliente-${alerta.id}`}
-                    checked={alertasCliente[alerta.id] || false}
-                    onCheckedChange={(checked) => handleAlertChange("cliente", alerta.id, checked)}
-                  />
+                <div key={alerta.id} className={`flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors shadow-sm ${alerta.hasDaysInput ? 'flex-col sm:flex-row items-start sm:items-center' : ''}`}>
+                  <div className="flex-grow flex items-center gap-2.5 min-w-0">
+                     {alerta.icon && <alerta.icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />}
+                     <Label htmlFor={`cliente-${alerta.id}`} className="text-sm cursor-pointer">{alerta.label}</Label>
+                  </div>
+                  <div className="flex items-center gap-3 mt-2 sm:mt-0 ml-auto">
+                    {alerta.hasDaysInput && (
+                      <div className="flex items-center gap-1.5">
+                         <Input
+                          type="number"
+                          id={`dias-${alerta.id}`}
+                          value={diasParaLembretes[alerta.id] || ''}
+                          onChange={(e) => handleDiasLembreteChange(alerta.id, e.target.value)}
+                          className="w-20 h-8 text-sm p-1.5"
+                          disabled={!alertasCliente[alerta.id]}
+                          min="1"
+                        />
+                        <Label htmlFor={`dias-${alerta.id}`} className="text-xs text-muted-foreground">dias</Label>
+                      </div>
+                    )}
+                    <Switch
+                      id={`cliente-${alerta.id}`}
+                      checked={alertasCliente[alerta.id] || false}
+                      onCheckedChange={(checked) => handleAlertChange("cliente", alerta.id, checked)}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -209,5 +248,4 @@ export default function ConfiguracoesPage() {
     </div>
   );
 }
-
     

@@ -15,7 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { format, isSameDay, parseISO, isPast, differenceInDays } from "date-fns";
+import { format, isSameDay, parseISO, isPast, differenceInDays, addDays, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import {
@@ -36,7 +36,9 @@ import {
   ClockIcon,
   ChevronRight,
   AlertTriangle, 
-  PackageSearch, // Ícone adicionado
+  PackageSearch,
+  CalendarClock, // Ícone para lembretes de revisão
+  Send, // Ícone para botão de enviar lembrete
 } from "lucide-react";
 
 
@@ -125,11 +127,24 @@ const agendamentosMock = [
   { id: "ag006", data: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"), horario: "15:00", cliente: "Cliente Teste Hoje", veiculo: "Carro Teste (XXX-0000)", servico: "Teste de Agendamento", mecanico: "Qualquer", status: "Confirmado"},
 ];
 
+const ordensDeServicoConcluidasMock = [
+  { id: "os001", clienteNome: "Juliana Alves", veiculoInfo: "VW Nivus - ABC1D23", dataConclusao: "2024-01-10", ultimoLembreteEnviado: null },
+  { id: "os002", clienteNome: "Ricardo Mendes", veiculoInfo: "Chevrolet Onix - DEF4E56", dataConclusao: "2024-06-20", ultimoLembreteEnviado: null },
+  { id: "os003", clienteNome: "Beatriz Costa", veiculoInfo: "Hyundai Creta - GHI7F89", dataConclusao: "2023-11-01", ultimoLembreteEnviado: "2024-04-29" }, // Simula lembrete já enviado
+  { id: "os004", clienteNome: "Fernando Lima", veiculoInfo: "Fiat Toro - JKL0G12", dataConclusao: "2023-12-05", ultimoLembreteEnviado: null },
+  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: format(addDays(new Date(), -182), "yyyy-MM-dd"), ultimoLembreteEnviado: null }, // Exatamente 182 dias atrás
+  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: format(addDays(new Date(), -30), "yyyy-MM-dd"), ultimoLembreteEnviado: null }, // Recente demais
+];
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<typeof agendamentosMock>([]);
   const [contasAPagarAlertas, setContasAPagarAlertas] = useState<typeof contasAPagarAlertasMock>([]);
+  const { toast } = useToast(); // Adicionado para simular envio de lembrete
+
+  // Simulação das configurações de lembrete de revisão
+  const [simulatedLembreteRevisaoAtivo, setSimulatedLembreteRevisaoAtivo] = useState(true);
+  const [simulatedDiasParaRevisao, setSimulatedDiasParaRevisao] = useState(180);
 
 
   useEffect(() => {
@@ -156,6 +171,29 @@ export default function DashboardPage() {
     setSelectedDate(date);
     filterAppointmentsForDate(date);
   };
+
+  const clientesParaLembreteRevisao = useMemo(() => {
+    if (!simulatedLembreteRevisaoAtivo) {
+      return [];
+    }
+    const hoje = new Date();
+    return ordensDeServicoConcluidasMock.filter(os => {
+      if (os.ultimoLembreteEnviado) return false; // Já foi lembrado
+      const dataConclusao = parseISO(os.dataConclusao);
+      const dataLembrete = addDays(dataConclusao, simulatedDiasParaRevisao);
+      return isSameDay(dataLembrete, hoje) || isBefore(dataLembrete, hoje);
+    });
+  }, [simulatedLembreteRevisaoAtivo, simulatedDiasParaRevisao]);
+
+  const handleEnviarLembreteSimulado = (clienteNome: string) => {
+    toast({
+      title: "Lembrete Simulado",
+      description: `Simulando envio de lembrete de revisão para ${clienteNome}.`,
+    });
+    // Aqui você poderia atualizar o mockData para marcar o lembrete como enviado,
+    // mas para manter simples, apenas exibimos o toast.
+  };
+
 
   const kpiCardComponent = (kpi: typeof kpiData[0]) => (
     <Card key={kpi.title} className="shadow-md hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
@@ -276,6 +314,61 @@ export default function DashboardPage() {
                     <FileText className="mr-2 h-4 w-4"/> Ver Todas Contas a Pagar
                 </Link>
             </Button>
+        </CardFooter>
+      )}
+    </Card>
+  );
+
+const lembretesRevisaoCard = (
+    <Card className="shadow-lg">
+      <CardHeader>
+        <CardTitle className="font-headline text-xl flex items-center">
+          <CalendarClock className="mr-2 h-6 w-6 text-blue-500" /> Lembretes de Revisão Pendentes
+        </CardTitle>
+        <CardDescription>
+          {simulatedLembreteRevisaoAtivo 
+            ? `Clientes com revisão pendente (intervalo de ${simulatedDiasParaRevisao} dias pós-OS).`
+            : "O sistema de lembretes de revisão pós-OS está desativado."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!simulatedLembreteRevisaoAtivo ? (
+          <div className="p-4 text-center text-muted-foreground">
+            <p>Ative os lembretes na <Link href="/dashboard/configuracoes" className="underline text-primary">página de configurações</Link>.</p>
+          </div>
+        ) : clientesParaLembreteRevisao.length > 0 ? (
+          <ScrollArea className="max-h-[280px] pr-3">
+            <div className="space-y-3">
+              {clientesParaLembreteRevisao.map(os => {
+                const dataConclusao = parseISO(os.dataConclusao);
+                const dataLembrete = addDays(dataConclusao, simulatedDiasParaRevisao);
+                return (
+                  <div key={os.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-3 rounded-lg border bg-muted/30">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm truncate" title={os.clienteNome}>{os.clienteNome}</p>
+                      <p className="text-xs text-muted-foreground">{os.veiculoInfo}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Última OS: {format(dataConclusao, "dd/MM/yy", { locale: ptBR })} | Lembrete em: {format(dataLembrete, "dd/MM/yy", { locale: ptBR })}
+                      </p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => handleEnviarLembreteSimulado(os.clienteNome)}>
+                      <Send className="mr-2 h-3 w-3" /> Enviar Lembrete
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        ) : (
+          <div className="p-4 text-center text-muted-foreground h-full flex flex-col justify-center items-center">
+            <CheckCircle className="h-12 w-12 text-green-500 mb-3" />
+            <p>Nenhum cliente com lembrete de revisão pendente no momento.</p>
+          </div>
+        )}
+      </CardContent>
+      {simulatedLembreteRevisaoAtivo && clientesParaLembreteRevisao.length > 0 && (
+         <CardFooter className="pt-4 mt-2 border-t">
+            <p className="text-xs text-muted-foreground">Total de {clientesParaLembreteRevisao.length} lembretes pendentes.</p>
         </CardFooter>
       )}
     </Card>
@@ -521,6 +614,7 @@ export default function DashboardPage() {
         </div>
         
         {contasAPagarAlertsCard}
+        {lembretesRevisaoCard} {/* Novo card adicionado aqui */}
 
         {mainChartSection}
         {calendarAndAppointmentsSection}
