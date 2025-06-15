@@ -34,12 +34,14 @@
     /* Sidebar specific colors for light theme */
     --sidebar-background: 220 15% 97%; /* Very Light Gray */
     --sidebar-foreground: 224 71% 4%; /* Almost Black */
-    --sidebar-primary: 217 89% 61%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 174 100% 29%;
-    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-primary: 217 89% 61%; /* #4285F4 Blue */
+    --sidebar-primary-foreground: 0 0% 98%; /* White */
+    --sidebar-accent: 174 100% 29%; /* #009688 Teal */
+    --sidebar-accent-foreground: 0 0% 98%; /* White */
+    --sidebar-muted: 220 13% 91%; /* Light Gray, same as theme muted */
+    --sidebar-muted-foreground: 220 9% 46%; /* Medium Gray, same as theme muted-foreground */
     --sidebar-border: 220 13% 88%; /* Light gray border */
-    --sidebar-ring: 217 89% 61%;
+    --sidebar-ring: 217 89% 61%; /* Blue */
   }
 
   .dark {
@@ -66,14 +68,16 @@
     /* Chart colors remain the same as defined in :root */
 
     /* Sidebar specific colors for dark theme */
-    --sidebar-background: 215 58% 10%; /* #0A1727 - darkest */
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 217 89% 61%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 174 100% 29%;
-    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-background: 215 58% 9%; /* #081524 - a bit darker */
+    --sidebar-foreground: 0 0% 98%; /* White */
+    --sidebar-primary: 217 89% 61%; /* #4285F4 Blue */
+    --sidebar-primary-foreground: 0 0% 98%; /* White */
+    --sidebar-accent: 174 100% 29%; /* #009688 Teal */
+    --sidebar-accent-foreground: 0 0% 98%; /* White */
+    --sidebar-muted: 217 44% 12%; /* Same as theme muted */
+    --sidebar-muted-foreground: 240 5% 65%; /* Same as theme muted-foreground */
     --sidebar-border: 216 44% 13%; /* #121E2E */
-    --sidebar-ring: 217 89% 61%;
+    --sidebar-ring: 217 89% 61%; /* Blue */
   }
 }
 

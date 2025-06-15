@@ -98,8 +98,8 @@ export function StaffSidebarNav() {
   }, []);
 
   return (
-    <div className="flex h-full max-h-screen flex-col">
-      <div className="flex h-16 items-center border-b px-4 lg:px-6">
+    <div className="flex h-full max-h-screen flex-col text-sidebar-foreground">
+      <div className="flex h-16 items-center border-b border-sidebar-border px-4 lg:px-6">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
           <Logo />
         </Link>
@@ -108,13 +108,13 @@ export function StaffSidebarNav() {
         <Accordion type="multiple" defaultValue={defaultOpenAccordionItems} className="w-full px-2 text-sm font-medium lg:px-4">
           {navItems.map((item) => {
             if (item.subItems) {
-              const isParentActive = item.subItems.some(subItem => pathname.startsWith(subItem.href));
+              const isParentActive = item.subItems.some(subItem => pathname === subItem.href || pathname.startsWith(subItem.href + '/'));
               return (
                 <AccordionItem value={item.id} key={item.id} className="border-b-0">
                   <AccordionTrigger
                     className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted [&[data-state=open]>svg.lucide-chevron-down]:rotate-180',
-                      isParentActive && 'bg-accent text-accent-foreground hover:text-accent-foreground hover:bg-accent/90'
+                      'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground [&[data-state=open]>svg.lucide-chevron-down]:rotate-180',
+                      isParentActive && 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
                     )}
                   >
                     <item.icon className="h-4 w-4" />
@@ -122,21 +122,23 @@ export function StaffSidebarNav() {
                   </AccordionTrigger>
                   <AccordionContent className="pl-4 pt-1 pb-0">
                     <nav className="grid gap-1">
-                      {item.subItems.map((subItem) => (
-                        <Link
-                          key={subItem.href}
-                          href={subItem.href}
-                          target={subItem.target}
-                          className={cn(
-                            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50',
-                            pathname === subItem.href && 'bg-muted text-primary font-semibold',
-                            pathname.startsWith(subItem.href + '/') && subItem.href !== '/dashboard' && subItem.href !== '/dashboard/financeiro' && 'bg-muted text-primary font-semibold'
-                          )}
-                        >
-                          <subItem.icon className="h-4 w-4" />
-                          {subItem.label}
-                        </Link>
-                      ))}
+                      {item.subItems.map((subItem) => {
+                        const isActiveSubItem = pathname === subItem.href || pathname.startsWith(subItem.href + '/');
+                        return (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            target={subItem.target}
+                            className={cn(
+                              'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground',
+                              isActiveSubItem && 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
+                            )}
+                          >
+                            <subItem.icon className="h-4 w-4" />
+                            {subItem.label}
+                          </Link>
+                        );
+                      })}
                     </nav>
                   </AccordionContent>
                 </AccordionItem>
@@ -148,8 +150,8 @@ export function StaffSidebarNav() {
                 href={item.href!}
                 target={item.target}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
-                  pathname === item.href && 'bg-accent text-accent-foreground hover:text-accent-foreground hover:bg-accent/90',
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground',
+                  pathname === item.href && 'bg-sidebar-primary text-sidebar-primary-foreground',
                   'my-0.5'
                 )}
               >
@@ -160,11 +162,11 @@ export function StaffSidebarNav() {
           })}
         </Accordion>
       </ScrollArea>
-      <div className="mt-auto p-4 border-t">
+      <div className="mt-auto p-4 border-t border-sidebar-border">
          <Link
             href="/"
             className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted'
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-accent/90 hover:text-sidebar-accent-foreground'
             )}
             >
             <LogOut className="h-4 w-4" />

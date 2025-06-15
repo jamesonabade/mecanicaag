@@ -5,11 +5,11 @@ import { Sheet, SheetContent } from '@/components/ui/sheet'; // For mobile sideb
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-card md:block">
+      <div className="hidden border-r border-sidebar-border bg-sidebar md:block">
         <StaffSidebarNav />
       </div>
       <Sheet> {/* Mobile Sidebar */}
-        <SheetContent side="left" className="p-0 w-[220px] sm:w-[280px] bg-card">
+        <SheetContent side="left" className="p-0 w-[220px] sm:w-[280px] bg-sidebar border-r border-sidebar-border">
           <StaffSidebarNav />
         </SheetContent>
         <div className="flex flex-col">

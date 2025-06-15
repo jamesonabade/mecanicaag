@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 
 export function StaffHeader() {
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 sm:px-6">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 sm:px-6 text-sidebar-foreground">
       <div className="md:hidden"> {/* Mobile sidebar toggle */}
          <SheetTrigger asChild> 
           <Button size="icon" variant="ghost" className="text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent">
@@ -34,12 +34,12 @@ export function StaffHeader() {
           <Input
             type="search"
             placeholder="Procurar..."
-            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px] h-9"
+            className="w-full rounded-lg bg-background text-foreground pl-8 md:w-[200px] lg:w-[320px] h-9"
           />
         </div>
 
         {/* Alert Banner - Example */}
-        <div className="hidden lg:flex items-center gap-2 bg-destructive/80 text-destructive-foreground px-3 py-1.5 rounded-md text-xs">
+        <div className="hidden lg:flex items-center gap-2 bg-destructive/90 text-destructive-foreground px-3 py-1.5 rounded-md text-xs">
           <Info className="h-4 w-4" />
           <span>ATENÇÃO: Sua assinatura expira em 7 dias.</span>
           <Button variant="link" className="text-destructive-foreground h-auto p-0 underline text-xs">Renovar</Button>
@@ -63,7 +63,7 @@ export function StaffHeader() {
             <Button variant="ghost" className="rounded-full p-0 h-9 w-9 focus-visible:ring-0 focus-visible:ring-offset-0">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="https://placehold.co/40x40/4285F4/FFFFFF.png?text=M" alt="Mecânica Ágil" data-ai-hint="user avatar" />
-                <AvatarFallback>M</AvatarFallback>
+                <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">M</AvatarFallback>
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
             </Button>
@@ -71,10 +71,10 @@ export function StaffHeader() {
           <DropdownMenuContent align="end" className="bg-sidebar border-sidebar-border text-sidebar-foreground">
             <DropdownMenuLabel>Mecânica Ágil</DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-sidebar-border"/>
-            <DropdownMenuItem className="hover:bg-sidebar-accent focus:bg-sidebar-accent">Configurações</DropdownMenuItem>
-            <DropdownMenuItem className="hover:bg-sidebar-accent focus:bg-sidebar-accent">Suporte</DropdownMenuItem>
+            <DropdownMenuItem className="hover:!bg-sidebar-accent focus:!bg-sidebar-accent hover:!text-sidebar-accent-foreground focus:!text-sidebar-accent-foreground">Configurações</DropdownMenuItem>
+            <DropdownMenuItem className="hover:!bg-sidebar-accent focus:!bg-sidebar-accent hover:!text-sidebar-accent-foreground focus:!text-sidebar-accent-foreground">Suporte</DropdownMenuItem>
             <DropdownMenuSeparator className="bg-sidebar-border"/>
-            <DropdownMenuItem asChild className="hover:bg-sidebar-accent focus:bg-sidebar-accent">
+            <DropdownMenuItem asChild className="hover:!bg-sidebar-accent focus:!bg-sidebar-accent hover:!text-sidebar-accent-foreground focus:!text-sidebar-accent-foreground">
               <Link href="/">Sair</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
