@@ -10,8 +10,13 @@ import React from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AgendamentoPage() {
-  // const [date, setDate] = React.useState<Date | undefined>(new Date()); // Example state for calendar
+  const [date, setDate] = React.useState<Date | undefined>(undefined); // Initialize with undefined to prevent hydration errors for now
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    setDate(new Date()); // Set initial date on client-side
+  }, []);
+
 
   const handleFilterClick = () => {
     toast({
@@ -51,8 +56,8 @@ export default function AgendamentoPage() {
             */}
             <Calendar
               mode="single"
-              // selected={date}
-              // onSelect={setDate}
+              selected={date}
+              onSelect={setDate}
               className="rounded-md border"
               
             />
@@ -75,3 +80,5 @@ export default function AgendamentoPage() {
     </div>
   );
 }
+
+    
