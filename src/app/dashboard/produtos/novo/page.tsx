@@ -20,7 +20,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, PackagePlus } from "lucide-react";
+import { ChevronLeft, Save, PackagePlus, FileArchive, CalendarIcon as CalendarLucideIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Separator } from "@/components/ui/separator";
+
 
 // Mock data - substituir no futuro
 const mockCategorias = [
@@ -52,7 +59,7 @@ const unidadesMedida = [
 
 const produtoFormSchema = z.object({
   nome: z.string().min(3, { message: "Nome do produto deve ter pelo menos 3 caracteres." }),
-  codigoSku: z.string().optional().or(z.literal('')), // Pode ser gerado automaticamente ou manual
+  codigoSku: z.string().optional().or(z.literal('')), 
   descricao: z.string().optional(),
   categoriaId: z.string({ required_error: "Selecione uma categoria." }),
   fornecedorId: z.string().optional(),
@@ -61,8 +68,12 @@ const produtoFormSchema = z.object({
   precoVenda: z.coerce.number().min(0, { message: "Preço de venda não pode ser negativo." }),
   estoqueAtual: z.coerce.number().int().min(0, { message: "Estoque não pode ser negativo." }).default(0),
   estoqueMinimo: z.coerce.number().int().min(0, { message: "Estoque mínimo não pode ser negativo." }).optional(),
-  localizacao: z.string().optional(), // Ex: Prateleira A, Corredor 3
+  localizacao: z.string().optional(), 
   observacoes: z.string().optional(),
+  // NF-e de Compra
+  nfeCompraChave: z.string().length(44, {message: "Chave de acesso deve ter 44 dígitos."}).optional().or(z.literal('')),
+  nfeCompraDataEmissao: z.date().optional(),
+  nfeCompraValorTotal: z.coerce.number().min(0, {message: "Valor da NF-e de compra deve ser positivo."}).optional(),
 });
 
 type ProdutoFormValues = z.infer<typeof produtoFormSchema>;
@@ -84,6 +95,9 @@ export default function NovoProdutoPage() {
       estoqueMinimo: undefined,
       localizacao: "",
       observacoes: "",
+      nfeCompraChave: "",
+      nfeCompraDataEmissao: undefined,
+      nfeCompraValorTotal: undefined,
     },
   });
 
@@ -93,7 +107,7 @@ export default function NovoProdutoPage() {
       title: "Produto Cadastrado (Simulado)",
       description: `O produto "${data.nome}" foi salvo com sucesso (simulação).`,
     });
-    // form.reset(); // Opcional
+    // form.reset(); 
   }
 
   return (
@@ -230,7 +244,8 @@ export default function NovoProdutoPage() {
                 />
               </div>
 
-              <h3 className="text-lg font-medium pt-4 border-t mt-4">Valores e Estoque</h3>
+              <Separator className="my-4" />
+              <h3 className="text-lg font-medium">Valores e Estoque</h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                  <FormField
                   control={form.control}
@@ -298,12 +313,86 @@ export default function NovoProdutoPage() {
                     </FormItem>
                   )}
                 />
+                
+                <Separator className="my-4" />
+                <h3 className="text-lg font-medium flex items-center gap-2"><FileArchive className="h-5 w-5 text-muted-foreground"/> Dados da Nota Fiscal de Compra (Entrada - Opcional)</h3>
+                <FormField
+                  control={form.control}
+                  name="nfeCompraChave"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Chave de Acesso da NF-e de Compra (44 dígitos)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 00000000000000000000000000000000000000000000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="nfeCompraDataEmissao"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                            <FormLabel>Data de Emissão da NF-e de Compra</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, "PPP", { locale: ptBR })
+                                    ) : (
+                                        <span>Escolha uma data</span>
+                                    )}
+                                    <CalendarLucideIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
+                                    initialFocus
+                                    locale={ptBR}
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="nfeCompraValorTotal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Valor Total da NF-e de Compra (R$)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="Ex: 1250.99" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
+
+
+                <Separator className="my-4" />
                <FormField
                 control={form.control}
                 name="observacoes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Observações (Opcional)</FormLabel>
+                    <FormLabel>Observações Gerais do Produto (Opcional)</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Informações adicionais sobre o produto, notas de compra, etc."
@@ -330,3 +419,6 @@ export default function NovoProdutoPage() {
     </div>
   );
 }
+
+
+    

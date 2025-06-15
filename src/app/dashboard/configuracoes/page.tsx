@@ -27,8 +27,11 @@ import {
     Edit3, 
     PackageSearch,
     Building,
-    CalendarCheck, // Adicionado para revisão pós OS
+    CalendarCheck,
+    FileArchive, // Icon for NF-e
+    Info, // Icon for Documentation
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Tipos de Alertas para Clientes
 const alertasClienteTipos = [
@@ -40,7 +43,7 @@ const alertasClienteTipos = [
   { id: "orcamentoPronto", label: "Orçamento Pronto para Aprovação", icon: FileText },
   { id: "pesquisaSatisfacao", label: "Pesquisa de Satisfação pós-serviço", icon: MessageSquare },
   { id: "lembreteRevisaoPeriodica", label: "Lembrete de Revisão Periódica (ex: 6 meses)", icon: Repeat },
-  { id: "lembreteRevisaoPosServico", label: "Lembrete de Revisão Pós-OS (Dias)", icon: CalendarCheck, hasDaysInput: true }, // Novo alerta
+  { id: "lembreteRevisaoPosServico", label: "Lembrete de Revisão Pós-OS (Dias)", icon: CalendarCheck, hasDaysInput: true },
   { id: "lembreteTrocaOleo", label: "Lembrete de Troca de Óleo (KM/Tempo)", icon: FilterIcon },
   { id: "ofertaAniversario", label: "Oferta Especial de Aniversário do Cliente", icon: Gift },
   { id: "checkupPosServico", label: "Check-up Pós-Serviço (ex: 1 semana depois)", icon: HeartHandshake },
@@ -54,6 +57,17 @@ const alertasFuncionarioTipos = [
   { id: "pecaFaltanteServico", label: "Peça Faltante para Serviço em Andamento", icon: PackageSearch },
 ];
 
+const regimesTributarios = [
+    { value: "simples_nacional", label: "Simples Nacional" },
+    { value: "lucro_presumido", label: "Lucro Presumido" },
+    { value: "lucro_real", label: "Lucro Real" },
+];
+
+const ambientesNFe = [
+    { value: "producao", label: "Produção (Valor Fiscal)" },
+    { value: "homologacao", label: "Homologação (Testes)" },
+];
+
 export default function ConfiguracoesPage() {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState("");
@@ -65,11 +79,10 @@ export default function ConfiguracoesPage() {
     alertasFuncionarioTipos.reduce((acc, curr) => ({ ...acc, [curr.id]: true }), {})
   );
   
-  // Estado para os dias configuráveis dos alertas
   const [diasParaLembretes, setDiasParaLembretes] = useState<Record<string, number>>(
     alertasClienteTipos.reduce((acc, curr) => {
       if (curr.id === "lembreteRevisaoPosServico") {
-        return { ...acc, [curr.id]: 180 }; // Default 180 days
+        return { ...acc, [curr.id]: 180 }; 
       }
       return acc;
     }, {})
@@ -110,6 +123,13 @@ export default function ConfiguracoesPage() {
     toast({
       title: "Configurações Gerais Salvas (Simulado)",
       description: "As configurações gerais da oficina foram atualizadas.",
+    });
+  };
+
+  const handleSaveNFeSettings = () => {
+    toast({
+      title: "Configurações de NF-e Salvas (Simulado)",
+      description: "As configurações de Nota Fiscal foram atualizadas.",
     });
   };
 
@@ -158,6 +178,65 @@ export default function ConfiguracoesPage() {
         <CardFooter className="flex justify-end pt-6 border-t">
           <Button onClick={handleSaveGeneralSettings} className="w-full sm:w-auto">
             <Save className="mr-2 h-4 w-4" /> Salvar Configurações Gerais
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><FileArchive className="h-5 w-5 text-primary"/> Configurações de Nota Fiscal (NF-e)</CardTitle>
+          <CardDescription>
+            Dados da empresa para emissão de notas fiscais e configurações do sistema emissor.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+                <div><Label htmlFor="nfeRazaoSocial">Razão Social</Label><Input id="nfeRazaoSocial" placeholder="Sua Empresa LTDA ME"/></div>
+                <div><Label htmlFor="nfeCnpj">CNPJ</Label><Input id="nfeCnpj" placeholder="00.000.000/0001-00"/></div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+                 <div><Label htmlFor="nfeIE">Inscrição Estadual</Label><Input id="nfeIE" placeholder="123.456.789.110 ou ISENTO"/></div>
+                 <div><Label htmlFor="nfeIM">Inscrição Municipal (Opcional)</Label><Input id="nfeIM" placeholder="9876543-2"/></div>
+            </div>
+            <div><Label htmlFor="nfeEnderecoCompleto">Endereço Completo (para NF-e)</Label><Input id="nfeEnderecoCompleto" placeholder="Rua Fiscal, 100, Centro, Cidade Fiscal - UF, CEP 00000-000"/></div>
+            <div className="grid md:grid-cols-2 gap-6">
+                <div><Label htmlFor="nfeTelefone">Telefone (para NF-e)</Label><Input id="nfeTelefone" type="tel" placeholder="(00) 99999-8888"/></div>
+                <div><Label htmlFor="nfeEmail">Email (para NF-e)</Label><Input id="nfeEmail" type="email" placeholder="fiscal@suaempresa.com"/></div>
+            </div>
+             <div className="grid md:grid-cols-3 gap-6">
+                 <div>
+                    <Label htmlFor="nfeRegimeTributario">Regime Tributário</Label>
+                    <Select defaultValue="simples_nacional">
+                        <SelectTrigger id="nfeRegimeTributario"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            {regimesTributarios.map(regime => <SelectItem key={regime.value} value={regime.value}>{regime.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div><Label htmlFor="nfeSerie">Série da NF-e</Label><Input id="nfeSerie" type="number" defaultValue="1" placeholder="Ex: 1"/></div>
+                <div><Label htmlFor="nfeProximoNumero">Próximo Número NF-e</Label><Input id="nfeProximoNumero" type="number" defaultValue="1" placeholder="Ex: 1001"/></div>
+            </div>
+            <div>
+                <Label htmlFor="nfeAmbiente">Ambiente de Emissão</Label>
+                <Select defaultValue="homologacao">
+                    <SelectTrigger id="nfeAmbiente"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {ambientesNFe.map(ambiente => <SelectItem key={ambiente.value} value={ambiente.value}>{ambiente.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div>
+                <Label htmlFor="nfeApiEmissor">Chave de API do Serviço Emissor de NF-e</Label>
+                <Input id="nfeApiEmissor" type="password" placeholder="********************************" disabled />
+                <p className="text-xs text-muted-foreground mt-1">
+                    Para emissão real, é necessário um Certificado Digital A1 (arquivo .pfx) e integração com um sistema emissor de NF-e.
+                    Insira aqui a chave da API do serviço contratado.
+                </p>
+            </div>
+        </CardContent>
+        <CardFooter className="flex justify-end pt-6 border-t">
+          <Button onClick={handleSaveNFeSettings} className="w-full sm:w-auto">
+            <Save className="mr-2 h-4 w-4" /> Salvar Configurações de NF-e
           </Button>
         </CardFooter>
       </Card>
@@ -245,7 +324,53 @@ export default function ConfiguracoesPage() {
           </Button>
         </CardFooter>
       </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Info className="h-5 w-5 text-primary"/> Documentação: Módulo de Nota Fiscal (Simulado)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm text-muted-foreground">
+            <p><strong>Finalidade do Módulo:</strong> Este módulo tem como objetivo gerenciar as informações fiscais da sua empresa e simular o fluxo de emissão e recebimento de Notas Fiscais Eletrônicas (NF-e).</p>
+            
+            <h4 className="font-semibold text-foreground">Configuração Fiscal:</h4>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>Preencha todos os dados da sua empresa na seção "Configurações de Nota Fiscal" acima. Esses dados são essenciais e constarão em todas as NF-e emitidas.</li>
+                <li>O "Regime Tributário" define como os impostos serão calculados.</li>
+                <li>"Série da NF-e" e "Próximo Número NF-e" controlam a numeração sequencial das suas notas.</li>
+                <li>O "Ambiente de Emissão" deve ser "Homologação" para testes e "Produção" para notas com validade fiscal.</li>
+                <li><strong>Importante:</strong> A emissão real de NF-e exige um Certificado Digital A1 (arquivo .pfx) válido para sua empresa e, geralmente, a contratação de um serviço de API especializado em emissão de NF-e (ex: FocusNFe, NFE.io, TecnoSpeed). A "Chave de API" fornecida por esse serviço seria configurada no campo correspondente (atualmente desabilitado para simulação).</li>
+            </ul>
+
+            <h4 className="font-semibold text-foreground">Entrada de Produtos com NF-e de Compra:</h4>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>Ao cadastrar um novo produto (em <a href="/dashboard/produtos/novo" className="text-primary underline">Produtos &gt; Novo Produto</a>), você encontrará uma seção opcional "Dados da Nota Fiscal de Compra (Entrada)".</li>
+                <li>Informe a "Chave de Acesso" (44 dígitos) da NF-e que seu fornecedor emitiu, a "Data de Emissão" e o "Valor Total" dessa nota.</li>
+                <li>Isso ajuda no rastreamento do custo de entrada e na gestão de estoque.</li>
+            </ul>
+
+            <h4 className="font-semibold text-foreground">Emissão de NF-e de Venda (Fluxo Conceitual):</h4>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>A emissão de NF-e para seu cliente (saída de produtos/serviços) ocorreria tipicamente:</li>
+                <ul className="list-disc pl-5 space-y-1">
+                    <li>Ao finalizar uma Ordem de Serviço que utilizou peças e/ou serviços tributáveis.</li>
+                    <li>Através de uma funcionalidade de "Venda de Balcão" ou "Venda Direta" (a ser implementada).</li>
+                </ul>
+                <li>O sistema coletaria os dados do cliente, os produtos vendidos (com seus respectivos NCMs, CFOPs, etc.), os serviços prestados, valores e informações de pagamento.</li>
+                <li>Esses dados seriam enviados para a API de emissão de NF-e configurada.</li>
+                <li>Após autorização da SEFAZ, o sistema receberia o XML da NF-e e o link/arquivo do DANFE (Documento Auxiliar da NF-e).</li>
+                <li>Esses arquivos seriam armazenados e poderiam ser gerenciados na seção "Financeiro &gt; Gerenciar Notas Fiscais". O cliente também poderia ter acesso ao DANFE via portal.</li>
+            </ul>
+            
+            <div className="p-3 border border-destructive/50 bg-destructive/10 text-destructive rounded-md">
+                <p className="font-semibold flex items-center gap-1"><AlertTriangle className="h-4 w-4"/> Disclaimer Importante:</p>
+                <p>Este módulo é uma **simulação para fins de prototipagem**. A emissão real de Notas Fiscais Eletrônicas (NF-e) é um processo complexo que exige conformidade legal, certificado digital válido, e integração com os web services da SEFAZ, geralmente através de uma API de terceiros especializada. Consulte seu contador para mais informações.</p>
+            </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
+    
+
     

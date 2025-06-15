@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import type { LucideIcon } from 'lucide-react'; // Import type
+import type { LucideIcon } from 'lucide-react'; 
 import {
   LayoutDashboard,
   Users,
@@ -19,6 +19,7 @@ import {
   LogOut,
   Settings,
   FileSpreadsheet,
+  FileArchive, // Icon for NF-e
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
@@ -71,6 +72,7 @@ const navItems: NavItemEntry[] = [
     icon: Settings,
     subItems: [
       { href: '/dashboard/financeiro', label: 'Financeiro', icon: Landmark },
+      { href: '/dashboard/financeiro/notas-fiscais', label: 'Gerenciar NF-e', icon: FileArchive },
       { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings },
     ],
   },
@@ -80,9 +82,7 @@ const navItems: NavItemEntry[] = [
 export function StaffSidebarNav() {
   const pathname = usePathname();
 
-  // Determine which accordion items should be open by default
   const defaultOpenAccordionItems = React.useMemo(() => {
-    // Expand all items that have subItems
     return navItems
       .filter(item => item.subItems && item.subItems.length > 0)
       .map(item => item.id);
@@ -121,7 +121,7 @@ export function StaffSidebarNav() {
                           className={cn(
                             'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50',
                             pathname === subItem.href && 'bg-muted text-primary font-semibold',
-                            pathname.startsWith(subItem.href + '/') && subItem.href !== '/dashboard' && 'bg-muted text-primary font-semibold'
+                            pathname.startsWith(subItem.href + '/') && subItem.href !== '/dashboard' && subItem.href !== '/dashboard/financeiro' && 'bg-muted text-primary font-semibold'
                           )}
                         >
                           <subItem.icon className="h-4 w-4" />
@@ -133,7 +133,6 @@ export function StaffSidebarNav() {
                 </AccordionItem>
               );
             }
-            // Render direct link if no subItems
             return (
               <Link
                 key={item.href}
@@ -142,8 +141,7 @@ export function StaffSidebarNav() {
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
                   pathname === item.href && 'bg-accent text-accent-foreground hover:text-accent-foreground hover:bg-accent/90',
-                   // Adjusted for non-accordion items to avoid unnecessary AccordionItem wrapper
-                  'my-0.5' // Small margin for separation, mimicking AccordionItem spacing somewhat
+                  'my-0.5' 
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -167,3 +165,5 @@ export function StaffSidebarNav() {
     </div>
   );
 }
+
+    
