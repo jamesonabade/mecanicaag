@@ -41,8 +41,20 @@ export interface ItemOS {
   descricao: string;
   valor: number;
   tipo: 'servico' | 'peca';
-  quantidade?: number; // Opcional, mas necessário para peças
+  quantidade?: number; 
 }
+
+// Interface para Checklist Preenchido (a ser usada dentro de mockOrdensServico)
+interface FilledChecklistInfo {
+  id: string; // ID da instância preenchida
+  modelId: string;
+  modelName: string;
+  dataPreenchimento: string;
+  responsavel: string;
+  // Não vamos armazenar todas as respostas aqui para manter o mock da OS leve
+}
+
+
 export const mockOrdensServico = [
   {
     id: "OS001",
@@ -67,7 +79,8 @@ export const mockOrdensServico = [
     fotos: [
       {url: "https://placehold.co/300x200.png", legenda: "Entrada do veículo", dataAiHint: "car mechanic"},
       {url: "https://placehold.co/300x200.png", legenda: "Motor antes da limpeza", dataAiHint: "engine detail"},
-    ]
+    ],
+    checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
   {
     id: "OS002",
@@ -85,7 +98,8 @@ export const mockOrdensServico = [
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
-    fotos: []
+    fotos: [],
+    checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
   {
     id: "OS003",
@@ -103,7 +117,10 @@ export const mockOrdensServico = [
     valorFinal: 180.00,
     itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 180.00, tipo: "servico"}] as ItemOS[],
     diagnosticoTecnico: "Bobina do cilindro 3 com defeito. Substituição recomendada em orçamento futuro.",
-    fotos: []
+    fotos: [],
+    checklistsPreenchidos: [
+        { id: "filled_chk_os003_1", modelId: "chk_model_001", modelName: "Checklist de Inspeção Veicular Pré-Serviço", dataPreenchimento: "2024-07-27T09:20:00Z", responsavel: "Carlos Alberto" }
+    ] as FilledChecklistInfo[],
   },
   {
     id: "OS004",
@@ -121,7 +138,8 @@ export const mockOrdensServico = [
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
-    fotos: []
+    fotos: [],
+    checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
   {
     id: "OS005",
@@ -134,12 +152,13 @@ export const mockOrdensServico = [
     descricaoProblema: "Veículo puxando para a direita e volante vibrando em alta velocidade.",
     servicosPecasPlanejadas: "Alinhamento de direção\nBalanceamento das 4 rodas",
     observacoesInternas: "Pneus aparentemente em bom estado.",
-    status: "Aguardando Peças", // Exemplo: aguardando pesos de balanceamento específicos
+    status: "Aguardando Peças", 
     valorEstimado: 150.00,
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
-    fotos: []
+    fotos: [],
+    checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
    {
     id: "OS006",
@@ -157,7 +176,8 @@ export const mockOrdensServico = [
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
-    fotos: []
+    fotos: [],
+    checklistsPreenchidos: [] as FilledChecklistInfo[],
   },
 ];
 
@@ -205,7 +225,6 @@ export default function ServicosPage() {
   const handleAction = (action: string, osId: string) => {
       if (action === "Gerar Orçamento para") {
         toast({ title: `${action} OS ${osId} (Simulado)`, description: `A OS ${osId} seria associada a um novo orçamento ou um existente.`});
-        // Idealmente, redirecionaria para /dashboard/orcamentos/novo?osId=${osId}
       } else {
         toast({ title: `${action} OS ${osId} (Simulado)`, description: `A ação de ${action.toLowerCase()} para a OS ${osId} será implementada.`});
       }
