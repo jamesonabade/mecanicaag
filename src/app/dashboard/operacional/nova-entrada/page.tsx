@@ -93,13 +93,25 @@ type VeiculoFormValuesDialog = z.infer<typeof veiculoFormSchemaDialog>;
 
 // --- Mock Data (Inicial, será atualizado em memória) ---
 const initialMockClientes: Cliente[] = [
-  { id: "cli001", nomeCompleto: "João da Silva", cpfCnpj: "111.111.111-11", telefone: "(11)999990001", email: "joao@example.com" },
-  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21)988880002", email: "maria@example.com" },
+  { 
+    id: "cli_modelo_001", 
+    nomeCompleto: "Cliente Exemplo Padrão", 
+    cpfCnpj: "123.456.789-00", 
+    telefone: "(11) 91234-5678", 
+    email: "cliente.exemplo@email.com" 
+  },
 ];
 const initialMockVeiculos: Veiculo[] = [
-  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234", cor: "Prata", anoFabricacao: 2020 },
-  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", cor: "Branco", anoFabricacao: 2022 },
-  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", cor: "Preto", anoFabricacao: 2021 },
+  { 
+    id: "vec_modelo_001", 
+    clienteId: "cli_modelo_001", 
+    marca: "Marca Exemplo", 
+    modelo: "Modelo Padrão X", 
+    placa: "EXP-2024", 
+    cor: "Azul Metálico", 
+    anoFabricacao: 2022,
+    anoModelo: 2022
+  },
 ];
 
 export default function PaginaEntradasVeiculos() {
@@ -245,7 +257,7 @@ export default function PaginaEntradasVeiculos() {
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><LogIn className="h-7 w-7"/> Painel de Entradas de Veículos</h1>
         <div className="flex gap-2">
             <Button onClick={handleIniciarNovaEntrada}><PlusCircle className="mr-2 h-4 w-4"/> Iniciar Nova Entrada</Button>
-            <Button variant="outline" asChild><Link href="/dashboard"><ChevronLeft /> Voltar ao Painel</Link></Button>
+            <Button variant="outline" asChild><Link href="/dashboard"><ChevronLeft className="mr-2 h-4 w-4"/> Voltar ao Painel</Link></Button>
         </div>
       </div>
 

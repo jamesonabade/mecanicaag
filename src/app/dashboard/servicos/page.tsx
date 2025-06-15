@@ -17,30 +17,49 @@ import { ptBR } from "date-fns/locale";
 // Mock data - Mover para um arquivo central no futuro
 interface Cliente {
   id: string;
-  nome: string;
-  cpfCnpj?: string; 
+  nomeCompleto: string; // nome -> nomeCompleto
+  cpfCnpj: string; // Tornando cpfCnpj obrigatório
+  telefone?: string;
+  email?: string;
 }
 interface Veiculo {
   id: string;
   clienteId: string; 
   modelo: string;
   placa: string;
-  marca?: string; 
-  ano?: string;
-  cor?: string;
-  km?: string;
+  marca: string; // Tornando marca obrigatória
+  ano: string; // Mantido como string para simplicidade
+  cor: string; // Tornando cor obrigatória
+  km: string; // Tornando km obrigatório
+  anoFabricacao?: number;
+  anoModelo?: number;
 }
 
 const mockClientes: Cliente[] = [
-  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11" },
-  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22" },
-  { id: "cli003", nome: "Carlos Pereira", cpfCnpj: "333.333.333-33" },
-  { id: "cli004", nome: "Ana Costa", cpfCnpj: "444.444.444-44" },
+  { 
+    id: "cli_modelo_001", 
+    nomeCompleto: "Cliente Exemplo Padrão", 
+    cpfCnpj: "123.456.789-00", 
+    telefone: "(11) 91234-5678", 
+    email: "cliente.exemplo@email.com" 
+  },
+  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21) 91234-5678", email: "maria.oliveira@email.com" },
+  { id: "cli003", nomeCompleto: "Carlos Pereira", cpfCnpj: "333.333.333-33", telefone: "(31) 95555-5555", email: "carlos.p@email.com" },
+  { id: "cli004", nomeCompleto: "Ana Costa", cpfCnpj: "444.444.444-44", telefone: "(41) 94444-4444", email: "ana.c@email.com" },
 ];
 
 const mockVeiculos: Veiculo[] = [
-  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234", ano: "2020", cor: "Prata", km: "40500" },
-  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022", cor: "Branco", km: "15200" },
+  { 
+    id: "vec_modelo_001", 
+    clienteId: "cli_modelo_001", 
+    marca: "Marca Exemplo", 
+    modelo: "Modelo Padrão X", 
+    placa: "EXP-2024", 
+    ano: "2022", 
+    cor: "Azul Metálico", 
+    km: "25000" 
+  },
+  { id: "vec002", clienteId: "cli_modelo_001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022", cor: "Branco", km: "15200" },
   { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", ano: "2021", cor: "Preto", km: "33000" },
   { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456", ano: "2023", cor: "Cinza", km: "8900" },
   { id: "vec005", clienteId: "cli004", marca: "Hyundai", modelo: "HB20", placa: "MNO-7890", ano: "2019", cor: "Vermelho", km: "55100" },
@@ -79,13 +98,13 @@ interface FilledChecklistInfo {
 export const mockOrdensServico = [
   {
     id: "OS001",
-    clienteId: "cli001",
-    veiculoId: "vec001",
+    clienteId: "cli_modelo_001", // Alterado para usar o cliente modelo
+    veiculoId: "vec_modelo_001", // Alterado para usar o veículo modelo
     dataEntrada: "2024-07-25T10:00:00Z",
     dataPrevisaoEntrega: "2024-07-26T17:00:00Z",
     mecanicoId: "mec001",
     tipoServico: "Revisão Completa",
-    descricaoProblema: "Cliente solicitou revisão completa dos 40.000km. Verificar freios, suspensão e trocar óleo/filtros.",
+    descricaoProblema: "Cliente solicitou revisão completa dos 25.000km. Verificar freios, suspensão e trocar óleo/filtros.",
     servicosPecasPlanejadas: "Óleo 5W30 Sintético (4L)\nFiltro de Óleo\nFiltro de Ar\nFiltro de Combustível\nAlinhamento e Balanceamento",
     observacoesInternas: "Veículo chegou com barulho leve na suspensão dianteira direita. Verificar durante a revisão.",
     status: "Em Andamento",
@@ -98,7 +117,7 @@ export const mockOrdensServico = [
     ] as ItemOS[],
     diagnosticoTecnico: "Suspensão dianteira direita com folga na bandeja. Necessário orçamento adicional para substituição.",
     fotos: [
-      {url: "https://placehold.co/300x200.png", legenda: "Entrada do veículo", dataAiHint: "car mechanic"},
+      {url: "https://placehold.co/300x200.png", legenda: "Entrada do veículo", dataAiHint: "car service"},
       {url: "https://placehold.co/300x200.png", legenda: "Motor antes da limpeza", dataAiHint: "engine detail"},
     ] as FotoOS[],
     checklistsPreenchidos: [] as FilledChecklistInfo[],
@@ -145,8 +164,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS004",
-    clienteId: "cli001",
-    veiculoId: "vec002",
+    clienteId: "cli_modelo_001", // Usando cliente modelo para este
+    veiculoId: "vec002", // Usando o segundo veículo do cliente modelo (Fiat Strada)
     dataEntrada: "2024-07-28T11:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T10:00:00Z",
     mecanicoId: null,
@@ -218,7 +237,7 @@ const statusOptions: { value: OSStatus; label: string }[] = [
 export default function ServicosPage() {
   const { toast } = useToast();
 
-  const getClienteNome = (clienteId: string) => mockClientes.find(c => c.id === clienteId)?.nome || "N/A";
+  const getClienteNome = (clienteId: string) => mockClientes.find(c => c.id === clienteId)?.nomeCompleto || "N/A";
   const getVeiculoDesc = (veiculoId: string) => {
     const veiculo = mockVeiculos.find(v => v.id === veiculoId);
     return veiculo ? `${veiculo.marca} ${veiculo.modelo} (${veiculo.placa})` : "N/A";

@@ -43,15 +43,30 @@ import { mockOrdensServico, OSStatus, ItemOS } from "../page"; // Importando moc
 
 // Mock data - Em uma aplicação real, isso viria de uma API
 const mockClientes = [
-  { id: "cli001", nome: "João da Silva", telefone: "(11) 98765-4321", email: "joao.silva@example.com" },
-  { id: "cli002", nome: "Maria Oliveira", telefone: "(21) 91234-5678", email: "maria.oliveira@example.com" },
-  { id: "cli003", nome: "Carlos Pereira", telefone: "(31) 95555-5555", email: "carlos.p@example.com" },
-  { id: "cli004", nome: "Ana Costa", telefone: "(41) 94444-4444", email: "ana.c@example.com" },
+  { 
+    id: "cli_modelo_001", 
+    nomeCompleto: "Cliente Exemplo Padrão", // nome -> nomeCompleto
+    cpfCnpj: "123.456.789-00", // Adicionado
+    telefone: "(11) 91234-5678", 
+    email: "cliente.exemplo@email.com" 
+  },
+  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21) 91234-5678", email: "maria.oliveira@email.com" },
+  { id: "cli003", nomeCompleto: "Carlos Pereira", cpfCnpj: "333.333.333-33", telefone: "(31) 95555-5555", email: "carlos.p@email.com" },
+  { id: "cli004", nomeCompleto: "Ana Costa", cpfCnpj: "444.444.444-44", telefone: "(41) 94444-4444", email: "ana.c@email.com" },
 ];
 
 const mockVeiculos = [
-  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234", ano: "2020", cor: "Prata", km: "40500" },
-  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022", cor: "Branco", km: "15200" },
+  { 
+    id: "vec_modelo_001", 
+    clienteId: "cli_modelo_001", 
+    marca: "Marca Exemplo", 
+    modelo: "Modelo Padrão X", 
+    placa: "EXP-2024", 
+    ano: "2022", 
+    cor: "Azul Metálico", 
+    km: "25000" 
+  },
+  { id: "vec002", clienteId: "cli_modelo_001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022", cor: "Branco", km: "15200" },
   { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", ano: "2021", cor: "Preto", km: "33000" },
   { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456", ano: "2023", cor: "Cinza", km: "8900" },
   { id: "vec005", clienteId: "cli004", marca: "Hyundai", modelo: "HB20", placa: "MNO-7890", ano: "2019", cor: "Vermelho", km: "55100" },
@@ -137,6 +152,7 @@ const tiposRespostaLabels = {
 interface FilledChecklistItemAnswer {
   itemId: string;
   resposta: any; // string | boolean | string[] | null
+  texto?: string; // Adicionado para facilitar a visualização
 }
 
 interface FilledChecklist {
@@ -314,7 +330,8 @@ export default function OrdemServicoDetalhesPage() {
     // Aqui você também atualizaria o mockOrdensServico ou faria uma chamada API
     const osIndex = mockOrdensServico.findIndex(os => os.id === osData.id);
     if (osIndex > -1) {
-      mockOrdensServico[osIndex].checklistsPreenchidos = [...(mockOrdensServico[osIndex].checklistsPreenchidos || []), newFilledChecklist];
+      const currentChecklists = mockOrdensServico[osIndex].checklistsPreenchidos || [];
+      mockOrdensServico[osIndex].checklistsPreenchidos = [...currentChecklists, newFilledChecklist];
     }
 
 
@@ -425,7 +442,7 @@ export default function OrdemServicoDetalhesPage() {
         <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
             <p className="font-semibold flex items-center gap-1 mb-0.5"><User className="h-4 w-4 text-primary"/> Cliente:</p>
-            <p className="ml-1">{cliente?.nome || "N/A"}</p>
+            <p className="ml-1">{cliente?.nomeCompleto || "N/A"}</p>
             <p className="ml-1 text-xs text-muted-foreground">Tel: {cliente?.telefone || "N/A"} | Email: {cliente?.email || "N/A"}</p>
           </div>
           <div>
@@ -601,3 +618,4 @@ export default function OrdemServicoDetalhesPage() {
     </div>
   );
 }
+

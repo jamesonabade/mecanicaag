@@ -33,7 +33,7 @@ import { Separator } from "@/components/ui/separator";
 // Mock data - Mover para um arquivo central no futuro
 interface Cliente {
   id: string;
-  nomeCompleto: string; // nome -> nomeCompleto
+  nomeCompleto: string; 
   cpfCnpj: string; 
   telefone?: string;
   email?: string;
@@ -43,18 +43,33 @@ interface Veiculo {
   clienteId: string;
   modelo: string;
   placa: string;
-  marca?: string; 
+  marca: string; 
+  cor?: string;
+  anoFabricacao?: number;
+  anoModelo?: number;
 }
 
 const mockClientes: Cliente[] = [
-  { id: "cli001", nomeCompleto: "João da Silva", cpfCnpj: "111.111.111-11", telefone: "(11)999990001", email: "joao@example.com" },
-  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21)988880002", email: "maria@example.com" },
+  { 
+    id: "cli_modelo_001", 
+    nomeCompleto: "Cliente Exemplo Padrão", 
+    cpfCnpj: "123.456.789-00", 
+    telefone: "(11) 91234-5678", 
+    email: "cliente.exemplo@email.com" 
+  },
 ];
 
 const mockVeiculos: Veiculo[] = [
-  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234" },
-  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678" },
-  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012" },
+  { 
+    id: "vec_modelo_001", 
+    clienteId: "cli_modelo_001", 
+    marca: "Marca Exemplo", 
+    modelo: "Modelo Padrão X", 
+    placa: "EXP-2024", 
+    cor: "Azul Metálico", 
+    anoFabricacao: 2022,
+    anoModelo: 2022
+  },
 ];
 
 interface TipoServicoPadrao {
@@ -155,7 +170,11 @@ export default function NovoOrcamentoPage() {
       // A lógica de carregar veículos do cliente será ativada pelo watch de selectedClienteId
     }
     if (queryVeiculoId) {
-      form.setValue("veiculoId", queryVeiculoId);
+      // Garante que o veículo só seja setado se o cliente já estiver correto
+      // ou se ambos vierem juntos
+      if (queryClienteId || form.getValues("clienteId")) {
+        form.setValue("veiculoId", queryVeiculoId);
+      }
     }
   }, [searchParams, form]);
 

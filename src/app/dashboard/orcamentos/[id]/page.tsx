@@ -17,10 +17,10 @@ import { ptBR } from "date-fns/locale";
 // Mock data - Mover para um arquivo central no futuro
 interface Cliente {
   id: string;
-  nome: string;
+  nomeCompleto: string; // nome -> nomeCompleto
   telefone: string;
   email: string;
-  cpfCnpj?: string; 
+  cpfCnpj: string; // cpfCnpj era opcional, agora é obrigatório
 }
 interface Veiculo {
   id: string;
@@ -28,18 +28,37 @@ interface Veiculo {
   marca: string;
   modelo: string;
   placa: string;
-  ano: string;
+  ano: string; // Mantido como string para simplicidade do mock
+  cor?: string;
+  anoFabricacao?: number;
+  anoModelo?: number;
 }
 
 const mockClientes: Cliente[] = [
-  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11", telefone: "(11) 98765-4321", email: "joao.silva@example.com" },
-  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21) 91234-5678", email: "maria.oliveira@example.com" },
-  { id: "cli003", nome: "Carlos Pereira", cpfCnpj: "333.333.333-33", telefone: "(31) 95555-5555", email: "carlos.p@example.com" },
+  { 
+    id: "cli_modelo_001", 
+    nomeCompleto: "Cliente Exemplo Padrão", 
+    cpfCnpj: "123.456.789-00", 
+    telefone: "(11) 91234-5678", 
+    email: "cliente.exemplo@email.com" 
+  },
+  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21) 91234-5678", email: "maria.oliveira@example.com" },
+  { id: "cli003", nomeCompleto: "Carlos Pereira", cpfCnpj: "333.333.333-33", telefone: "(31) 95555-5555", email: "carlos.p@example.com" },
 ];
 
 const mockVeiculos: Veiculo[] = [
-  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234", ano: "2020" },
-  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022" },
+  { 
+    id: "vec_modelo_001", 
+    clienteId: "cli_modelo_001", 
+    marca: "Marca Exemplo", 
+    modelo: "Modelo Padrão X", 
+    placa: "EXP-2024", 
+    ano: "2022", 
+    cor: "Azul Metálico", 
+    anoFabricacao: 2022,
+    anoModelo: 2022
+  },
+  { id: "vec002", clienteId: "cli_modelo_001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022" },
   { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", ano: "2021" },
   { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456", ano: "2023" },
 ];
@@ -47,8 +66,8 @@ const mockVeiculos: Veiculo[] = [
 const mockOrcamentosFullData = [
   {
     id: "ORC001",
-    clienteId: "cli001",
-    veiculoId: "vec001",
+    clienteId: "cli_modelo_001", // Alterado para usar o cliente modelo
+    veiculoId: "vec_modelo_001", // Alterado para usar o veículo modelo
     dataOrcamento: "2024-07-28T10:00:00Z",
     validadeDias: 15,
     servicos: [
@@ -57,7 +76,7 @@ const mockOrcamentosFullData = [
     ],
     pecas: [
       { id: "p1", codigo: "XYZ-123", nome: "Óleo Motor 5W30 Sintético Mobil (Litro)", quantidade: 4, valorUnitario: 45.00 },
-      { id: "p2", codigo: "FIL-001", nome: "Filtro de Óleo Original Honda", quantidade: 1, valorUnitario: 35.00 },
+      { id: "p2", codigo: "FIL-001", nome: "Filtro de Óleo Original Exemplo", quantidade: 1, valorUnitario: 35.00 },
     ],
     descontoValor: 20.00,
     observacoes: "Cliente solicitou urgência. Verificar disponibilidade das peças. Pagamento em 3x no cartão.",
@@ -82,8 +101,8 @@ const mockOrcamentosFullData = [
   },
    {
     id: "ORC003",
-    clienteId: "cli001",
-    veiculoId: "vec002",
+    clienteId: "cli_modelo_001", // Pode ser o cliente modelo também, com outro veículo
+    veiculoId: "vec002", // Veículo Fiat Strada do cliente modelo
     dataOrcamento: "2024-07-30T09:15:00Z",
     validadeDias: 10,
     servicos: [ { id: "s1_orc3", descricao: "Verificação e recarga do ar condicionado", valor: 320.00 } ],
@@ -225,7 +244,7 @@ export default function VisualizarOrcamentoPage() {
             <div className="grid md:grid-cols-2 gap-6 p-4 border rounded-lg">
                  <div>
                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><User className="h-5 w-5 text-primary"/> Cliente</h3>
-                    <p><strong>Nome:</strong> {cliente?.nome || 'N/A'}</p>
+                    <p><strong>Nome:</strong> {cliente?.nomeCompleto || 'N/A'}</p>
                     <p><strong>Telefone:</strong> {cliente?.telefone || 'N/A'}</p>
                     <p><strong>Email:</strong> {cliente?.email || 'N/A'}</p>
                 </div>

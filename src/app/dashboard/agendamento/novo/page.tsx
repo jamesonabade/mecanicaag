@@ -31,26 +31,43 @@ import { ChevronLeft, Save, CalendarIcon, User, Car, Wrench, Clock } from "lucid
 // Mock data - Mover para um arquivo central no futuro
 interface Cliente {
   id: string;
-  nome: string; 
-  cpfCnpj?: string; 
+  nomeCompleto: string; 
+  cpfCnpj: string; 
+  telefone?: string;
+  email?: string;
 }
 interface Veiculo {
   id: string;
   clienteId: string;
   modelo: string;
   placa: string;
-  marca?: string; 
+  marca: string; 
+  cor?: string;
+  anoFabricacao?: number;
+  anoModelo?: number;
 }
 
 const mockClientes: Cliente[] = [
-  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11" },
-  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22" },
+  { 
+    id: "cli_modelo_001", 
+    nomeCompleto: "Cliente Exemplo Padrão", 
+    cpfCnpj: "123.456.789-00", 
+    telefone: "(11) 91234-5678", 
+    email: "cliente.exemplo@email.com" 
+  },
 ];
 
 const mockVeiculos: Veiculo[] = [
-  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Honda Civic", placa: "ABC-1234" },
-  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Fiat Strada", placa: "DEF-5678" },
-  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Toyota Corolla", placa: "GHI-9012" },
+  { 
+    id: "vec_modelo_001", 
+    clienteId: "cli_modelo_001", 
+    marca: "Marca Exemplo", 
+    modelo: "Modelo Padrão X", 
+    placa: "EXP-2024", 
+    cor: "Azul Metálico", 
+    anoFabricacao: 2022,
+    anoModelo: 2022
+  },
 ];
 
 const mockMecanicos = [
@@ -158,7 +175,7 @@ export default function NovoAgendamentoPage() {
                         </FormControl>
                         <SelectContent>
                           {mockClientes.map(cliente => (
-                            <SelectItem key={cliente.id} value={cliente.id}>{cliente.nome} {cliente.cpfCnpj ? `(${cliente.cpfCnpj})` : ''}</SelectItem>
+                            <SelectItem key={cliente.id} value={cliente.id}>{cliente.nomeCompleto} {cliente.cpfCnpj ? `(${cliente.cpfCnpj})` : ''}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
