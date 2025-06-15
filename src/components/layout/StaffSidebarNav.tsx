@@ -19,7 +19,6 @@ import {
   LogOut,
   Settings,
   FileSpreadsheet,
-  // ChevronDown, // No longer needed here as AccordionTrigger provides it
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
@@ -83,10 +82,11 @@ export function StaffSidebarNav() {
 
   // Determine which accordion items should be open by default
   const defaultOpenAccordionItems = React.useMemo(() => {
+    // Expand all items that have subItems
     return navItems
-      .filter(item => item.subItems?.some(subItem => pathname.startsWith(subItem.href)))
+      .filter(item => item.subItems && item.subItems.length > 0)
       .map(item => item.id);
-  }, [pathname]);
+  }, []);
 
   return (
     <div className="flex h-full max-h-screen flex-col">
@@ -110,7 +110,6 @@ export function StaffSidebarNav() {
                   >
                     <item.icon className="h-4 w-4" />
                     {item.label}
-                    {/* The manually added ChevronDown icon was here and has been removed */}
                   </AccordionTrigger>
                   <AccordionContent className="pl-4 pt-1 pb-0">
                     <nav className="grid gap-1">
