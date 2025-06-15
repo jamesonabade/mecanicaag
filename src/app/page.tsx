@@ -25,16 +25,16 @@ export default function StaffLoginPage() {
       {/* Background Image Container */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="https://storage.googleapis.com/fabrica-ai-images/mecanica-agil/mecanicos-login-background.jpg"
+          src="https://storage.googleapis.com/gpt-engineer-file-uploads/XXTehqAt3NedQpEzCt0nlGxptWz1/23e892bc-3bac-4bbd-a722-6dd602c26199?Expires=1749970758&GoogleAccessId=admin-2%40gpt-engineer-390607.iam.gserviceaccount.com&Signature=WjWm4HmninkHSHm1mVgv1rYhrgackmEsDWHmZggZFTGnIuykbqM4CQnVE4mDj7gHvtScpE8g5TDnrYOlaFIRFI7P2yXA8dcG2l5AfMlhSKQpdxAUehCRaxsfGlwvH4DHf6QZkJt8a7Sp6l%2FWSpBXiyfQXS4Sr5Bf5pKFhhMjsit5m4idoYM0EakSGpq02agp0LGBJFSOlFujqfnrxMzG5srJ4KAVYKQm6XDrV38DsgvfFnasjLwjodyu%2BQtBWSndCSDz%2F1gyoxWrkgnRgKovGPHmVMzaDlg8DCJyI%2B7ahjeYiE6JqTB5ytTzngDgxxXaqMFKc%2FRBAsVj4vpgeuP4JA%3D%3D"
           alt="Mecânicos trabalhando em uma oficina com um laptop"
           layout="fill"
           objectFit="cover"
-          // className="blur-sm" // Temporariamente removido para diagnóstico
+          className="blur-sm" 
           data-ai-hint="mechanics workshop"
           priority 
         />
         {/* Overlay escuro para melhor contraste */}
-        {/* <div className="absolute inset-0 bg-black/30"></div> */} {/* Temporariamente removido para diagnóstico */}
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
       {/* Login Form Card Container - Posicionado à esquerda em telas maiores */}
