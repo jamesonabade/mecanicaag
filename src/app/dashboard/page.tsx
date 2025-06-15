@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, PieChart as RechartsPieChart, Pie, LineChart as RechartsLineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -35,7 +35,8 @@ import {
   CheckCircle,
   ClockIcon,
   ChevronRight,
-  AlertTriangle, // Adicionado para os alertas
+  AlertTriangle, 
+  PackageSearch, // Ícone adicionado
 } from "lucide-react";
 
 
@@ -104,9 +105,9 @@ const chartConfigClientes = {
 };
 
 const ultimosClientes = [
-  { id: 1, nome: "Ana Silva", veiculo: "Honda Civic", servico: "Revisão", data: "2024-07-28", avatar: "https://placehold.co/40x40/4285F4/FFFFFF.png?text=AS", dataAiHint: "woman portrait" },
-  { id: 2, nome: "Bruno Costa", veiculo: "VW Gol", servico: "Troca de óleo", data: "2024-07-28", avatar: "https://placehold.co/40x40/009688/FFFFFF.png?text=BC", dataAiHint: "man portrait" },
-  { id: 3, nome: "Carla Dias", veiculo: "Fiat Toro", servico: "Freios", data: "2024-07-27", avatar: "https://placehold.co/40x40/FBC02D/FFFFFF.png?text=CD", dataAiHint: "professional woman" },
+  { id: 1, nome: "Ana Silva", veiculo: "Honda Civic", servico: "Revisão", data: "2024-07-28", avatar: "https://placehold.co/40x40.png?text=AS", dataAiHint: "woman portrait" },
+  { id: 2, nome: "Bruno Costa", veiculo: "VW Gol", servico: "Troca de óleo", data: "2024-07-28", avatar: "https://placehold.co/40x40.png?text=BC", dataAiHint: "man portrait" },
+  { id: 3, nome: "Carla Dias", veiculo: "Fiat Toro", servico: "Freios", data: "2024-07-27", avatar: "https://placehold.co/40x40.png?text=CD", dataAiHint: "professional woman" },
 ];
 
 const topProdutosServicos = [
@@ -412,7 +413,7 @@ export default function DashboardPage() {
   );
   
   const calendarAndAppointmentsSection = (
-     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+     <div className="grid grid-cols-1 gap-6"> {/* Alterado para coluna única */}
         {calendarCard}
         {appointmentsCard}
     </div>
@@ -502,9 +503,10 @@ export default function DashboardPage() {
                 <h1 className="text-2xl font-headline font-semibold md:text-3xl">Painel de Gestão - Mecânica Ágil</h1>
                 <p className="text-sm text-muted-foreground">Bem-vindo de volta! Aqui está um resumo da sua oficina.</p>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex gap-2 flex-wrap w-full sm:w-auto">
                 <Button variant="outline" size="sm" asChild><Link href="/dashboard/agendamento/novo"><CalendarDays className="mr-2 h-4 w-4"/>Agendar Cliente</Link></Button>
                 <Button size="sm" asChild><Link href="/dashboard/servicos/novo"><Wrench className="mr-2 h-4 w-4"/>Nova Ordem de Serviço</Link></Button>
+                <Button variant="outline" size="sm" asChild><Link href="/dashboard/produtos/estoque"><PackageSearch className="mr-2 h-4 w-4"/>Consultar Estoque</Link></Button>
             </div>
         </div>
         
