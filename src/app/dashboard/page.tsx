@@ -1,12 +1,13 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input"; // Importar Input
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
@@ -17,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, isSameDay, parseISO, isPast, differenceInDays, addDays, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useToast } from "@/hooks/use-toast"; // Importação adicionada
+import { useToast } from "@/hooks/use-toast";
 
 import {
   DollarSign,
@@ -38,8 +39,10 @@ import {
   ChevronRight,
   AlertTriangle, 
   PackageSearch,
-  CalendarClock, // Ícone para lembretes de revisão
-  Send, // Ícone para botão de enviar lembrete
+  CalendarClock, 
+  Send, 
+  Search, // Ícone para busca
+  Filter // Ícone para filtro
 } from "lucide-react";
 
 
@@ -191,8 +194,25 @@ export default function DashboardPage() {
       title: "Lembrete Simulado",
       description: `Simulando envio de lembrete de revisão para ${clienteNome}.`,
     });
-    // Aqui você poderia atualizar o mockData para marcar o lembrete como enviado,
-    // mas para manter simples, apenas exibimos o toast.
+  };
+
+  const handleSearchEstoque = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const searchTerm = formData.get("searchTermEstoque") as string;
+    toast({
+      title: "Busca no Estoque (Simulada)",
+      description: `Buscando por: "${searchTerm}". Funcionalidade completa em desenvolvimento.`,
+    });
+    // Futuramente: router.push(`/dashboard/produtos/estoque?q=${searchTerm}`);
+  };
+
+  const handleFilterEstoque = () => {
+    toast({
+      title: "Filtro de Estoque (Simulado)",
+      description: "Opções de filtro de estoque serão implementadas aqui.",
+    });
+    // Futuramente: abrir um modal/popover com opções de filtro
   };
 
 
@@ -597,10 +617,24 @@ const lembretesRevisaoCard = (
                 <h1 className="text-2xl font-headline font-semibold md:text-3xl">Painel de Gestão - Mecânica Ágil</h1>
                 <p className="text-sm text-muted-foreground">Bem-vindo de volta! Aqui está um resumo da sua oficina.</p>
             </div>
-            <div className="flex gap-2 flex-wrap w-full sm:w-auto">
+            <div className="flex gap-2 flex-wrap w-full sm:w-auto items-center"> {/* Alterado para items-center */}
                 <Button variant="outline" size="sm" asChild><Link href="/dashboard/agendamento/novo"><CalendarDays className="mr-2 h-4 w-4"/>Agendar Cliente</Link></Button>
                 <Button size="sm" asChild><Link href="/dashboard/servicos/novo"><Wrench className="mr-2 h-4 w-4"/>Nova Ordem de Serviço</Link></Button>
-                <Button variant="outline" size="sm" asChild><Link href="/dashboard/produtos/estoque"><PackageSearch className="mr-2 h-4 w-4"/>Consultar Estoque</Link></Button>
+                {/* Barra de Busca Estoque */}
+                <form onSubmit={handleSearchEstoque} className="flex gap-1 items-center">
+                  <Input
+                    type="search"
+                    name="searchTermEstoque"
+                    placeholder="Buscar no estoque..."
+                    className="h-9 text-sm sm:w-auto md:w-[150px] lg:w-[200px]"
+                  />
+                  <Button type="submit" size="sm" variant="outline" className="h-9 px-3">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={handleFilterEstoque} className="h-9 px-3">
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </form>
             </div>
         </div>
         
@@ -615,7 +649,7 @@ const lembretesRevisaoCard = (
         </div>
         
         {contasAPagarAlertsCard}
-        {lembretesRevisaoCard} {/* Novo card adicionado aqui */}
+        {lembretesRevisaoCard}
 
         {mainChartSection}
         {calendarAndAppointmentsSection}
