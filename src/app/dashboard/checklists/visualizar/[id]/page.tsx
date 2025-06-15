@@ -13,6 +13,9 @@ import { ChevronLeft, Printer, Edit, FileText, CheckSquare, Camera } from "lucid
 import Link from "next/link";
 import { useParams } from "next/navigation"; // Use next/navigation for App Router
 import React from "react";
+// Import next/image
+import Image from "next/image";
+
 
 // Mock data for demonstration - replace with actual data fetching
 const mockChecklistData = {
@@ -26,7 +29,8 @@ const mockChecklistData = {
     { id: "item03", texto: "Nível do fluido de freio", tipoResposta: "sim_nao", obrigatorio: true, resposta: "Sim" },
     { id: "item04", texto: "Calibragem dos pneus (PSI)", tipoResposta: "texto_curto", obrigatorio: false, resposta: "32 PSI" },
     { id: "item05", texto: "Itens deixados no veículo pelo cliente", tipoResposta: "multipla_escolha", opcoesResposta: "Documentos,Estepe,Macaco,Chave de Roda,Pertences Pessoais", obrigatorio: false, resposta: "Documentos,Estepe" },
-    { id: "item06", texto: "Foto da frente do veículo", tipoResposta: "upload_foto", obrigatorio: true, resposta: "https://placehold.co/300x200.png?text=Frente+Veiculo" },
+    { id: "item06", texto: "Foto da frente do veículo", tipoResposta: "upload_foto", obrigatorio: true, resposta: "https://placehold.co/300x200.png" },
+    { id: "item07", texto: "Foto da traseira do veículo", tipoResposta: "upload_foto", obrigatorio: false, resposta: "https://placehold.co/300x200.png" },
   ],
   dataPreenchimento: "2024-07-25T10:30:00Z",
   responsavel: "Carlos Alberto (Mecânico)",
@@ -36,9 +40,17 @@ const mockChecklistData = {
 
 type ChecklistItem = typeof mockChecklistData.itens[0];
 
+// Helper for rendering response inputs based on type (currently displays stored answer)
+const tiposResposta = [
+    { value: "texto_curto", label: "Texto Curto" },
+    { value: "texto_longo", label: "Texto Longo" },
+    { value: "sim_nao", label: "Sim/Não" },
+    { value: "multipla_escolha", label: "Múltipla Escolha (Checkbox)" },
+    { value: "unica_escolha", label: "Única Escolha (Radio)" },
+    { value: "upload_foto", label: "Upload de Foto" },
+];
+
 const renderRespostaInput = (item: ChecklistItem) => {
-    // For visualization, we'll mostly display the stored answer.
-    // If this were an active form, we'd render inputs.
     if (item.resposta === undefined || item.resposta === null || item.resposta === "") {
         return <p className="text-sm text-muted-foreground italic">Não respondido</p>;
     }
@@ -55,8 +67,14 @@ const renderRespostaInput = (item: ChecklistItem) => {
             return <p className="text-sm">{item.resposta.split(',').join(', ')}</p>;
         case "upload_foto":
             return (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.resposta} alt={`Foto para ${item.texto}`} data-ai-hint="vehicle inspection" className="max-w-xs max-h-48 rounded-md border object-contain" />
+                <Image 
+                    src={item.resposta} 
+                    alt={`Foto para ${item.texto}`} 
+                    width={300} 
+                    height={200} 
+                    className="max-w-xs max-h-48 rounded-md border object-contain" 
+                    data-ai-hint={item.id === "item06" ? "vehicle front" : item.id === "item07" ? "vehicle rear" : "vehicle detail"}
+                />
             );
         default:
             return <p className="text-sm text-muted-foreground">Tipo de resposta não suportado para visualização.</p>;
@@ -162,13 +180,3 @@ export default function VisualizarChecklistPage() {
     </div>
   );
 }
-
-// Helper for rendering response inputs based on type (currently displays stored answer)
-const tiposResposta = [
-    { value: "texto_curto", label: "Texto Curto" },
-    { value: "texto_longo", label: "Texto Longo" },
-    { value: "sim_nao", label: "Sim/Não" },
-    { value: "multipla_escolha", label: "Múltipla Escolha (Checkbox)" },
-    { value: "unica_escolha", label: "Única Escolha (Radio)" },
-    { value: "upload_foto", label: "Upload de Foto" },
-];
