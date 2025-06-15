@@ -29,12 +29,12 @@ export default function StaffLoginPage() {
           alt="Mecânicos trabalhando em uma oficina com um laptop"
           layout="fill"
           objectFit="cover"
-          className="blur-sm" // Pequeno desfoque na imagem de fundo
+          // className="blur-sm" // Temporariamente removido para diagnóstico
           data-ai-hint="mechanics workshop"
-          priority // Otimiza o carregamento da imagem LCP
+          priority 
         />
         {/* Overlay escuro para melhor contraste */}
-        <div className="absolute inset-0 bg-black/30"></div>
+        {/* <div className="absolute inset-0 bg-black/30"></div> */} {/* Temporariamente removido para diagnóstico */}
       </div>
 
       {/* Login Form Card Container - Posicionado à esquerda em telas maiores */}
