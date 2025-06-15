@@ -9,9 +9,9 @@ import Link from "next/link";
 export default function FinanceiroPage() {
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold font-headline">Gestão Financeira</h1>
-         <div className="flex gap-2">
+         <div className="flex flex-wrap gap-2">
             <Button asChild>
               <Link href="/dashboard/financeiro/transacoes/nova">
                 <PlusCircle className="mr-2 h-4 w-4" /> Nova Transação
