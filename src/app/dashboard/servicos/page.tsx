@@ -36,6 +36,13 @@ const mockMecanicos = [
   { id: "mec003", nome: "Ana Beatriz" },
 ];
 
+export interface ItemOS {
+  id: string;
+  descricao: string;
+  valor: number;
+  tipo: 'servico' | 'peca';
+  quantidade?: number; // Opcional, mas necessário para peças
+}
 export const mockOrdensServico = [
   {
     id: "OS001",
@@ -53,8 +60,9 @@ export const mockOrdensServico = [
     valorFinal: 0,
     itensExecutados: [
       {id: "item1_os1", descricao: "Troca de Óleo e Filtro", valor: 180.00, tipo: "servico"},
-      {id: "item2_os1", descricao: "Óleo 5W30 Sintético (4L)", valor: 160.00, tipo: "peca"},
-    ],
+      {id: "item2_os1", descricao: "Óleo 5W30 Sintético", valor: 45.00, quantidade: 4, tipo: "peca"},
+      {id: "item3_os1", descricao: "Filtro de Óleo", valor: 35.00, quantidade: 1, tipo: "peca"},
+    ] as ItemOS[],
     diagnosticoTecnico: "Suspensão dianteira direita com folga na bandeja. Necessário orçamento adicional para substituição.",
     fotos: [
       {url: "https://placehold.co/300x200.png", legenda: "Entrada do veículo", dataAiHint: "car mechanic"},
@@ -75,7 +83,7 @@ export const mockOrdensServico = [
     status: "Aguardando Aprovação",
     valorEstimado: 320.50,
     valorFinal: 0,
-    itensExecutados: [],
+    itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
     fotos: []
   },
@@ -93,7 +101,7 @@ export const mockOrdensServico = [
     status: "Concluída",
     valorEstimado: 180.00,
     valorFinal: 180.00,
-    itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 180.00, tipo: "servico"}],
+    itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 180.00, tipo: "servico"}] as ItemOS[],
     diagnosticoTecnico: "Bobina do cilindro 3 com defeito. Substituição recomendada em orçamento futuro.",
     fotos: []
   },
@@ -111,7 +119,7 @@ export const mockOrdensServico = [
     status: "Aguardando Diagnóstico",
     valorEstimado: 0,
     valorFinal: 0,
-    itensExecutados: [],
+    itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
     fotos: []
   },
@@ -129,7 +137,7 @@ export const mockOrdensServico = [
     status: "Aguardando Peças", // Exemplo: aguardando pesos de balanceamento específicos
     valorEstimado: 150.00,
     valorFinal: 0,
-    itensExecutados: [],
+    itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
     fotos: []
   },
@@ -147,7 +155,7 @@ export const mockOrdensServico = [
     status: "Cancelada",
     valorEstimado: 280.00,
     valorFinal: 0,
-    itensExecutados: [],
+    itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
     fotos: []
   },

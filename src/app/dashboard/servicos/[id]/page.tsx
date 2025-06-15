@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Added missing import
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ChevronLeft,
@@ -34,7 +34,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { mockOrdensServico, OSStatus } from "../page"; // Importando mock e tipo da página de listagem
+import { mockOrdensServico, OSStatus, ItemOS } from "../page"; // Importando mock e tipo da página de listagem
 
 // Mock data - Em uma aplicação real, isso viria de uma API
 const mockClientes = [
@@ -74,8 +74,7 @@ export default function OrdemServicoDetalhesPage() {
   const id = params.id as string;
   const { toast } = useToast();
 
-  // Encontra a OS pelos mocks. Em uma app real, faria fetch da API.
-  const osData = React.useMemo(() => {
+  const osDataFound = React.useMemo(() => {
     const data = mockOrdensServico.find(o => o.id === id);
     if (!data) return null;
     const cliente = mockClientes.find(c => c.id === data.clienteId);
@@ -84,17 +83,19 @@ export default function OrdemServicoDetalhesPage() {
     return { ...data, cliente, veiculo, mecanico };
   }, [id]);
 
-  const [currentStatus, setCurrentStatus] = React.useState<OSStatus | undefined>(osData?.status as OSStatus);
-  const [diagnostico, setDiagnostico] = React.useState(osData?.diagnosticoTecnico || "");
-  const [itensServico, setItensServico] = React.useState(osData?.itensExecutados || []);
+  const [osData, setOsData] = React.useState(osDataFound);
+  const [currentStatus, setCurrentStatus] = React.useState<OSStatus | undefined>(osDataFound?.status as OSStatus);
+  const [diagnostico, setDiagnostico] = React.useState(osDataFound?.diagnosticoTecnico || "");
+  const [itensServico, setItensServico] = React.useState<ItemOS[]>(osDataFound?.itensExecutados || []);
 
   React.useEffect(() => {
-    if (osData) {
-      setCurrentStatus(osData.status as OSStatus);
-      setDiagnostico(osData.diagnosticoTecnico || "");
-      setItensServico(osData.itensExecutados || []);
+    if (osDataFound) {
+      setOsData(osDataFound);
+      setCurrentStatus(osDataFound.status as OSStatus);
+      setDiagnostico(osDataFound.diagnosticoTecnico || "");
+      setItensServico(osDataFound.itensExecutados || []);
     }
-  }, [osData]);
+  }, [osDataFound]);
 
 
   if (!osData) {
@@ -112,24 +113,26 @@ export default function OrdemServicoDetalhesPage() {
 
   const handleStatusChange = (newStatus: OSStatus) => {
     setCurrentStatus(newStatus);
+    // Aqui você faria a chamada API para atualizar o status no backend
     toast({ title: "Status da OS Atualizado", description: `Status alterado para: ${newStatus} (Simulado)` });
   };
 
   const handleSaveDiagnostico = () => {
+    // Aqui você faria a chamada API para salvar o diagnóstico no backend
+    console.log("Diagnóstico salvo:", diagnostico);
     toast({ title: "Diagnóstico Salvo", description: "Diagnóstico técnico salvo com sucesso (Simulado)"});
   };
   
   const handleAddItem = (tipo: 'servico' | 'peca') => {
-    const newItem = {
-        id: `new_${tipo}_${Date.now()}`,
-        descricao: tipo === 'servico' ? "Novo Serviço" : "Nova Peça",
+    const newItem: ItemOS = {
+        id: `new_${tipo}_${Date.now()}_${Math.random().toString(36).substring(7)}`, // unique ID
+        descricao: "", // Deixar em branco para o usuário preencher
         valor: 0,
-        quantidade: tipo === 'peca' ? 1 : undefined,
-        tipo: tipo
+        tipo: tipo,
+        ...(tipo === 'peca' && { quantidade: 1 }), // Adiciona quantidade se for peça
     };
-    // @ts-ignore
     setItensServico(prev => [...prev, newItem]);
-    toast({title: `${tipo === 'servico' ? 'Serviço' : 'Peça'} Adicionado(a)`, description: "Item adicionado para edição."});
+    toast({title: `${tipo === 'servico' ? 'Serviço' : 'Peça'} Adicionado(a)`, description: "Preencha os detalhes do novo item."});
   }
 
   const handleRemoveItem = (itemId: string) => {
@@ -137,17 +140,41 @@ export default function OrdemServicoDetalhesPage() {
     toast({title: "Item Removido", description: "Item removido da OS."});
   }
 
-  const handleItemChange = (itemId: string, field: string, value: string | number) => {
-    setItensServico(prev => prev.map(item => {
-        if (item.id === itemId) {
-            return {...item, [field]: field === 'valor' || field === 'quantidade' ? Number(value) : value};
-        }
-        return item;
-    }));
+  const handleItemChange = (itemId: string, field: keyof ItemOS, value: string | number) => {
+    setItensServico(prevItems => 
+        prevItems.map(item => {
+            if (item.id === itemId) {
+                const updatedItem = { ...item, [field]: value };
+                // Converções específicas para número
+                if (field === 'valor' || field === 'quantidade') {
+                    updatedItem[field] = parseFloat(value as string) || 0;
+                    if (field === 'quantidade' && updatedItem[field] < 0) updatedItem[field] = 0; // No negative quantity
+                }
+                return updatedItem;
+            }
+            return item;
+        })
+    );
   }
   
   const totalOs = React.useMemo(() => {
-    return itensServico.reduce((acc, item) => acc + (item.valor || 0) * (item.tipo === 'peca' ? (item.quantidade || 1) : 1) , 0);
+    return itensServico.reduce((acc, item) => {
+        const itemValue = item.valor || 0;
+        const itemQuantity = item.tipo === 'peca' ? (item.quantidade || 1) : 1;
+        return acc + (itemValue * itemQuantity);
+    }, 0);
+  }, [itensServico]);
+
+  const totalServicos = React.useMemo(() => {
+    return itensServico
+      .filter(item => item.tipo === 'servico')
+      .reduce((acc, item) => acc + (item.valor || 0), 0);
+  }, [itensServico]);
+
+  const totalPecas = React.useMemo(() => {
+    return itensServico
+      .filter(item => item.tipo === 'peca')
+      .reduce((acc, item) => acc + (item.valor || 0) * (item.quantidade || 1), 0);
   }, [itensServico]);
 
 
@@ -273,16 +300,16 @@ export default function OrdemServicoDetalhesPage() {
                     placeholder={item.tipo === 'servico' ? "Descrição do Serviço" : "Nome da Peça"}
                     className="bg-background"
                 />
-                {item.tipo === 'peca' && (
+                {item.tipo === 'peca' ? (
                      <Input 
                         type="number" 
                         value={item.quantidade || 1} 
                         onChange={(e) => handleItemChange(item.id, 'quantidade', e.target.value)}
                         className="text-center bg-background"
                         min="1"
+                        placeholder="Qtd"
                     />
-                )}
-                {item.tipo === 'servico' && <div className="hidden sm:block"></div>} {/* Placeholder for quantity on service */}
+                ): <div className="hidden sm:block"></div> }
                 <div className="relative">
                     <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
                     <Input 
@@ -292,6 +319,7 @@ export default function OrdemServicoDetalhesPage() {
                         placeholder="Valor"
                         className="pl-7 bg-background"
                         min="0"
+                        step="0.01"
                     />
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)} className="text-destructive hover:text-destructive h-8 w-8 justify-self-end sm:justify-self-center">
@@ -305,9 +333,9 @@ export default function OrdemServicoDetalhesPage() {
              <Button variant="outline" size="sm" onClick={() => handleAddItem('peca')}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Peça</Button>
            </div>
            <Separator />
-           <div className="text-right mt-4">
-                <p className="text-muted-foreground">Subtotal Mão de Obra: <span className="font-semibold text-foreground">R$ {itensServico.filter(i=>i.tipo === 'servico').reduce((acc,item) => acc + (item.valor || 0),0).toFixed(2)}</span></p>
-                <p className="text-muted-foreground">Subtotal Peças: <span className="font-semibold text-foreground">R$ {itensServico.filter(i=>i.tipo === 'peca').reduce((acc,item) => acc + (item.valor || 0) * (item.quantidade || 1) ,0).toFixed(2)}</span></p>
+           <div className="text-right mt-4 space-y-1">
+                <p className="text-sm text-muted-foreground">Subtotal Mão de Obra: <span className="font-semibold text-foreground">R$ {totalServicos.toFixed(2)}</span></p>
+                <p className="text-sm text-muted-foreground">Subtotal Peças: <span className="font-semibold text-foreground">R$ {totalPecas.toFixed(2)}</span></p>
                 <p className="text-xl font-bold">Total da OS: <span className="text-primary">R$ {totalOs.toFixed(2)}</span></p>
            </div>
         </CardContent>
@@ -373,4 +401,3 @@ export default function OrdemServicoDetalhesPage() {
     </div>
   );
 }
-
