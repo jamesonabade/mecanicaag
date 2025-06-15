@@ -28,48 +28,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, CalendarIcon, Wrench, User, Car } from "lucide-react";
+import { getClientes, Cliente } from "@/lib/mockData/clientes";
+import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
 
-// Mock data - Mover para um arquivo central no futuro
-interface Cliente {
-  id: string;
-  nomeCompleto: string; // Alterado de nome para nomeCompleto
-  cpfCnpj: string;
-  telefone?: string;
-  email?: string;
-}
-interface Veiculo {
-  id: string;
-  clienteId: string;
-  modelo: string;
-  placa: string;
-  marca: string; // Adicionado marca
-  cor?: string;
-  anoFabricacao?: number;
-  anoModelo?: number;
-}
-
-const mockClientes: Cliente[] = [
-  { 
-    id: "cli_modelo_001", 
-    nomeCompleto: "Cliente Exemplo Padrão", 
-    cpfCnpj: "123.456.789-00", 
-    telefone: "(11) 91234-5678", 
-    email: "cliente.exemplo@email.com" 
-  },
-];
-
-const mockVeiculos: Veiculo[] = [
-  { 
-    id: "vec_modelo_001", 
-    clienteId: "cli_modelo_001", 
-    marca: "Marca Exemplo", 
-    modelo: "Modelo Padrão X", 
-    placa: "EXP-2024", 
-    cor: "Azul Metálico", 
-    anoFabricacao: 2022,
-    anoModelo: 2022
-  },
-];
 
 const mockMecanicos = [
   { id: "mec001", nome: "Carlos Alberto" },
@@ -121,6 +82,10 @@ export default function NovaOrdemServicoPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [clientes, setClientes] = React.useState<Cliente[]>([]);
+  const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
+  const [checklistRecomendado, setChecklistRecomendado] = React.useState<string | null>(null);
+
   const form = useForm<OsFormValues>({
     resolver: zodResolver(osFormSchema),
     defaultValues: {
@@ -138,11 +103,13 @@ export default function NovaOrdemServicoPage() {
     },
   });
 
-  const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
-  const [checklistRecomendado, setChecklistRecomendado] = React.useState<string | null>(null);
 
   const selectedClienteId = form.watch("clienteId");
   const selectedTipoServicoId = form.watch("tipoServicoId");
+
+  React.useEffect(() => {
+    setClientes(getClientes());
+  }, []);
 
    // Preencher cliente e veículo se vierem da query
    useEffect(() => {
@@ -152,12 +119,11 @@ export default function NovaOrdemServicoPage() {
 
     if (queryClienteId) {
       form.setValue("clienteId", queryClienteId);
-    }
-    if (queryVeiculoId) {
-      // Garante que o veículo só seja setado se o cliente já estiver correto
-      // ou se ambos vierem juntos
-      if (queryClienteId || form.getValues("clienteId")) {
-        form.setValue("veiculoId", queryVeiculoId);
+       if (queryVeiculoId) {
+         // Necessário um timeout pequeno para garantir que os veículos do cliente sejam carregados ANTES de tentar setar o veiculoId
+        setTimeout(() => {
+          form.setValue("veiculoId", queryVeiculoId);
+        }, 50);
       }
     }
     if (queryOrcamentoId) {
@@ -169,7 +135,7 @@ export default function NovaOrdemServicoPage() {
 
   React.useEffect(() => {
     if (selectedClienteId) {
-      const clienteTemVeiculos = mockVeiculos.filter(v => v.clienteId === selectedClienteId);
+      const clienteTemVeiculos = getVeiculosByClienteId(selectedClienteId);
       setVeiculosCliente(clienteTemVeiculos);
       const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === form.getValues("veiculoId"));
       if (!veiculoAtualPertenceAoCliente) {
@@ -188,8 +154,6 @@ export default function NovaOrdemServicoPage() {
         if (servicoSelecionado.valorPadrao !== undefined && servicoSelecionado.valorPadrao >= 0) { // Allow 0 for "Outro"
           form.setValue("valorEstimado", servicoSelecionado.valorPadrao);
         } else {
-           // If no valorPadrao, clear it only if it was previously set by another service
-           // This avoids clearing a manually entered value if user re-selects "Outro"
            const currentValorEstimado = form.getValues("valorEstimado");
            const previousServicoWithValor = mockTiposServicoPadrao.find(s => s.valorPadrao === currentValorEstimado && s.id !== selectedTipoServicoId);
            if (previousServicoWithValor && !servicoSelecionado.valorPadrao) {
@@ -260,7 +224,7 @@ export default function NovaOrdemServicoPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {mockClientes.map(cliente => (
+                          {clientes.map(cliente => (
                             <SelectItem key={cliente.id} value={cliente.id}>{cliente.nomeCompleto} ({cliente.cpfCnpj})</SelectItem>
                           ))}
                         </SelectContent>
@@ -531,4 +495,3 @@ export default function NovaOrdemServicoPage() {
     </div>
   );
 }
-

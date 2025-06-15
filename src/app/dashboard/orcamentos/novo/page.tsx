@@ -29,48 +29,9 @@ import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { getClientes, Cliente } from "@/lib/mockData/clientes";
+import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
 
-// Mock data - Mover para um arquivo central no futuro
-interface Cliente {
-  id: string;
-  nomeCompleto: string; 
-  cpfCnpj: string; 
-  telefone?: string;
-  email?: string;
-}
-interface Veiculo {
-  id: string;
-  clienteId: string;
-  modelo: string;
-  placa: string;
-  marca: string; 
-  cor?: string;
-  anoFabricacao?: number;
-  anoModelo?: number;
-}
-
-const mockClientes: Cliente[] = [
-  { 
-    id: "cli_modelo_001", 
-    nomeCompleto: "Cliente Exemplo Padrão", 
-    cpfCnpj: "123.456.789-00", 
-    telefone: "(11) 91234-5678", 
-    email: "cliente.exemplo@email.com" 
-  },
-];
-
-const mockVeiculos: Veiculo[] = [
-  { 
-    id: "vec_modelo_001", 
-    clienteId: "cli_modelo_001", 
-    marca: "Marca Exemplo", 
-    modelo: "Modelo Padrão X", 
-    placa: "EXP-2024", 
-    cor: "Azul Metálico", 
-    anoFabricacao: 2022,
-    anoModelo: 2022
-  },
-];
 
 interface TipoServicoPadrao {
   id: string;
@@ -132,6 +93,9 @@ export default function NovoOrcamentoPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [clientes, setClientes] = React.useState<Cliente[]>([]);
+  const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
+
   const form = useForm<OrcamentoFormValues>({
     resolver: zodResolver(orcamentoFormSchema),
     defaultValues: {
@@ -157,8 +121,11 @@ export default function NovoOrcamentoPage() {
     name: "pecas",
   });
 
-  const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const selectedClienteId = form.watch("clienteId");
+
+  React.useEffect(() => {
+    setClientes(getClientes());
+  }, []);
 
   // Preencher cliente e veículo se vierem da query
   useEffect(() => {
@@ -168,12 +135,12 @@ export default function NovoOrcamentoPage() {
     if (queryClienteId) {
       form.setValue("clienteId", queryClienteId);
       // A lógica de carregar veículos do cliente será ativada pelo watch de selectedClienteId
-    }
-    if (queryVeiculoId) {
-      // Garante que o veículo só seja setado se o cliente já estiver correto
-      // ou se ambos vierem juntos
-      if (queryClienteId || form.getValues("clienteId")) {
-        form.setValue("veiculoId", queryVeiculoId);
+      if (queryVeiculoId) {
+         // Necessário um timeout pequeno para garantir que os veículos do cliente sejam carregados ANTES de tentar setar o veiculoId
+         // Isso ocorre porque o useEffect que carrega os veículos do cliente depende de selectedClienteId, que é setado aqui.
+        setTimeout(() => {
+          form.setValue("veiculoId", queryVeiculoId);
+        }, 50);
       }
     }
   }, [searchParams, form]);
@@ -181,18 +148,13 @@ export default function NovoOrcamentoPage() {
 
   React.useEffect(() => {
     if (selectedClienteId) {
-      const clienteTemVeiculos = mockVeiculos.filter(v => v.clienteId === selectedClienteId);
+      const clienteTemVeiculos = getVeiculosByClienteId(selectedClienteId);
       setVeiculosCliente(clienteTemVeiculos);
       
       const veiculoAtualValor = form.getValues("veiculoId");
       const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === veiculoAtualValor);
 
-      // Se o veículo selecionado via query params não pertence ao cliente carregado via query params, ou se o cliente não tem veículos, reseta.
-      const queryVeiculoId = searchParams.get("veiculoId");
-      if (queryVeiculoId && !veiculoAtualPertenceAoCliente) {
-          form.setValue("veiculoId", ""); // Reseta se o veículo da URL não for do cliente da URL
-      } else if (!veiculoAtualPertenceAoCliente && veiculoAtualValor) {
-          // Se o cliente mudou E o veiculoId atual não pertence mais a este cliente, reseta veiculoId
+      if (!veiculoAtualPertenceAoCliente) {
           form.setValue("veiculoId", "");
       }
 
@@ -281,7 +243,7 @@ export default function NovoOrcamentoPage() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger></FormControl>
                         <SelectContent>
-                          {mockClientes.map(cliente => (
+                          {clientes.map(cliente => (
                             <SelectItem key={cliente.id} value={cliente.id}>{cliente.nomeCompleto} ({cliente.cpfCnpj})</SelectItem>
                           ))}
                         </SelectContent>
@@ -523,4 +485,3 @@ export default function NovoOrcamentoPage() {
     </div>
   );
 }
-

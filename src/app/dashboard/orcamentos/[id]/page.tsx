@@ -13,56 +13,11 @@ import { useParams } from "next/navigation";
 import React from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getClienteById, Cliente } from "@/lib/mockData/clientes";
+import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
+
 
 // Mock data - Mover para um arquivo central no futuro
-interface Cliente {
-  id: string;
-  nomeCompleto: string; // nome -> nomeCompleto
-  telefone: string;
-  email: string;
-  cpfCnpj: string; // cpfCnpj era opcional, agora é obrigatório
-}
-interface Veiculo {
-  id: string;
-  clienteId: string;
-  marca: string;
-  modelo: string;
-  placa: string;
-  ano: string; // Mantido como string para simplicidade do mock
-  cor?: string;
-  anoFabricacao?: number;
-  anoModelo?: number;
-}
-
-const mockClientes: Cliente[] = [
-  { 
-    id: "cli_modelo_001", 
-    nomeCompleto: "Cliente Exemplo Padrão", 
-    cpfCnpj: "123.456.789-00", 
-    telefone: "(11) 91234-5678", 
-    email: "cliente.exemplo@email.com" 
-  },
-  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21) 91234-5678", email: "maria.oliveira@example.com" },
-  { id: "cli003", nomeCompleto: "Carlos Pereira", cpfCnpj: "333.333.333-33", telefone: "(31) 95555-5555", email: "carlos.p@example.com" },
-];
-
-const mockVeiculos: Veiculo[] = [
-  { 
-    id: "vec_modelo_001", 
-    clienteId: "cli_modelo_001", 
-    marca: "Marca Exemplo", 
-    modelo: "Modelo Padrão X", 
-    placa: "EXP-2024", 
-    ano: "2022", 
-    cor: "Azul Metálico", 
-    anoFabricacao: 2022,
-    anoModelo: 2022
-  },
-  { id: "vec002", clienteId: "cli_modelo_001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022" },
-  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", ano: "2021" },
-  { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456", ano: "2023" },
-];
-
 const mockOrcamentosFullData = [
   {
     id: "ORC001",
@@ -84,8 +39,8 @@ const mockOrcamentosFullData = [
   },
   {
     id: "ORC002",
-    clienteId: "cli002",
-    veiculoId: "vec003",
+    clienteId: "cli_002_maria", // Corrigido para ID válido de mockClientes (se existir)
+    veiculoId: "vec_003_corolla", // Corrigido para ID válido de mockVeiculos (se existir)
     dataOrcamento: "2024-07-29T14:30:00Z",
     validadeDias: 7,
     servicos: [
@@ -101,8 +56,8 @@ const mockOrcamentosFullData = [
   },
    {
     id: "ORC003",
-    clienteId: "cli_modelo_001", // Pode ser o cliente modelo também, com outro veículo
-    veiculoId: "vec002", // Veículo Fiat Strada do cliente modelo
+    clienteId: "cli_modelo_001", 
+    veiculoId: "vec_002_strada", // Veículo Fiat Strada do cliente modelo
     dataOrcamento: "2024-07-30T09:15:00Z",
     validadeDias: 10,
     servicos: [ { id: "s1_orc3", descricao: "Verificação e recarga do ar condicionado", valor: 320.00 } ],
@@ -113,8 +68,8 @@ const mockOrcamentosFullData = [
   },
    {
     id: "ORC004",
-    clienteId: "cli003",
-    veiculoId: "vec004",
+    clienteId: "cli_003_carlos", // Supondo que existe cli_003_carlos
+    veiculoId: "vec_004_nivus", // Supondo que existe vec_004_nivus
     dataOrcamento: "2024-07-30T11:00:00Z",
     validadeDias: 5,
     servicos: [ { id: "s1_orc4", descricao: "Instalação de kit multimídia", valor: 300.00 } ],
@@ -139,8 +94,8 @@ export default function VisualizarOrcamentoPage() {
     const subTotalGeral = totalServicos + totalPecas;
     const totalGeral = subTotalGeral - (data.descontoValor || 0);
     
-    const cliente = mockClientes.find(c => c.id === data.clienteId);
-    const veiculo = mockVeiculos.find(v => v.id === data.veiculoId);
+    const cliente = getClienteById(data.clienteId);
+    const veiculo = getVeiculoById(data.veiculoId);
 
     return { ...data, totalServicos, totalPecas, subTotalGeral, totalGeral, cliente, veiculo };
   }, [id]);
@@ -252,7 +207,7 @@ export default function VisualizarOrcamentoPage() {
                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Car className="h-5 w-5 text-primary"/> Veículo</h3>
                     <p><strong>Marca/Modelo:</strong> {veiculo?.marca} {veiculo?.modelo || 'N/A'}</p>
                     <p><strong>Placa:</strong> {veiculo?.placa || 'N/A'}</p>
-                    <p><strong>Ano:</strong> {veiculo?.ano || 'N/A'}</p>
+                    <p><strong>Ano Fab/Mod:</strong> {veiculo?.anoFabricacao}/{veiculo?.anoModelo || 'N/A'}</p>
                 </div>
             </div>
             <div className="grid md:grid-cols-2 gap-6 p-4 border rounded-lg bg-muted/20">
@@ -344,4 +299,3 @@ export default function VisualizarOrcamentoPage() {
     </div>
   );
 }
-

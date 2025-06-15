@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Import useRouter
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,34 +22,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save } from "lucide-react";
+import { addCliente } from "@/lib/mockData/clientes"; // Import from centralized mock
 
 const estadosBrasil = [
-  { value: "AC", label: "Acre" },
-  { value: "AL", label: "Alagoas" },
-  { value: "AP", label: "Amapá" },
-  { value: "AM", label: "Amazonas" },
-  { value: "BA", label: "Bahia" },
-  { value: "CE", label: "Ceará" },
-  { value: "DF", label: "Distrito Federal" },
-  { value: "ES", label: "Espírito Santo" },
-  { value: "GO", label: "Goiás" },
-  { value: "MA", label: "Maranhão" },
-  { value: "MT", label: "Mato Grosso" },
-  { value: "MS", label: "Mato Grosso do Sul" },
-  { value: "MG", label: "Minas Gerais" },
-  { value: "PA", label: "Pará" },
-  { value: "PB", label: "Paraíba" },
-  { value: "PR", label: "Paraná" },
-  { value: "PE", label: "Pernambuco" },
-  { value: "PI", label: "Piauí" },
-  { value: "RJ", label: "Rio de Janeiro" },
-  { value: "RN", label: "Rio Grande do Norte" },
-  { value: "RS", label: "Rio Grande do Sul" },
-  { value: "RO", label: "Rondônia" },
-  { value: "RR", label: "Roraima" },
-  { value: "SC", label: "Santa Catarina" },
-  { value: "SP", label: "São Paulo" },
-  { value: "SE", label: "Sergipe" },
+  { value: "AC", label: "Acre" }, { value: "AL", label: "Alagoas" },
+  { value: "AP", label: "Amapá" }, { value: "AM", label: "Amazonas" }, { value: "BA", label: "Bahia" },
+  { value: "CE", label: "Ceará" }, { value: "DF", label: "Distrito Federal" }, { value: "ES", label: "Espírito Santo" },
+  { value: "GO", label: "Goiás" }, { value: "MA", label: "Maranhão" }, { value: "MT", label: "Mato Grosso" },
+  { value: "MS", label: "Mato Grosso do Sul" }, { value: "MG", label: "Minas Gerais" }, { value: "PA", label: "Pará" },
+  { value: "PB", label: "Paraíba" }, { value: "PR", label: "Paraná" }, { value: "PE", label: "Pernambuco" },
+  { value: "PI", label: "Piauí" }, { value: "RJ", label: "Rio de Janeiro" }, { value: "RN", label: "Rio Grande do Norte" },
+  { value: "RS", label: "Rio Grande do Sul" }, { value: "RO", label: "Rondônia" }, { value: "RR", label: "Roraima" },
+  { value: "SC", label: "Santa Catarina" }, { value: "SP", label: "São Paulo" }, { value: "SE", label: "Sergipe" },
   { value: "TO", label: "Tocantins" },
 ];
 
@@ -71,6 +56,7 @@ type ClienteFormValues = z.infer<typeof clienteFormSchema>;
 
 export default function NovoClientePage() {
   const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<ClienteFormValues>({
     resolver: zodResolver(clienteFormSchema),
     defaultValues: {
@@ -90,13 +76,21 @@ export default function NovoClientePage() {
   });
 
   async function onSubmit(data: ClienteFormValues) {
-    console.log(data);
-    toast({
-      title: "Cliente Cadastrado (Simulado)",
-      description: "O cliente foi salvo com sucesso (simulação).",
-    });
-    // Aqui você faria a chamada para a API para salvar o cliente
-    // form.reset(); // Opcional: resetar o formulário após o sucesso
+    try {
+      addCliente(data);
+      toast({
+        title: "Cliente Cadastrado!",
+        description: `O cliente ${data.nomeCompleto} foi salvo com sucesso.`,
+      });
+      router.push("/dashboard/clientes"); // Redireciona para a lista de clientes
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao Cadastrar",
+        description: "Ocorreu um erro ao tentar salvar o cliente. Tente novamente.",
+      });
+      console.error("Erro ao cadastrar cliente:", error);
+    }
   }
 
   return (
@@ -310,7 +304,7 @@ export default function NovoClientePage() {
               <Button type="button" variant="outline" asChild>
                 <Link href="/dashboard/clientes">Cancelar</Link>
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={form.formState.isSubmitting}>
                 <Save className="mr-2 h-4 w-4" /> Salvar Cliente
               </Button>
             </CardFooter>
@@ -320,5 +314,3 @@ export default function NovoClientePage() {
     </div>
   );
 }
-
-    

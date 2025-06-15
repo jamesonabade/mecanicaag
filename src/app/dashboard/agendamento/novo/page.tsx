@@ -27,49 +27,10 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, CalendarIcon, User, Car, Wrench, Clock } from "lucide-react";
+import { getClientes, Cliente } from "@/lib/mockData/clientes";
+import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
 
 // Mock data - Mover para um arquivo central no futuro
-interface Cliente {
-  id: string;
-  nomeCompleto: string; 
-  cpfCnpj: string; 
-  telefone?: string;
-  email?: string;
-}
-interface Veiculo {
-  id: string;
-  clienteId: string;
-  modelo: string;
-  placa: string;
-  marca: string; 
-  cor?: string;
-  anoFabricacao?: number;
-  anoModelo?: number;
-}
-
-const mockClientes: Cliente[] = [
-  { 
-    id: "cli_modelo_001", 
-    nomeCompleto: "Cliente Exemplo Padrão", 
-    cpfCnpj: "123.456.789-00", 
-    telefone: "(11) 91234-5678", 
-    email: "cliente.exemplo@email.com" 
-  },
-];
-
-const mockVeiculos: Veiculo[] = [
-  { 
-    id: "vec_modelo_001", 
-    clienteId: "cli_modelo_001", 
-    marca: "Marca Exemplo", 
-    modelo: "Modelo Padrão X", 
-    placa: "EXP-2024", 
-    cor: "Azul Metálico", 
-    anoFabricacao: 2022,
-    anoModelo: 2022
-  },
-];
-
 const mockMecanicos = [
   { id: "mec001", nome: "Carlos Alberto" },
   { id: "mec002", nome: "Pedro Henrique" },
@@ -117,12 +78,17 @@ export default function NovoAgendamentoPage() {
     },
   });
 
+  const [clientes, setClientes] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const selectedClienteId = form.watch("clienteId");
 
   React.useEffect(() => {
+    setClientes(getClientes());
+  }, []);
+
+  React.useEffect(() => {
     if (selectedClienteId) {
-      setVeiculosCliente(mockVeiculos.filter(v => v.clienteId === selectedClienteId));
+      setVeiculosCliente(getVeiculosByClienteId(selectedClienteId));
       form.setValue("veiculoId", ""); 
     } else {
       setVeiculosCliente([]);
@@ -174,7 +140,7 @@ export default function NovoAgendamentoPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {mockClientes.map(cliente => (
+                          {clientes.map(cliente => (
                             <SelectItem key={cliente.id} value={cliente.id}>{cliente.nomeCompleto} {cliente.cpfCnpj ? `(${cliente.cpfCnpj})` : ''}</SelectItem>
                           ))}
                         </SelectContent>
@@ -351,4 +317,3 @@ export default function NovoAgendamentoPage() {
     </div>
   );
 }
-

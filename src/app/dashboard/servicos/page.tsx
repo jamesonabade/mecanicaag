@@ -13,63 +13,9 @@ import { PlusCircle, Search, Filter, Eye, Edit, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getClienteById, Cliente } from "@/lib/mockData/clientes";
+import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
 
-// Mock data - Mover para um arquivo central no futuro
-interface Cliente {
-  id: string;
-  nomeCompleto: string; // nome -> nomeCompleto
-  cpfCnpj: string; // Tornando cpfCnpj obrigatório
-  telefone?: string;
-  email?: string;
-}
-interface Veiculo {
-  id: string;
-  clienteId: string; 
-  modelo: string;
-  placa: string;
-  marca: string; // Tornando marca obrigatória
-  ano: string; // Mantido como string para simplicidade
-  cor: string; // Tornando cor obrigatória
-  km: string; // Tornando km obrigatório
-  anoFabricacao?: number;
-  anoModelo?: number;
-}
-
-const mockClientes: Cliente[] = [
-  { 
-    id: "cli_modelo_001", 
-    nomeCompleto: "Cliente Exemplo Padrão", 
-    cpfCnpj: "123.456.789-00", 
-    telefone: "(11) 91234-5678", 
-    email: "cliente.exemplo@email.com" 
-  },
-  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21) 91234-5678", email: "maria.oliveira@email.com" },
-  { id: "cli003", nomeCompleto: "Carlos Pereira", cpfCnpj: "333.333.333-33", telefone: "(31) 95555-5555", email: "carlos.p@email.com" },
-  { id: "cli004", nomeCompleto: "Ana Costa", cpfCnpj: "444.444.444-44", telefone: "(41) 94444-4444", email: "ana.c@email.com" },
-];
-
-const mockVeiculos: Veiculo[] = [
-  { 
-    id: "vec_modelo_001", 
-    clienteId: "cli_modelo_001", 
-    marca: "Marca Exemplo", 
-    modelo: "Modelo Padrão X", 
-    placa: "EXP-2024", 
-    ano: "2022", 
-    cor: "Azul Metálico", 
-    km: "25000" 
-  },
-  { id: "vec002", clienteId: "cli_modelo_001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022", cor: "Branco", km: "15200" },
-  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", ano: "2021", cor: "Preto", km: "33000" },
-  { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456", ano: "2023", cor: "Cinza", km: "8900" },
-  { id: "vec005", clienteId: "cli004", marca: "Hyundai", modelo: "HB20", placa: "MNO-7890", ano: "2019", cor: "Vermelho", km: "55100" },
-];
-
-const mockMecanicos = [
-  { id: "mec001", nome: "Carlos Alberto" },
-  { id: "mec002", nome: "Pedro Henrique" },
-  { id: "mec003", nome: "Ana Beatriz" },
-];
 
 export interface ItemOS {
   id: string;
@@ -91,15 +37,14 @@ interface FilledChecklistInfo {
   modelName: string;
   dataPreenchimento: string;
   responsavel: string;
-  // respostas: FilledChecklistItemAnswer[]; // Se quiser guardar as respostas aqui também
 }
 
 
 export const mockOrdensServico = [
   {
     id: "OS001",
-    clienteId: "cli_modelo_001", // Alterado para usar o cliente modelo
-    veiculoId: "vec_modelo_001", // Alterado para usar o veículo modelo
+    clienteId: "cli_modelo_001", 
+    veiculoId: "vec_modelo_001", 
     dataEntrada: "2024-07-25T10:00:00Z",
     dataPrevisaoEntrega: "2024-07-26T17:00:00Z",
     mecanicoId: "mec001",
@@ -124,8 +69,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS002",
-    clienteId: "cli002",
-    veiculoId: "vec003",
+    clienteId: "cli_002_maria",
+    veiculoId: "vec_003_corolla",
     dataEntrada: "2024-07-26T14:30:00Z",
     dataPrevisaoEntrega: "2024-07-27T18:00:00Z",
     mecanicoId: "mec002",
@@ -143,8 +88,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS003",
-    clienteId: "cli003",
-    veiculoId: "vec004",
+    clienteId: "cli_003_carlos", // Supondo que existe
+    veiculoId: "vec_004_nivus", // Supondo que existe
     dataEntrada: "2024-07-27T09:15:00Z",
     dataPrevisaoEntrega: "2024-07-27T12:00:00Z",
     mecanicoId: "mec001",
@@ -164,8 +109,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS004",
-    clienteId: "cli_modelo_001", // Usando cliente modelo para este
-    veiculoId: "vec002", // Usando o segundo veículo do cliente modelo (Fiat Strada)
+    clienteId: "cli_modelo_001", 
+    veiculoId: "vec_002_strada", 
     dataEntrada: "2024-07-28T11:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T10:00:00Z",
     mecanicoId: null,
@@ -183,8 +128,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS005",
-    clienteId: "cli004",
-    veiculoId: "vec005",
+    clienteId: "cli_004_ana", // Supondo que existe
+    veiculoId: "vec_005_hb20", // Supondo que existe
     dataEntrada: "2024-07-29T08:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T17:00:00Z",
     mecanicoId: "mec003",
@@ -202,8 +147,8 @@ export const mockOrdensServico = [
   },
    {
     id: "OS006",
-    clienteId: "cli002",
-    veiculoId: "vec003",
+    clienteId: "cli_002_maria",
+    veiculoId: "vec_003_corolla",
     dataEntrada: "2024-07-29T16:00:00Z",
     dataPrevisaoEntrega: "2024-07-30T12:00:00Z",
     mecanicoId: "mec002",
@@ -233,13 +178,19 @@ const statusOptions: { value: OSStatus; label: string }[] = [
   { value: "Cancelada", label: "Cancelada" },
 ];
 
+const mockMecanicos = [
+  { id: "mec001", nome: "Carlos Alberto" },
+  { id: "mec002", nome: "Pedro Henrique" },
+  { id: "mec003", nome: "Ana Beatriz" },
+];
+
 
 export default function ServicosPage() {
   const { toast } = useToast();
 
-  const getClienteNome = (clienteId: string) => mockClientes.find(c => c.id === clienteId)?.nomeCompleto || "N/A";
+  const getClienteNome = (clienteId: string) => getClienteById(clienteId)?.nomeCompleto || "N/A";
   const getVeiculoDesc = (veiculoId: string) => {
-    const veiculo = mockVeiculos.find(v => v.id === veiculoId);
+    const veiculo = getVeiculoById(veiculoId);
     return veiculo ? `${veiculo.marca} ${veiculo.modelo} (${veiculo.placa})` : "N/A";
   };
   const getMecanicoNome = (mecanicoId: string | null) => mockMecanicos.find(m => m.id === mecanicoId)?.nome || "Não atribuído";
@@ -401,4 +352,3 @@ export default function ServicosPage() {
     </div>
   );
 }
-

@@ -40,37 +40,9 @@ import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { mockOrdensServico, OSStatus, ItemOS } from "../page"; // Importando mock e tipo da página de listagem
+import { getClienteById, Cliente } from "@/lib/mockData/clientes";
+import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
 
-// Mock data - Em uma aplicação real, isso viria de uma API
-const mockClientes = [
-  { 
-    id: "cli_modelo_001", 
-    nomeCompleto: "Cliente Exemplo Padrão", // nome -> nomeCompleto
-    cpfCnpj: "123.456.789-00", // Adicionado
-    telefone: "(11) 91234-5678", 
-    email: "cliente.exemplo@email.com" 
-  },
-  { id: "cli002", nomeCompleto: "Maria Oliveira", cpfCnpj: "222.222.222-22", telefone: "(21) 91234-5678", email: "maria.oliveira@email.com" },
-  { id: "cli003", nomeCompleto: "Carlos Pereira", cpfCnpj: "333.333.333-33", telefone: "(31) 95555-5555", email: "carlos.p@email.com" },
-  { id: "cli004", nomeCompleto: "Ana Costa", cpfCnpj: "444.444.444-44", telefone: "(41) 94444-4444", email: "ana.c@email.com" },
-];
-
-const mockVeiculos = [
-  { 
-    id: "vec_modelo_001", 
-    clienteId: "cli_modelo_001", 
-    marca: "Marca Exemplo", 
-    modelo: "Modelo Padrão X", 
-    placa: "EXP-2024", 
-    ano: "2022", 
-    cor: "Azul Metálico", 
-    km: "25000" 
-  },
-  { id: "vec002", clienteId: "cli_modelo_001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678", ano: "2022", cor: "Branco", km: "15200" },
-  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012", ano: "2021", cor: "Preto", km: "33000" },
-  { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456", ano: "2023", cor: "Cinza", km: "8900" },
-  { id: "vec005", clienteId: "cli004", marca: "Hyundai", modelo: "HB20", placa: "MNO-7890", ano: "2019", cor: "Vermelho", km: "55100" },
-];
 
 const mockMecanicos = [
   { id: "mec001", nome: "Carlos Alberto" },
@@ -173,8 +145,8 @@ export default function OrdemServicoDetalhesPage() {
   const osDataFound = React.useMemo(() => {
     const data = mockOrdensServico.find(o => o.id === id);
     if (!data) return null;
-    const cliente = mockClientes.find(c => c.id === data.clienteId);
-    const veiculo = mockVeiculos.find(v => v.id === data.veiculoId);
+    const cliente = getClienteById(data.clienteId);
+    const veiculo = getVeiculoById(data.veiculoId);
     const mecanico = data.mecanicoId ? mockMecanicos.find(m => m.id === data.mecanicoId) : null;
     return { ...data, cliente, veiculo, mecanico, checklistsPreenchidos: data.checklistsPreenchidos || [] };
   }, [id]);
@@ -321,13 +293,12 @@ export default function OrdemServicoDetalhesPage() {
         responsavel: checklistResponsavel,
         respostas: model.itens.map(item => ({
             itemId: item.id,
-            texto: item.texto, // Adicionando o texto do item para facilitar a visualização
+            texto: item.texto, 
             resposta: checklistResponses[item.id] !== undefined ? checklistResponses[item.id] : null,
         })),
     };
 
     setFilledChecklistsForOS(prev => [...prev, newFilledChecklist]);
-    // Aqui você também atualizaria o mockOrdensServico ou faria uma chamada API
     const osIndex = mockOrdensServico.findIndex(os => os.id === osData.id);
     if (osIndex > -1) {
       const currentChecklists = mockOrdensServico[osIndex].checklistsPreenchidos || [];
@@ -448,7 +419,7 @@ export default function OrdemServicoDetalhesPage() {
           <div>
             <p className="font-semibold flex items-center gap-1 mb-0.5"><Car className="h-4 w-4 text-primary"/> Veículo:</p>
             <p className="ml-1">{veiculo?.marca} {veiculo?.modelo} ({veiculo?.placa})</p>
-            <p className="ml-1 text-xs text-muted-foreground">Ano: {veiculo?.ano} | Cor: {veiculo?.cor} | KM: {veiculo?.km}</p>
+            <p className="ml-1 text-xs text-muted-foreground">Ano Fab/Mod: {veiculo?.anoFabricacao || '?'}/{veiculo?.anoModelo || '?'} | Cor: {veiculo?.cor || '?'} | KM: {veiculo?.quilometragem || '?'}</p>
           </div>
            <div>
             <p className="font-semibold flex items-center gap-1 mb-0.5"><User className="h-4 w-4 text-primary"/> Mecânico Responsável:</p>
@@ -601,7 +572,7 @@ export default function OrdemServicoDetalhesPage() {
         <CardHeader><CardTitle>Fotos e Anexos</CardTitle><CardDescription>Registre imagens do serviço ou anexe documentos relevantes.</CardDescription></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-            {osData.fotos.map((foto, index) => (<div key={index} className="group relative"><Image src={foto.url} alt={foto.legenda} width={200} height={150} className="rounded-md object-cover aspect-video" data-ai-hint={foto.dataAiHint} /><p className="text-xs text-center mt-1 text-muted-foreground">{foto.legenda}</p></div>))}
+            {osData.fotos.map((foto, index) => (<div key={index} className="group relative"><Image src={foto.url} alt={foto.legenda} width={200} height={150} className="rounded-md object-cover aspect-video" data-ai-hint={foto.dataAiHint || 'vehicle service'} /><p className="text-xs text-center mt-1 text-muted-foreground">{foto.legenda}</p></div>))}
              <Button variant="outline" className="aspect-video h-auto flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary border-dashed" onClick={() => toast({title: "Upload de fotos em desenvolvimento"})}>
                 <Camera className="h-8 w-8" /><span className="text-xs">Adicionar Foto</span>
             </Button>
@@ -618,4 +589,3 @@ export default function OrdemServicoDetalhesPage() {
     </div>
   );
 }
-
