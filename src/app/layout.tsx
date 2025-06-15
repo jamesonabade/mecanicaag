@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -5,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 export const metadata: Metadata = {
   title: 'Mecânica Ágil',
   description: 'Sistema de Gestão Integrado para Oficina Mecânica',
+  icons: null, // Explicitamente informa ao Next.js para não gerenciar ícones automaticamente
 };
 
 export default function RootLayout({
