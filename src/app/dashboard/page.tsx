@@ -62,13 +62,17 @@ const financialKpiData = [
   { title: "Ticket Médio", value: "R$ 350,00", description: "Mês atual", icon: ShoppingCart, trend: "neutral" as const },
 ];
 
+// Static dates for mock data to ensure hydration stability
+const MOCK_TODAY_ISO = new Date(Date.UTC(2024, 7, 1, 0, 0, 0)).toISOString().split('T')[0]; // Example: Aug 1, 2024
+const MOCK_YESTERDAY_ISO = new Date(Date.UTC(2024, 6, 31, 0, 0, 0)).toISOString().split('T')[0]; // Example: Jul 31, 2024
+
 const contasAPagarAlertasMock = [
-  { id: "cp001", descricao: "Fornecedor AutoPeças Gama", valor: "R$ 1.250,70", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 0)).toISOString().split('T')[0], tipo: "Peças Urgentes" },
-  { id: "cp002", descricao: "Aluguel da Oficina - Mês Corrente", valor: "R$ 3.500,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0], tipo: "Despesa Fixa" },
-  { id: "cp003", descricao: "Mensalidade Software CRM", valor: "R$ 280,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString().split('T')[0], tipo: "Software" },
-  { id: "cp004", descricao: "Conta de Energia Elétrica", valor: "R$ 450,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString().split('T')[0], tipo: "Concessionária" },
-  { id: "cp005", descricao: "Compra de Ferramentas Especiais", valor: "R$ 870,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0], tipo: "Investimento" },
-  { id: "cp006", descricao: "Pagamento Impostos SIMPLES", valor: "R$ 1.800,00", dataVencimento: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0], tipo: "Impostos" },
+  { id: "cp001", descricao: "Fornecedor AutoPeças Gama", valor: "R$ 1.250,70", dataVencimento: MOCK_TODAY_ISO, tipo: "Peças Urgentes" },
+  { id: "cp002", descricao: "Aluguel da Oficina - Mês Corrente", valor: "R$ 3.500,00", dataVencimento: "2024-08-05", tipo: "Despesa Fixa" },
+  { id: "cp003", descricao: "Mensalidade Software CRM", valor: "R$ 280,00", dataVencimento: MOCK_YESTERDAY_ISO, tipo: "Software" }, // Vencido
+  { id: "cp004", descricao: "Conta de Energia Elétrica", valor: "R$ 450,00", dataVencimento: "2024-08-10", tipo: "Concessionária" },
+  { id: "cp005", descricao: "Compra de Ferramentas Especiais", valor: "R$ 870,00", dataVencimento: "2024-08-03", tipo: "Investimento" },
+  { id: "cp006", descricao: "Pagamento Impostos SIMPLES", valor: "R$ 1.800,00", dataVencimento: "2024-08-02", tipo: "Impostos" },
 ];
 
 
@@ -138,8 +142,8 @@ const ordensDeServicoConcluidasMock = [
   { id: "os002", clienteNome: "Ricardo Mendes", veiculoInfo: "Chevrolet Onix - DEF4E56", dataConclusao: "2024-06-20", ultimoLembreteEnviado: null },
   { id: "os003", clienteNome: "Beatriz Costa", veiculoInfo: "Hyundai Creta - GHI7F89", dataConclusao: "2023-11-01", ultimoLembreteEnviado: "2024-04-29" }, 
   { id: "os004", clienteNome: "Fernando Lima", veiculoInfo: "Fiat Toro - JKL0G12", dataConclusao: "2023-12-05", ultimoLembreteEnviado: null },
-  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: format(addDays(new Date(), -182), "yyyy-MM-dd"), ultimoLembreteEnviado: null }, 
-  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: format(addDays(new Date(), -30), "yyyy-MM-dd"), ultimoLembreteEnviado: null }, 
+  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: "2024-02-01", ultimoLembreteEnviado: null }, // Static past date
+  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: "2024-07-01", ultimoLembreteEnviado: null }, // Static recent past date
 ];
 
 export default function DashboardPage() {
@@ -153,11 +157,19 @@ export default function DashboardPage() {
 
 
   useEffect(() => {
-    const today = new Date();
-    setSelectedDate(today); 
-    filterAppointmentsForDate(today);
-    setContasAPagarAlertas(contasAPagarAlertasMock.sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime()));
+    // Set initial date on client-side to avoid hydration mismatch with server-rendered "undefined"
+    setSelectedDate(new Date()); 
   }, []);
+
+  useEffect(() => {
+    // Filter appointments and sort alerts once selectedDate is set
+    if (selectedDate) {
+      filterAppointmentsForDate(selectedDate);
+    }
+    setContasAPagarAlertas(
+      [...contasAPagarAlertasMock].sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime())
+    );
+  }, [selectedDate]); // Re-run when selectedDate changes
 
   const scheduledDays = useMemo(() => {
     return agendamentosMock.map(ag => parseISO(ag.data));
@@ -174,18 +186,19 @@ export default function DashboardPage() {
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    filterAppointmentsForDate(date);
+    // filterAppointmentsForDate(date); // This will be handled by the useEffect watching selectedDate
   };
 
   const clientesParaLembreteRevisao = useMemo(() => {
     if (!simulatedLembreteRevisaoAtivo) {
       return [];
     }
-    const hoje = new Date();
+    const hoje = new Date(MOCK_TODAY_ISO + "T00:00:00Z"); // Use a consistent "today" for mock logic
     return ordensDeServicoConcluidasMock.filter(os => {
       if (os.ultimoLembreteEnviado) return false; 
-      const dataConclusao = parseISO(os.dataConclusao);
+      const dataConclusao = parseISO(os.dataConclusao + "T00:00:00Z");
       const dataLembrete = addDays(dataConclusao, simulatedDiasParaRevisao);
+      // Check if dataLembrete is today or in the past relative to MOCK_TODAY_ISO
       return isSameDay(dataLembrete, hoje) || isBefore(dataLembrete, hoje);
     });
   }, [simulatedLembreteRevisaoAtivo, simulatedDiasParaRevisao]);
@@ -277,8 +290,8 @@ export default function DashboardPage() {
           <ScrollArea className="max-h-[280px] pr-3">
             <div className="space-y-4">
               {contasAPagarAlertas.map(alerta => {
-                const hoje = new Date();
-                const vencimentoDate = parseISO(alerta.dataVencimento + "T00:00:00");
+                const hoje = new Date(MOCK_TODAY_ISO + "T00:00:00Z"); // Use a consistent "today"
+                const vencimentoDate = parseISO(alerta.dataVencimento + "T00:00:00Z");
 
                 let statusText = "";
                 let statusClasses = "border-border text-muted-foreground";
@@ -296,16 +309,18 @@ export default function DashboardPage() {
                   IconComponent = AlertTriangle;
                   iconColorClass = "text-amber-600";
                 } else {
-                  const diasParaVencer = differenceInDays(vencimentoDate, hoje) +1; 
-                  if (diasParaVencer <= 7) {
+                  const diasParaVencer = differenceInDays(vencimentoDate, hoje); 
+                  if (diasParaVencer <= 7 && diasParaVencer > 0) { // ensure it's in the future
                     statusText = `Vence em ${diasParaVencer} dia(s) (${format(vencimentoDate, "dd/MM/yy", { locale: ptBR })})`;
                     statusClasses = "border-yellow-500/40 bg-yellow-500/10 text-yellow-600";
                     IconComponent = ClockIcon;
                     iconColorClass = "text-yellow-600";
-                  } else {
+                  } else if (diasParaVencer > 0) {
                     statusText = `Vence em ${format(vencimentoDate, "dd/MM/yyyy", { locale: ptBR })}`;
                     IconComponent = CalendarDays;
                     iconColorClass = "text-muted-foreground";
+                  } else { // Should not happen if sorted correctly and not past
+                     statusText = `Vence em ${format(vencimentoDate, "dd/MM/yyyy", { locale: ptBR })}`;
                   }
                 }
 
@@ -369,7 +384,7 @@ const lembretesRevisaoCard = (
           <ScrollArea className="max-h-[280px] pr-3">
             <div className="space-y-3">
               {clientesParaLembreteRevisao.map(os => {
-                const dataConclusao = parseISO(os.dataConclusao);
+                const dataConclusao = parseISO(os.dataConclusao + "T00:00:00Z");
                 const dataLembrete = addDays(dataConclusao, simulatedDiasParaRevisao);
                 return (
                   <div key={os.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-3 rounded-lg border bg-muted/30">
@@ -464,7 +479,7 @@ const lembretesRevisaoCard = (
           onSelect={handleDateSelect}
           className="rounded-md border p-3 w-full"
           locale={ptBR}
-          disabled={(d) => d < new Date(new Date().setDate(new Date().getDate() -1)) } 
+          disabled={(d) => d < new Date(new Date().setHours(0,0,0,0)) } // Disable past dates only
           modifiers={{
             scheduled: scheduledDays
           }}
