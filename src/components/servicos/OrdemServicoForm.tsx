@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, CalendarIcon, Wrench, User, Car } from "lucide-react";
+import { ChevronLeft, Save, CalendarIcon, Wrench, User, Car, PlusCircle } from "lucide-react"; // Adicionado PlusCircle
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
 import { getMecanicos, Funcionario } from "@/lib/mockData/funcionarios";
@@ -44,10 +44,11 @@ interface TipoServicoPadrao {
   categoria?: 'Mecânica Geral' | 'Elétrica' | 'Funilaria' | 'Revisão' | 'Diagnóstico';
 }
 
+// Mock de serviços pré-cadastrados (Poderia vir de src/lib/mockData/servicosCatalogo.ts)
 const mockTiposServicoPadrao: TipoServicoPadrao[] = [
-  { id: "rev_simples", nome: "Revisão Simples (Óleo + Filtros)", valorPadrao: 250, checklistModeloIdObrigatorio: "chk003", nomeChecklistObrigatorio: "Checklist de Troca de Óleo", categoria: "Revisão" },
-  { id: "rev_completa", nome: "Revisão Completa (Preventiva)", valorPadrao: 650, checklistModeloIdObrigatorio: "chk001", nomeChecklistObrigatorio: "Checklist de Inspeção Pré-Serviço", categoria: "Revisão" },
-  { id: "troca_oleo", nome: "Troca de Óleo e Filtro de Óleo", valorPadrao: 180, checklistModeloIdObrigatorio: "chk003", nomeChecklistObrigatorio: "Checklist de Troca de Óleo", categoria: "Mecânica Geral" },
+  { id: "rev_simples", nome: "Revisão Simples (Óleo + Filtros)", valorPadrao: 250, checklistModeloIdObrigatorio: "chk_model_003", nomeChecklistObrigatorio: "Checklist de Troca de Óleo", categoria: "Revisão" },
+  { id: "rev_completa", nome: "Revisão Completa (Preventiva)", valorPadrao: 650, checklistModeloIdObrigatorio: "chk_model_001", nomeChecklistObrigatorio: "Checklist de Inspeção Pré-Serviço", categoria: "Revisão" },
+  { id: "troca_oleo", nome: "Troca de Óleo e Filtro de Óleo", valorPadrao: 180, checklistModeloIdObrigatorio: "chk_model_003", nomeChecklistObrigatorio: "Checklist de Troca de Óleo", categoria: "Mecânica Geral" },
   { id: "freio_diant", nome: "Serviço Freios Dianteiros (Pastilhas)", valorPadrao: 220, categoria: "Mecânica Geral" },
   { id: "diag_scanner", nome: "Diagnóstico com Scanner", valorPadrao: 150, categoria: "Diagnóstico" },
   { id: "alinh_balanc", nome: "Alinhamento e Balanceamento (4 rodas)", valorPadrao: 120, categoria: "Mecânica Geral" },
@@ -61,14 +62,14 @@ const osFormSchema = z.object({
   clienteId: z.string({ required_error: "Selecione um cliente." }),
   veiculoId: z.string({ required_error: "Selecione um veículo." }),
   mecanicoId: z.string().optional(),
-  tipoServicoId: z.string({ required_error: "Selecione o tipo de serviço." }), 
+  tipoServicoId: z.string({ required_error: "Selecione o tipo de serviço principal do catálogo." }), 
   descricaoProblema: z.string().min(10, { message: "Descreva o problema com pelo menos 10 caracteres." }),
   servicosPecasPlanejadas: z.string().optional(),
-  valorEstimado: z.coerce.number().min(0, {message: "Valor estimado deve ser positivo."}).optional(),
+  valorEstimado: z.coerce.number().min(0, {message: "Valor estimado deve ser positivo ou zero."}).optional(),
   dataEntrada: z.date({ required_error: "Data de entrada é obrigatória." }),
   dataPrevisaoEntrega: z.date().optional(),
   observacoesInternas: z.string().optional(),
-  statusInicial: z.string().default("Aguardando Análise"),
+  statusInicial: z.string().default("Aguardando Diagnóstico"), // Ajustado status padrão
 });
 
 type OsFormValues = z.infer<typeof osFormSchema>;
@@ -96,7 +97,7 @@ export default function OrdemServicoForm() {
       dataEntrada: new Date(),
       dataPrevisaoEntrega: undefined,
       observacoesInternas: "",
-      statusInicial: "Aguardando Análise",
+      statusInicial: "Aguardando Diagnóstico",
     },
   });
 
@@ -109,24 +110,24 @@ export default function OrdemServicoForm() {
     setMecanicos(getMecanicos());
   }, []);
 
-   // Preencher cliente e veículo se vierem da query
    useEffect(() => {
     const queryClienteId = searchParams.get("clienteId");
     const queryVeiculoId = searchParams.get("veiculoId");
-    const queryOrcamentoId = searchParams.get("orcamentoId"); // Para futura conversão de orçamento em OS
+    const queryOrcamentoId = searchParams.get("orcamentoId"); 
 
     if (queryClienteId) {
       form.setValue("clienteId", queryClienteId);
        if (queryVeiculoId) {
-         // Necessário um timeout pequeno para garantir que os veículos do cliente sejam carregados ANTES de tentar setar o veiculoId
         setTimeout(() => {
           form.setValue("veiculoId", queryVeiculoId);
         }, 50);
       }
     }
     if (queryOrcamentoId) {
-        // Lógica para carregar dados do orçamento e preencher o form da OS
-        toast({ title: "Info", description: `Carregando dados do orçamento ${queryOrcamentoId} para nova OS.`});
+        const currentObs = form.getValues("observacoesInternas") || "";
+        form.setValue("observacoesInternas", `Baseado no Orçamento ID: ${queryOrcamentoId}${currentObs ? `\n${currentObs}` : ""}`);
+        // Você pode querer carregar mais dados do orçamento aqui, como serviços planejados
+        toast({ title: "Info", description: `OS iniciada a partir do Orçamento ${queryOrcamentoId}.`});
     }
   }, [searchParams, form, toast]);
 
@@ -149,12 +150,12 @@ export default function OrdemServicoForm() {
     if (selectedTipoServicoId) {
       const servicoSelecionado = mockTiposServicoPadrao.find(s => s.id === selectedTipoServicoId);
       if (servicoSelecionado) {
-        if (servicoSelecionado.valorPadrao !== undefined && servicoSelecionado.valorPadrao >= 0) { // Allow 0 for "Outro"
+        if (servicoSelecionado.valorPadrao !== undefined && servicoSelecionado.valorPadrao >= 0) {
           form.setValue("valorEstimado", servicoSelecionado.valorPadrao);
         } else {
            const currentValorEstimado = form.getValues("valorEstimado");
            const previousServicoWithValor = mockTiposServicoPadrao.find(s => s.valorPadrao === currentValorEstimado && s.id !== selectedTipoServicoId);
-           if (previousServicoWithValor && !servicoSelecionado.valorPadrao) {
+           if (previousServicoWithValor && servicoSelecionado.valorPadrao === undefined) { 
               form.setValue("valorEstimado", undefined);
            }
         }
@@ -163,11 +164,17 @@ export default function OrdemServicoForm() {
         } else {
           setChecklistRecomendado(null);
         }
+        // Preencher servicosPecasPlanejadas se houver descrição curta
+        if (servicoSelecionado.descricaoCurta && !form.getValues("servicosPecasPlanejadas")) {
+            form.setValue("servicosPecasPlanejadas", servicoSelecionado.descricaoCurta);
+        }
+
       } else {
         setChecklistRecomendado(null);
       }
     } else {
       setChecklistRecomendado(null);
+      form.setValue("valorEstimado", undefined); // Limpar valor se nenhum serviço principal for selecionado
     }
   }, [selectedTipoServicoId, form]);
 
@@ -176,23 +183,39 @@ export default function OrdemServicoForm() {
     const servicoSelecionado = mockTiposServicoPadrao.find(s => s.id === data.tipoServicoId);
     const dataToSubmit = {
         ...data,
-        tipoServicoNome: servicoSelecionado?.nome || "N/A" 
+        // O campo 'tipoServico' na mockOrdensServico deve armazenar o nome do serviço principal.
+        tipoServico: servicoSelecionado?.nome || "Não especificado" 
     }
-    console.log(dataToSubmit);
+    console.log("Dados da OS para salvar:", dataToSubmit);
     toast({
       title: "Ordem de Serviço Criada (Simulado)",
       description: "A OS foi salva com sucesso (simulação).",
     });
-    // router.push("/dashboard/servicos"); // Redirecionar após salvar
+    // Adicionar a OS ao mock global aqui, se necessário
+    // mockOrdensServico.push({ id: `OS${Date.now()}`, ...dataToSubmit, ...}); 
+    // router.push("/dashboard/servicos"); 
   }
+
+  const handleAdicionarServicoCatalogo = () => {
+    toast({
+      title: "Funcionalidade em Desenvolvimento",
+      description: "Para adicionar um novo serviço ao catálogo, por favor, acesse a seção 'Cadastros > Catálogo de Serviços'.",
+      duration: 7000,
+      action: (
+        <Button variant="outline" size="sm" asChild onClick={() => router.push('/dashboard/cadastros/catalogo-servicos')}>
+          Ir para Catálogo
+        </Button>
+      )
+    });
+  };
 
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 md:gap-2">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
           <Wrench /> Nova Ordem de Serviço
         </h1>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="w-full md:w-auto">
           <Link href="/dashboard/servicos">
             <ChevronLeft className="mr-2 h-4 w-4" /> Voltar para Lista de OS
           </Link>
@@ -260,31 +283,37 @@ export default function OrdemServicoForm() {
                 />
               </div>
               
-              <FormField
-                  control={form.control}
-                  name="tipoServicoId" 
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Serviço Principal*</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo de serviço" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {mockTiposServicoPadrao.map(tipo => (
-                            <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome} {tipo.valorPadrao && tipo.valorPadrao > 0 ? `(R$ ${tipo.valorPadrao.toFixed(2)})` : (tipo.valorPadrao === 0 ? '(Valor a definir)' : '')}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {checklistRecomendado && (
-                        <FormDescription className="text-blue-600">{checklistRecomendado}</FormDescription>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
+                <FormField
+                    control={form.control}
+                    name="tipoServicoId" 
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Serviço Principal (Catálogo)*</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo de serviço" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {mockTiposServicoPadrao.map(tipo => (
+                              <SelectItem key={tipo.id} value={tipo.id}>{tipo.nome} {tipo.valorPadrao && tipo.valorPadrao > 0 ? `(R$ ${tipo.valorPadrao.toFixed(2)})` : (tipo.valorPadrao === 0 && tipo.id === "outro" ? '(Valor a definir)' : '')}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {checklistRecomendado && (
+                          <FormDescription className="text-blue-600">{checklistRecomendado}</FormDescription>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="button" variant="outline" onClick={handleAdicionarServicoCatalogo} className="whitespace-nowrap h-10">
+                      <PlusCircle className="mr-2 h-4 w-4" /> Add Serviço Catálogo
+                  </Button>
+              </div>
+
 
               <FormField
                 control={form.control}
@@ -332,7 +361,7 @@ export default function OrdemServicoForm() {
                                 selected={field.value}
                                 onSelect={field.onChange}
                                 disabled={(date) =>
-                                date > new Date() || date < new Date("1900-01-01")
+                                date > new Date() || date < new Date("2000-01-01")
                                 }
                                 initialFocus
                                 locale={ptBR}
@@ -392,11 +421,11 @@ export default function OrdemServicoForm() {
                 name="servicosPecasPlanejadas"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Peças e Serviços Planejados (Opcional)</FormLabel>
+                    <FormLabel>Peças e Serviços Planejados (Detalhes Iniciais - Opcional)</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Liste peças e serviços adicionais planejados para o orçamento inicial. Ex: 1x Filtro de óleo; 1x Alinhamento..." {...field} rows={4} />
                     </FormControl>
-                    <FormDescription>Este campo ajuda na elaboração do orçamento inicial. Será preenchido automaticamente se o serviço principal tiver itens vinculados no futuro.</FormDescription>
+                    <FormDescription>Este campo ajuda na elaboração do orçamento inicial. Será preenchido automaticamente com a descrição curta se o serviço principal do catálogo tiver uma.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -410,8 +439,9 @@ export default function OrdemServicoForm() {
                     <FormItem>
                       <FormLabel>Valor Estimado Inicial (R$) (Opcional)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="Ex: 350.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                        <Input type="number" placeholder="Ex: 350.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} />
                       </FormControl>
+                      <FormDescription>Preenchido automaticamente se o serviço do catálogo tiver valor padrão.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -466,10 +496,10 @@ export default function OrdemServicoForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Aguardando Análise">Aguardando Análise</SelectItem>
+                          <SelectItem value="Aguardando Diagnóstico">Aguardando Diagnóstico</SelectItem>
                           <SelectItem value="Aguardando Orçamento">Aguardando Orçamento</SelectItem>
-                          <SelectItem value="Aguardando Aprovação Cliente">Aguardando Aprovação Cliente</SelectItem>
-                          <SelectItem value="Em Serviço">Em Serviço</SelectItem>
+                           <SelectItem value="Aguardando Aprovação">Aguardando Aprovação do Cliente</SelectItem>
+                          <SelectItem value="Em Andamento">Em Andamento</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

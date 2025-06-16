@@ -32,12 +32,14 @@ interface FotoOS {
     dataAiHint?: string;
 }
 
-interface FilledChecklistInfo {
-  id: string; 
-  modelId: string;
-  modelName: string;
-  dataPreenchimento: string;
-  responsavel: string;
+// Interface para informações de um checklist preenchido vinculado a uma OS
+export interface FilledChecklistInfo {
+  id: string; // ID único desta instância preenchida
+  modelId: string; // ID do modelo de checklist usado
+  modelName: string; // Nome do modelo de checklist
+  dataPreenchimento: string; // ISOString
+  responsavel: string; // Nome do responsável pelo preenchimento
+  // As respostas detalhadas ficariam dentro do objeto da OS ou seriam buscadas separadamente
 }
 
 
@@ -49,13 +51,13 @@ export const mockOrdensServico = [
     dataEntrada: "2024-07-25T10:00:00Z",
     dataPrevisaoEntrega: "2024-07-26T17:00:00Z",
     mecanicoId: "func002", // Carlos Alberto
-    tipoServico: "Revisão Completa",
+    tipoServico: "Revisão Completa (Preventiva)", // Nome do serviço do catálogo
     descricaoProblema: "Cliente solicitou revisão completa dos 25.000km. Verificar freios, suspensão e trocar óleo/filtros.",
     servicosPecasPlanejadas: "Óleo 5W30 Sintético (4L)\nFiltro de Óleo\nFiltro de Ar\nFiltro de Combustível\nAlinhamento e Balanceamento",
     observacoesInternas: "Veículo chegou com barulho leve na suspensão dianteira direita. Verificar durante a revisão.",
     status: "Em Andamento",
-    valorEstimado: 550.00,
-    valorFinal: 0,
+    valorEstimado: 650.00, // Valor do serviço principal do catálogo
+    valorFinal: 0, // Será calculado com base nos itens executados
     itensExecutados: [
       {id: "item1_os1", descricao: "Troca de Óleo e Filtro", valor: 180.00, tipo: "servico" as const},
       {id: "item2_os1", descricao: "Óleo 5W30 Sintético", valor: 45.00, quantidade: 4, tipo: "peca" as const},
@@ -75,12 +77,12 @@ export const mockOrdensServico = [
     dataEntrada: "2024-07-26T14:30:00Z",
     dataPrevisaoEntrega: "2024-07-27T18:00:00Z",
     mecanicoId: "func003", // Pedro Henrique
-    tipoServico: "Troca de pastilhas de freio",
+    tipoServico: "Serviço Freios Dianteiros (Pastilhas)",
     descricaoProblema: "Pastilhas de freio fazendo barulho e pedal baixo.",
     servicosPecasPlanejadas: "Jogo de Pastilhas de Freio Dianteiras\nFluido de Freio DOT4",
     observacoesInternas: "Verificar discos de freio, podem precisar de retífica.",
     status: "Aguardando Aprovação",
-    valorEstimado: 320.50,
+    valorEstimado: 220.00,
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
@@ -94,14 +96,14 @@ export const mockOrdensServico = [
     dataEntrada: "2024-07-27T09:15:00Z",
     dataPrevisaoEntrega: "2024-07-27T12:00:00Z",
     mecanicoId: "func002", // Carlos Alberto
-    tipoServico: "Diagnóstico de Motor",
+    tipoServico: "Diagnóstico com Scanner",
     descricaoProblema: "Luz da injeção acesa no painel e falha em baixa rotação.",
     servicosPecasPlanejadas: "Diagnóstico com scanner\nVerificação de velas e bicos",
     observacoesInternas: "",
     status: "Concluída",
-    valorEstimado: 180.00,
-    valorFinal: 180.00,
-    itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 180.00, tipo: "servico" as const}] as ItemOS[],
+    valorEstimado: 150.00,
+    valorFinal: 150.00,
+    itensExecutados: [{id: "item1_os3", descricao: "Diagnóstico com Scanner", valor: 150.00, tipo: "servico" as const}] as ItemOS[],
     diagnosticoTecnico: "Bobina do cilindro 3 com defeito. Substituição recomendada em orçamento futuro.",
     fotos: [] as FotoOS[],
     checklistsPreenchidos: [
@@ -115,12 +117,12 @@ export const mockOrdensServico = [
     dataEntrada: "2024-07-28T11:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T10:00:00Z",
     mecanicoId: null,
-    tipoServico: "Verificação de suspensão",
+    tipoServico: "Diagnóstico de Suspensão",
     descricaoProblema: "Barulho na suspensão traseira ao passar em lombadas.",
     servicosPecasPlanejadas: "Inspeção da suspensão traseira.",
     observacoesInternas: "Cliente informou que o barulho começou após viagem longa.",
     status: "Aguardando Diagnóstico",
-    valorEstimado: 0,
+    valorEstimado: 100.00,
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
@@ -134,12 +136,12 @@ export const mockOrdensServico = [
     dataEntrada: "2024-07-29T08:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T17:00:00Z",
     mecanicoId: "func006", // Juliana Alves
-    tipoServico: "Alinhamento e Balanceamento",
+    tipoServico: "Alinhamento e Balanceamento (4 rodas)",
     descricaoProblema: "Veículo puxando para a direita e volante vibrando em alta velocidade.",
     servicosPecasPlanejadas: "Alinhamento de direção\nBalanceamento das 4 rodas",
     observacoesInternas: "Pneus aparentemente em bom estado.",
     status: "Aguardando Peças", 
-    valorEstimado: 150.00,
+    valorEstimado: 120.00,
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
@@ -153,12 +155,12 @@ export const mockOrdensServico = [
     dataEntrada: "2024-07-29T16:00:00Z",
     dataPrevisaoEntrega: "2024-07-30T12:00:00Z",
     mecanicoId: "func003", // Pedro Henrique
-    tipoServico: "Reparo Elétrico",
+    tipoServico: "Verificação Elétrica Básica",
     descricaoProblema: "Farol baixo do lado esquerdo não acende.",
     servicosPecasPlanejadas: "Diagnóstico elétrico\nPossível troca de lâmpada ou reparo no chicote",
     observacoesInternas: "Cliente já trocou a lâmpada e o problema persistiu.",
     status: "Cancelada",
-    valorEstimado: 280.00,
+    valorEstimado: 90.00,
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
     diagnosticoTecnico: null,
@@ -316,7 +318,7 @@ export default function ServicosPage() {
                         {os.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{os.valorEstimado > 0 ? os.valorEstimado.toFixed(2) : "-"}</TableCell>
+                    <TableCell className="text-right">{os.valorEstimado && os.valorEstimado > 0 ? os.valorEstimado.toFixed(2) : "-"}</TableCell>
                     <TableCell className="text-right">
                        <Button variant="ghost" size="icon" asChild title="Visualizar Detalhes">
                         <Link href={`/dashboard/servicos/${os.id}`}>

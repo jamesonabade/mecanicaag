@@ -39,7 +39,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { mockOrdensServico, OSStatus, ItemOS } from "../page"; 
+import { mockOrdensServico, OSStatus, ItemOS, FilledChecklistInfo } from "../page"; 
 import { getClienteById, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
 import { getFuncionarioById, Funcionario } from "@/lib/mockData/funcionarios";
@@ -122,12 +122,7 @@ interface FilledChecklistItemAnswer {
   texto?: string; // Adicionado para facilitar a visualização
 }
 
-interface FilledChecklist {
-  id: string; // ID único para esta instância preenchida
-  modelId: string;
-  modelName: string;
-  dataPreenchimento: string;
-  responsavel: string;
+interface FilledChecklist extends FilledChecklistInfo { // Reutiliza e estende a Info
   respostas: FilledChecklistItemAnswer[];
 }
 
@@ -151,13 +146,26 @@ export default function OrdemServicoDetalhesPage() {
   const [diagnostico, setDiagnostico] = React.useState(osDataFound?.diagnosticoTecnico || "");
   const [itensServico, setItensServico] = React.useState<ItemOS[]>(osDataFound?.itensExecutados || []);
 
-  // State for checklist modal
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
   const [selectedChecklistModelId, setSelectedChecklistModelId] = useState<string>("");
   const [currentChecklistItemsToFill, setCurrentChecklistItemsToFill] = useState<ChecklistItemModel[]>([]);
   const [checklistResponses, setChecklistResponses] = useState<Record<string, any>>({});
   const [checklistResponsavel, setChecklistResponsavel] = useState("");
-  const [filledChecklistsForOS, setFilledChecklistsForOS] = useState<FilledChecklist[]>(osDataFound?.checklistsPreenchidos || []);
+  const [filledChecklistsForOS, setFilledChecklistsForOS] = useState<FilledChecklist[]>(
+    // Se mockOrdensServico tiver a estrutura completa, podemos usar diretamente
+    // Por agora, vamos assumir que `checklistsPreenchidos` em `mockOrdensServico` é apenas `FilledChecklistInfo[]`
+    // e precisaremos simular o preenchimento ou buscar de outro local no futuro.
+    // Para esta demo, vamos simular que a OS pode já ter checklists com respostas.
+    osDataFound?.checklistsPreenchidos.map(info => ({
+        ...info,
+        respostas: mockChecklistModelsData.find(m => m.id === info.modelId)?.itens.map(item => ({
+            itemId: item.id,
+            texto: item.texto,
+            // Resposta mockada aqui para visualização, em um caso real viria do DB
+            resposta: item.tipoResposta === 'sim_nao' ? 'Sim' : item.tipoResposta === 'texto_curto' ? 'Ok' : null 
+        })) || []
+    })) || []
+  );
 
 
   useEffect(() => {
@@ -166,7 +174,24 @@ export default function OrdemServicoDetalhesPage() {
       setCurrentStatus(osDataFound.status as OSStatus);
       setDiagnostico(osDataFound.diagnosticoTecnico || "");
       setItensServico(osDataFound.itensExecutados || []);
-      setFilledChecklistsForOS(osDataFound.checklistsPreenchidos || []);
+      // Atualizar filledChecklistsForOS com base nos dados carregados da OS
+      // Isso simula que a OS já pode ter checklists preenchidos com respostas
+       const loadedFilledChecklists = osDataFound.checklistsPreenchidos.map(info => {
+        const model = mockChecklistModelsData.find(m => m.id === info.modelId);
+        return {
+          ...info,
+          respostas: model?.itens.map(item => {
+            // Simulação de busca de resposta, em um caso real viria do DB/OS
+            const mockResposta = `Resposta para ${item.texto.substring(0,10)}...`; 
+            return {
+              itemId: item.id,
+              texto: item.texto,
+              resposta: item.tipoResposta === 'upload_foto' ? 'https://placehold.co/100x75.png' : (Math.random() > 0.5 ? "Sim" : mockResposta)
+            };
+          }) || []
+        };
+      });
+      setFilledChecklistsForOS(loadedFilledChecklists);
     }
   }, [osDataFound]);
 
@@ -174,7 +199,7 @@ export default function OrdemServicoDetalhesPage() {
     if (selectedChecklistModelId) {
       const model = mockChecklistModelsData.find(m => m.id === selectedChecklistModelId);
       setCurrentChecklistItemsToFill(model ? model.itens : []);
-      setChecklistResponses({}); // Reset responses when model changes
+      setChecklistResponses({}); 
     } else {
       setCurrentChecklistItemsToFill([]);
     }
@@ -201,6 +226,11 @@ export default function OrdemServicoDetalhesPage() {
 
   const handleSaveDiagnostico = () => {
     console.log("Diagnóstico salvo:", diagnostico);
+    // Aqui, atualizaria o mockOrdensServico ou faria uma chamada API
+    const osIndex = mockOrdensServico.findIndex(os => os.id === osData.id);
+    if (osIndex > -1) {
+      mockOrdensServico[osIndex].diagnosticoTecnico = diagnostico;
+    }
     toast({ title: "Diagnóstico Salvo", description: "Diagnóstico técnico salvo com sucesso (Simulado)"});
   };
   
@@ -294,17 +324,27 @@ export default function OrdemServicoDetalhesPage() {
     };
 
     setFilledChecklistsForOS(prev => [...prev, newFilledChecklist]);
+    
+    // Atualizar o mockOrdensServico global (simulação)
     const osIndex = mockOrdensServico.findIndex(os => os.id === osData.id);
     if (osIndex > -1) {
-      const currentChecklists = mockOrdensServico[osIndex].checklistsPreenchidos || [];
-      mockOrdensServico[osIndex].checklistsPreenchidos = [...currentChecklists, newFilledChecklist];
+      const currentChecklistsInfo = mockOrdensServico[osIndex].checklistsPreenchidos || [];
+      // Adicionamos apenas a info, já que 'respostas' seria grande para o mock da lista
+      const newChecklistInfo: FilledChecklistInfo = {
+        id: newFilledChecklist.id,
+        modelId: newFilledChecklist.modelId,
+        modelName: newFilledChecklist.modelName,
+        dataPreenchimento: newFilledChecklist.dataPreenchimento,
+        responsavel: newFilledChecklist.responsavel,
+      };
+      mockOrdensServico[osIndex].checklistsPreenchidos = [...currentChecklistsInfo, newChecklistInfo];
     }
-
 
     toast({title: "Checklist Salvo", description: `Checklist "${model.nome}" preenchido e salvo para esta OS.`});
     setIsChecklistModalOpen(false);
     setSelectedChecklistModelId("");
     setChecklistResponsavel("");
+    setChecklistResponses({});
   };
   
   const renderChecklistItemInput = (item: ChecklistItemModel) => {
@@ -584,5 +624,3 @@ export default function OrdemServicoDetalhesPage() {
     </div>
   );
 }
-
-    
