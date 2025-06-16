@@ -647,7 +647,7 @@ const lembretesRevisaoCard = (
             </div>
             <div className="flex gap-2 flex-wrap w-full sm:w-auto items-center">
                 <Button variant="outline" size="sm" asChild><Link href="/dashboard/agendamento/novo"><CalendarDays className="mr-2 h-4 w-4"/>Agendar Cliente</Link></Button>
-                <Button size="sm" asChild><Link href="/dashboard/servicos/novo"><Wrench className="mr-2 h-4 w-4"/>Nova Ordem de Serviço</Link></Button>
+                <Button size="sm" asChild><Link href="/dashboard/operacional/nova-entrada"><UserPlus className="mr-2 h-4 w-4"/>Iniciar Nova Entrada</Link></Button>
                 <form onSubmit={handleSearchEstoque} className="flex gap-1 items-center">
                   <Input
                     type="search"
