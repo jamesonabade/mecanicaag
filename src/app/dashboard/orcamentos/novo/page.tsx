@@ -27,10 +27,11 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus } from "lucide-react";
+import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus, UserCheck, UserCog } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
+import { getAtendentes, getMecanicos, Funcionario } from "@/lib/mockData/funcionarios";
 
 
 interface TipoServicoPadrao {
@@ -74,6 +75,8 @@ type OrcamentoItemPecaValues = z.infer<typeof orcamentoItemPecaSchema>;
 const orcamentoFormSchema = z.object({
   clienteId: z.string({ required_error: "Selecione um cliente." }),
   veiculoId: z.string({ required_error: "Selecione um veículo." }),
+  atendenteId: z.string().optional(),
+  mecanicoOrcamentistaId: z.string().optional(),
   dataOrcamento: z.date({ required_error: "Data do orçamento é obrigatória." }),
   validadeDias: z.coerce.number().int().min(1, "Validade (mín. 1 dia).").optional().default(7),
   servicos: z.array(orcamentoItemServicoSchema).optional(),
@@ -95,12 +98,17 @@ export default function NovoOrcamentoPage() {
 
   const [clientes, setClientesState] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
+  const [atendentes, setAtendentes] = React.useState<Funcionario[]>([]);
+  const [mecanicosOrcamentistas, setMecanicosOrcamentistas] = React.useState<Funcionario[]>([]);
+
 
   const form = useForm<OrcamentoFormValues>({
     resolver: zodResolver(orcamentoFormSchema),
     defaultValues: {
       clienteId: "",
       veiculoId: "",
+      atendenteId: "",
+      mecanicoOrcamentistaId: "",
       dataOrcamento: new Date(),
       validadeDias: 7,
       servicos: [], 
@@ -125,9 +133,11 @@ export default function NovoOrcamentoPage() {
 
   React.useEffect(() => {
     setClientesState(getClientes());
+    setAtendentes(getAtendentes());
+    setMecanicosOrcamentistas(getMecanicos());
   }, []);
 
-  // Preencher cliente e veículo se vierem da query
+  // Preencher cliente e veículo se vierem da URL
   useEffect(() => {
     const queryClienteId = searchParams.get("clienteId");
     const queryVeiculoId = searchParams.get("veiculoId");
@@ -135,13 +145,10 @@ export default function NovoOrcamentoPage() {
 
     if (queryClienteId) {
       form.setValue("clienteId", queryClienteId);
-      // A lógica de carregar veículos do cliente será ativada pelo watch de selectedClienteId
       if (queryVeiculoId) {
-         // Necessário um timeout pequeno para garantir que os veículos do cliente sejam carregados ANTES de tentar setar o veiculoId
-         // Isso ocorre porque o useEffect que carrega os veículos do cliente depende de selectedClienteId, que é setado aqui.
         setTimeout(() => {
           form.setValue("veiculoId", queryVeiculoId);
-        }, 100); // Aumentado ligeiramente o timeout para garantir
+        }, 100); 
       }
     }
     if (queryEntradaId) {
@@ -159,7 +166,6 @@ export default function NovoOrcamentoPage() {
       const veiculoAtualValor = form.getValues("veiculoId");
       const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === veiculoAtualValor);
 
-      // Só limpa o veiculoId se ele não pertencer ao novo cliente E não for o veiculoId vindo da URL (para evitar limpar antes de preencher)
       const queryVeiculoId = searchParams.get("veiculoId");
       if (!veiculoAtualPertenceAoCliente && veiculoAtualValor !== queryVeiculoId) {
           form.setValue("veiculoId", "");
@@ -211,7 +217,9 @@ export default function NovoOrcamentoPage() {
 
 
   async function onSubmit(data: OrcamentoFormValues) {
-    console.log({ ...data, totalServicos, totalPecas, subTotalGeral, totalGeral });
+    console.log("Dados do Orçamento para Salvar:", { ...data, totalServicos, totalPecas, subTotalGeral, totalGeral });
+    // Futuramente, ao converter para OS, os dados de atendenteId e mecanicoOrcamentistaId
+    // podem ser usados para preencher campos correspondentes na OS.
     toast({
       title: "Orçamento Criado (Simulado)",
       description: "O orçamento foi salvo com sucesso (simulação).",
@@ -238,7 +246,7 @@ export default function NovoOrcamentoPage() {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle>Informações Principais</CardTitle>
-              <CardDescription>Dados do cliente, veículo e validade do orçamento.</CardDescription>
+              <CardDescription>Dados do cliente, veículo, responsáveis e validade do orçamento.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
@@ -284,6 +292,47 @@ export default function NovoOrcamentoPage() {
                   )}
                 />
               </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="atendenteId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1"><UserCheck className="h-4 w-4" /> Atendente Responsável (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Selecione o atendente" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {atendentes.map(atendente => (
+                            <SelectItem key={atendente.id} value={atendente.id}>{atendente.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mecanicoOrcamentistaId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1"><UserCog className="h-4 w-4" /> Mecânico Orçamentista (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Selecione o mecânico" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          {mecanicosOrcamentistas.map(mecanico => (
+                            <SelectItem key={mecanico.id} value={mecanico.id}>{mecanico.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}

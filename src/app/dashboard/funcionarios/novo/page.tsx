@@ -25,25 +25,29 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, UserPlus, CalendarIcon } from "lucide-react";
+import { Funcionario } from "@/lib/mockData/funcionarios"; // Importar Funcionario para tipagem
 
-const mockCargos = [
+
+const mockCargosSistema = [
   { value: "mecanico_chefe", label: "Mecânico Chefe" },
   { value: "mecanico_junior", label: "Mecânico Júnior" },
   { value: "atendente", label: "Atendente" },
   { value: "gerente_oficina", label: "Gerente da Oficina" },
   { value: "auxiliar_servicos", label: "Auxiliar de Serviços Gerais" },
+  { value: "orcamentista", label: "Orçamentista" },
 ];
 
-const niveisAcesso = [
+const niveisAcessoSistema = [
     { value: "admin", label: "Administrador" },
     { value: "operacional", label: "Operacional" },
     { value: "consulta", label: "Apenas Consulta" },
 ];
 
+// Schema Zod para validação do formulário
 const funcionarioFormSchema = z.object({
   nomeCompleto: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres." }),
   cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, { message: "CPF inválido. Formato esperado: 000.000.000-00" }),
-  cargoId: z.string({ required_error: "Selecione um cargo." }),
+  cargoId: z.string({ required_error: "Selecione um cargo." }), // Mantido como string, pois o Select usa o value
   dataAdmissao: z.date().optional(),
   email: z.string().email({ message: "Email inválido." }).optional().or(z.literal('')),
   telefone: z.string().min(10, { message: "Telefone inválido (mínimo 10 dígitos)." }).optional().or(z.literal('')),
@@ -61,7 +65,7 @@ export default function NovoFuncionarioPage() {
     defaultValues: {
       nomeCompleto: "",
       cpf: "",
-      cargoId: "",
+      cargoId: "", // Será o 'value' do mockCargosSistema
       dataAdmissao: undefined,
       email: "",
       telefone: "",
@@ -72,12 +76,31 @@ export default function NovoFuncionarioPage() {
   });
 
   async function onSubmit(data: FuncionarioFormValues) {
-    console.log(data);
+    // Aqui, você normalmente enviaria os dados para o seu backend ou mock global.
+    // Por enquanto, apenas simulamos o cadastro.
+    
+    // Convertendo cargoId para o nome do cargo para exibição no toast (opcional)
+    const cargoSelecionado = mockCargosSistema.find(c => c.value === data.cargoId);
+    const nomeCargo = cargoSelecionado ? cargoSelecionado.label : data.cargoId;
+
+    const novoFuncionarioSimulado: Funcionario = {
+        id: `func_novo_${Date.now()}`, // Gerar ID de exemplo
+        nome: data.nomeCompleto,
+        cargo: nomeCargo as Funcionario['cargo'], // Ajustar se a estrutura de cargo no mock global for diferente
+        // ... outros campos relevantes do mock Funcionario
+    };
+
+    // Adicionar ao mockFuncionarios em lib/mockData/funcionarios.ts (se for persistir em memória)
+    // Ex: addFuncionarioDB(novoFuncionarioSimulado); // Função a ser criada no mock
+    
+    console.log("Dados do Funcionário a ser cadastrado:", data);
+    console.log("Funcionário Simulado (para mock global):", novoFuncionarioSimulado);
+
     toast({
       title: "Funcionário Cadastrado (Simulado)",
-      description: `O funcionário "${data.nomeCompleto}" foi salvo com sucesso (simulação).`,
+      description: `O funcionário "${data.nomeCompleto}" (${nomeCargo}) foi salvo com sucesso (simulação).`,
     });
-    // form.reset(); // Opcional
+    // form.reset(); // Opcional, para limpar o formulário após o envio
   }
 
   return (
@@ -141,7 +164,7 @@ export default function NovoFuncionarioPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {mockCargos.map(cargo => (
+                          {mockCargosSistema.map(cargo => (
                             <SelectItem key={cargo.value} value={cargo.value}>{cargo.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -250,7 +273,7 @@ export default function NovoFuncionarioPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {niveisAcesso.map(nivel => (
+                          {niveisAcessoSistema.map(nivel => (
                             <SelectItem key={nivel.value} value={nivel.value}>{nivel.label}</SelectItem>
                           ))}
                         </SelectContent>

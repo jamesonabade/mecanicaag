@@ -29,12 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, CalendarIcon, User, Car, Wrench, Clock } from "lucide-react";
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
-
-// Mock data - Mover para um arquivo central no futuro
-const mockMecanicos = [
-  { id: "mec001", nome: "Carlos Alberto" },
-  { id: "mec002", nome: "Pedro Henrique" },
-];
+import { getMecanicos, Funcionario } from "@/lib/mockData/funcionarios";
 
 const tiposServicoAgendamento = [
     {value: "revisao_periodica", label: "Revisão Periódica"},
@@ -80,10 +75,12 @@ export default function NovoAgendamentoPage() {
 
   const [clientes, setClientesState] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
+  const [mecanicosDisponiveis, setMecanicosDisponiveis] = React.useState<Funcionario[]>([]);
   const selectedClienteId = form.watch("clienteId");
 
   React.useEffect(() => {
     setClientesState(getClientes());
+    setMecanicosDisponiveis(getMecanicos());
   }, []);
 
   React.useEffect(() => {
@@ -279,7 +276,7 @@ export default function NovoAgendamentoPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {mockMecanicos.map(mecanico => (
+                          {mecanicosDisponiveis.map(mecanico => (
                             <SelectItem key={mecanico.id} value={mecanico.id}>{mecanico.nome}</SelectItem>
                           ))}
                            <SelectItem value="qualquer">Qualquer mecânico disponível</SelectItem>

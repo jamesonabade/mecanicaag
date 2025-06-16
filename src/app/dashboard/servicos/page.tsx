@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getClienteById, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
+import { getMecanicos, Funcionario, getFuncionarioById } from "@/lib/mockData/funcionarios";
 
 
 export interface ItemOS {
@@ -47,7 +48,7 @@ export const mockOrdensServico = [
     veiculoId: "vec_modelo_001", 
     dataEntrada: "2024-07-25T10:00:00Z",
     dataPrevisaoEntrega: "2024-07-26T17:00:00Z",
-    mecanicoId: "mec001",
+    mecanicoId: "func002", // Carlos Alberto
     tipoServico: "Revisão Completa",
     descricaoProblema: "Cliente solicitou revisão completa dos 25.000km. Verificar freios, suspensão e trocar óleo/filtros.",
     servicosPecasPlanejadas: "Óleo 5W30 Sintético (4L)\nFiltro de Óleo\nFiltro de Ar\nFiltro de Combustível\nAlinhamento e Balanceamento",
@@ -73,7 +74,7 @@ export const mockOrdensServico = [
     veiculoId: "vec_003_corolla",
     dataEntrada: "2024-07-26T14:30:00Z",
     dataPrevisaoEntrega: "2024-07-27T18:00:00Z",
-    mecanicoId: "mec002",
+    mecanicoId: "func003", // Pedro Henrique
     tipoServico: "Troca de pastilhas de freio",
     descricaoProblema: "Pastilhas de freio fazendo barulho e pedal baixo.",
     servicosPecasPlanejadas: "Jogo de Pastilhas de Freio Dianteiras\nFluido de Freio DOT4",
@@ -92,7 +93,7 @@ export const mockOrdensServico = [
     veiculoId: "vec_004_nivus", 
     dataEntrada: "2024-07-27T09:15:00Z",
     dataPrevisaoEntrega: "2024-07-27T12:00:00Z",
-    mecanicoId: "mec001",
+    mecanicoId: "func002", // Carlos Alberto
     tipoServico: "Diagnóstico de Motor",
     descricaoProblema: "Luz da injeção acesa no painel e falha em baixa rotação.",
     servicosPecasPlanejadas: "Diagnóstico com scanner\nVerificação de velas e bicos",
@@ -132,7 +133,7 @@ export const mockOrdensServico = [
     veiculoId: "vec_005_hb20", 
     dataEntrada: "2024-07-29T08:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T17:00:00Z",
-    mecanicoId: "mec003",
+    mecanicoId: "func006", // Juliana Alves
     tipoServico: "Alinhamento e Balanceamento",
     descricaoProblema: "Veículo puxando para a direita e volante vibrando em alta velocidade.",
     servicosPecasPlanejadas: "Alinhamento de direção\nBalanceamento das 4 rodas",
@@ -151,7 +152,7 @@ export const mockOrdensServico = [
     veiculoId: "vec_003_corolla",
     dataEntrada: "2024-07-29T16:00:00Z",
     dataPrevisaoEntrega: "2024-07-30T12:00:00Z",
-    mecanicoId: "mec002",
+    mecanicoId: "func003", // Pedro Henrique
     tipoServico: "Reparo Elétrico",
     descricaoProblema: "Farol baixo do lado esquerdo não acende.",
     servicosPecasPlanejadas: "Diagnóstico elétrico\nPossível troca de lâmpada ou reparo no chicote",
@@ -178,22 +179,20 @@ const statusOptions: { value: OSStatus; label: string }[] = [
   { value: "Cancelada", label: "Cancelada" },
 ];
 
-const mockMecanicos = [
-  { id: "mec001", nome: "Carlos Alberto" },
-  { id: "mec002", nome: "Pedro Henrique" },
-  { id: "mec003", nome: "Ana Beatriz" },
-];
-
-
 export default function ServicosPage() {
   const { toast } = useToast();
+  const [mecanicos, setMecanicos] = React.useState<Funcionario[]>([]);
+
+  React.useEffect(() => {
+    setMecanicos(getMecanicos());
+  }, []);
 
   const getClienteNome = (clienteId: string) => getClienteById(clienteId)?.nomeCompleto || "N/A";
   const getVeiculoDesc = (veiculoId: string) => {
     const veiculo = getVeiculoById(veiculoId);
     return veiculo ? `${veiculo.marca} ${veiculo.modelo} (${veiculo.placa})` : "N/A";
   };
-  const getMecanicoNome = (mecanicoId: string | null) => mockMecanicos.find(m => m.id === mecanicoId)?.nome || "Não atribuído";
+  const getMecanicoNome = (mecanicoId: string | null) => getFuncionarioById(mecanicoId || "")?.nome || "Não atribuído";
 
   const getStatusBadgeVariant = (status: OSStatus): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
@@ -270,7 +269,7 @@ export default function ServicosPage() {
                         </SelectTrigger>
                         <SelectContent>
                              <SelectItem value="todos">Todos os Mecânicos</SelectItem>
-                            {mockMecanicos.map(mec => <SelectItem key={mec.id} value={mec.id}>{mec.nome}</SelectItem>)}
+                            {mecanicos.map(mec => <SelectItem key={mec.id} value={mec.id}>{mec.nome}</SelectItem>)}
                              <SelectItem value="nao_atribuido">Não Atribuído</SelectItem>
                         </SelectContent>
                     </Select>

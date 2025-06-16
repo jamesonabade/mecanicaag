@@ -39,16 +39,11 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { mockOrdensServico, OSStatus, ItemOS } from "../page"; // Importando mock e tipo da página de listagem
+import { mockOrdensServico, OSStatus, ItemOS } from "../page"; 
 import { getClienteById, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
+import { getFuncionarioById, Funcionario } from "@/lib/mockData/funcionarios";
 
-
-const mockMecanicos = [
-  { id: "mec001", nome: "Carlos Alberto" },
-  { id: "mec002", nome: "Pedro Henrique" },
-  { id: "mec003", nome: "Ana Beatriz" },
-];
 
 const statusOptions: { value: OSStatus; label: string }[] = [
     { value: "Aguardando Diagnóstico", label: "Aguardando Diagnóstico" },
@@ -147,7 +142,7 @@ export default function OrdemServicoDetalhesPage() {
     if (!data) return null;
     const cliente = getClienteById(data.clienteId);
     const veiculo = getVeiculoById(data.veiculoId);
-    const mecanico = data.mecanicoId ? mockMecanicos.find(m => m.id === data.mecanicoId) : null;
+    const mecanico = data.mecanicoId ? getFuncionarioById(data.mecanicoId) : null;
     return { ...data, cliente, veiculo, mecanico, checklistsPreenchidos: data.checklistsPreenchidos || [] };
   }, [id]);
 

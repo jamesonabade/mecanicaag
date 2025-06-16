@@ -30,12 +30,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Save, CalendarIcon, Wrench, User, Car } from "lucide-react";
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
+import { getMecanicos, Funcionario } from "@/lib/mockData/funcionarios";
 
-
-const mockMecanicos = [
-  { id: "mec001", nome: "Carlos Alberto" },
-  { id: "mec002", nome: "Pedro Henrique" },
-];
 
 interface TipoServicoPadrao {
   id: string;
@@ -85,6 +81,7 @@ export default function NovaOrdemServicoPage() {
   const [clientes, setClientesState] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const [checklistRecomendado, setChecklistRecomendado] = React.useState<string | null>(null);
+  const [mecanicos, setMecanicos] = React.useState<Funcionario[]>([]);
 
   const form = useForm<OsFormValues>({
     resolver: zodResolver(osFormSchema),
@@ -109,6 +106,7 @@ export default function NovaOrdemServicoPage() {
 
   React.useEffect(() => {
     setClientesState(getClientes());
+    setMecanicos(getMecanicos());
   }, []);
 
    // Preencher cliente e veículo se vierem da query
@@ -431,7 +429,7 @@ export default function NovaOrdemServicoPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {mockMecanicos.map(mecanico => (
+                          {mecanicos.map(mecanico => (
                             <SelectItem key={mecanico.id} value={mecanico.id}>{mecanico.nome}</SelectItem>
                           ))}
                         </SelectContent>
