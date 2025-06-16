@@ -61,7 +61,7 @@ export default function VeiculosPage() {
   const handleDeleteVeiculo = (veiculoId: string) => {
     const success = deleteVeiculo(veiculoId);
     if (success) {
-      setListaVeiculos(getVeiculos()); 
+      setListaVeiculos(getVeiculos());
       toast({
         title: "Veículo Excluído",
         description: "O veículo foi removido com sucesso.",
@@ -116,6 +116,7 @@ export default function VeiculosPage() {
       <Card className="shadow-lg mb-6">
         <CardHeader>
           <CardTitle>Filtrar e Buscar Veículos</CardTitle>
+          <CardDescription>Utilize os campos abaixo para refinar sua busca na lista de veículos.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex-grow">
@@ -134,9 +135,14 @@ export default function VeiculosPage() {
               className="h-9"
             />
           </div>
-          <Button onClick={() => toast({title: "Filtro em Desenvolvimento"})} variant="outline" className="w-full sm:w-auto h-9">
-            <Filter className="mr-2 h-4 w-4" /> Filtros Avançados
-          </Button>
+           <div className="flex gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+            <Button onClick={() => toast({title: "Filtros Aplicados"})} className="h-9 flex-1 sm:flex-initial">
+              <Search className="mr-2 h-4 w-4" /> Buscar
+            </Button>
+            <Button onClick={() => toast({title: "Filtro Avançado em Desenvolvimento"})} variant="outline" className="h-9 flex-1 sm:flex-initial">
+              <Filter className="mr-2 h-4 w-4" /> Filtros Avançados
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

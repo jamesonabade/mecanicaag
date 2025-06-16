@@ -1,42 +1,94 @@
 
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import React, { useState, useMemo } from "react"; // Added useState and useMemo
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, PackageSearch, Filter } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"; // Added Table components
+import { Badge } from "@/components/ui/badge"; // Added Badge
+import { ChevronLeft, PackageSearch, Filter, Search as SearchIcon, Edit, PlusCircle } from "lucide-react"; // Added Edit and PlusCircle
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select
+
+interface ProdutoEstoque {
+  id: string;
+  nome: string;
+  codigoSku: string;
+  categoria: string;
+  precoVenda: number;
+  precoCusto?: number;
+  estoqueAtual: number;
+  estoqueMinimo?: number;
+  unidadeMedida: string;
+  fornecedor?: string;
+  localizacao?: string;
+}
+
+const mockProdutosEstoque: ProdutoEstoque[] = [
+  { id: "prod001", nome: "Óleo Motor 5W30 Sintético (Litro)", codigoSku: "SKU001", categoria: "Óleos e Lubrificantes", precoVenda: 45.00, precoCusto: 28.00, estoqueAtual: 50, estoqueMinimo: 10, unidadeMedida: "LT", fornecedor: "Lubrificantes Brasil Ltda.", localizacao: "Prat. A1" },
+  { id: "prod002", nome: "Filtro de Óleo Original Honda Civic", codigoSku: "SKU002", categoria: "Filtros", precoVenda: 35.00, precoCusto: 15.00, estoqueAtual: 30, estoqueMinimo: 5, unidadeMedida: "UN", fornecedor: "Distribuidora de Peças Auto S.A.", localizacao: "Prat. B2"},
+  { id: "prod003", nome: "Pastilha de Freio Dianteira XYZ", codigoSku: "SKU003", categoria: "Componentes de Freio", precoVenda: 120.00, precoCusto: 70.00, estoqueAtual: 15, estoqueMinimo: 3, unidadeMedida: "KIT", fornecedor: "Distribuidora de Peças Auto S.A.", localizacao: "Prat. C5" },
+  { id: "prod004", nome: "Lâmpada H4 Super Branca (Par)", codigoSku: "SKU004", categoria: "Acessórios", precoVenda: 60.00, precoCusto: 30.00, estoqueAtual: 5, estoqueMinimo: 10, unidadeMedida: "PAR", fornecedor: "Importadora de Faróis Ltda", localizacao: "Gav. D1" }, // Estoque baixo
+  { id: "prod005", nome: "Aditivo Radiador Concentrado (Litro)", codigoSku: "SKU005", categoria: "Óleos e Lubrificantes", precoVenda: 25.00, precoCusto: 12.00, estoqueAtual: 40, estoqueMinimo: 5, unidadeMedida: "LT", fornecedor: "Lubrificantes Brasil Ltda.", localizacao: "Prat. A2"},
+];
+
+const mockCategoriasFiltro = [
+  { value: "Todas", label: "Todas as Categorias" },
+  { value: "Óleos e Lubrificantes", label: "Óleos e Lubrificantes" },
+  { value: "Filtros", label: "Filtros" },
+  { value: "Componentes de Freio", label: "Componentes de Freio" },
+  { value: "Acessórios", label: "Acessórios" },
+];
+
 
 export default function ConsultarEstoquePage() {
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoriaFilter, setCategoriaFilter] = useState<string>("Todas");
+  const [showOnlyLowStock, setShowOnlyLowStock] = useState(false);
 
-  const handleSearch = (event: React.FormEvent) => {
-    event.preventDefault();
-    toast({
-      title: "Busca em Desenvolvimento",
-      description: "A funcionalidade de busca detalhada de estoque será implementada em breve.",
-    });
-  };
-  
-  const handleFilter = () => {
+
+  const handleAdvancedFilter = () => {
      toast({
-      title: "Filtro em Desenvolvimento",
-      description: "A funcionalidade de filtro de estoque será implementada em breve.",
+      title: "Filtro Avançado (Em Desenvolvimento)",
+      description: "Mais opções de filtro serão adicionadas aqui.",
     });
   }
 
+  const filteredProdutos = useMemo(() => {
+    return mockProdutosEstoque.filter(produto => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearchTerm = 
+        produto.nome.toLowerCase().includes(searchTermLower) ||
+        produto.codigoSku.toLowerCase().includes(searchTermLower) ||
+        (produto.fornecedor && produto.fornecedor.toLowerCase().includes(searchTermLower));
+      
+      const matchesCategoria = categoriaFilter === "Todas" || produto.categoria === categoriaFilter;
+      
+      const matchesLowStock = !showOnlyLowStock || (produto.estoqueMinimo !== undefined && produto.estoqueAtual <= produto.estoqueMinimo);
+
+      return matchesSearchTerm && matchesCategoria && matchesLowStock;
+    });
+  }, [searchTerm, categoriaFilter, showOnlyLowStock]);
+
   return (
     <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
           <PackageSearch className="mr-2 h-7 w-7" /> Consulta de Estoque
         </h1>
-        <Button variant="outline" asChild>
-          <Link href="/dashboard/produtos">
-            <ChevronLeft className="mr-2 h-4 w-4" /> Voltar para Produtos
-          </Link>
-        </Button>
+        <div className="flex gap-2 w-full md:w-auto">
+            <Button asChild className="flex-1 md:flex-initial">
+                <Link href="/dashboard/produtos/novo"><PlusCircle className="mr-2 h-4 w-4"/> Cadastrar Produto</Link>
+            </Button>
+            <Button variant="outline" asChild className="flex-1 md:flex-initial">
+            <Link href="/dashboard/produtos">
+                <ChevronLeft className="mr-2 h-4 w-4" /> Voltar para Produtos
+            </Link>
+            </Button>
+        </div>
       </div>
 
       <Card className="shadow-lg mb-6">
@@ -45,20 +97,58 @@ export default function ConsultarEstoquePage() {
           <CardDescription>Encontre produtos no seu estoque rapidamente.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSearch} className="flex gap-4 items-end">
-            <div className="flex-grow">
-              <label htmlFor="searchProduto" className="block text-sm font-medium text-muted-foreground mb-1">
-                Buscar por Nome, Código ou Categoria
-              </label>
-              <Input id="searchProduto" type="text" placeholder="Digite para buscar..." />
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="searchProdutoEstoque" className="block text-sm font-medium text-muted-foreground mb-1">
+                  Buscar (Nome, SKU, Fornecedor)
+                </label>
+                <Input 
+                    id="searchProdutoEstoque" 
+                    type="text" 
+                    placeholder="Digite para buscar..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-9"
+                />
+              </div>
+              <div>
+                <label htmlFor="filterCategoriaEstoque" className="block text-sm font-medium text-muted-foreground mb-1">
+                  Categoria
+                </label>
+                <Select value={categoriaFilter} onValueChange={setCategoriaFilter}>
+                  <SelectTrigger id="filterCategoriaEstoque" className="h-9">
+                    <SelectValue placeholder="Todas as Categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockCategoriasFiltro.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+               <div>
+                <label htmlFor="filterEstoqueBaixo" className="block text-sm font-medium text-muted-foreground mb-1">
+                  Nível de Estoque
+                </label>
+                <Select value={showOnlyLowStock ? "baixo" : "todos"} onValueChange={(val) => setShowOnlyLowStock(val === "baixo")}>
+                  <SelectTrigger id="filterEstoqueBaixo" className="h-9">
+                    <SelectValue placeholder="Todos os Níveis" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os Níveis</SelectItem>
+                    <SelectItem value="baixo">Apenas Estoque Baixo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Button type="submit">
-              <PackageSearch className="mr-2 h-4 w-4" /> Buscar
-            </Button>
-            <Button type="button" variant="outline" onClick={handleFilter}>
-              <Filter className="mr-2 h-4 w-4" /> Filtrar
-            </Button>
-          </form>
+            <div className="flex gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+                <Button onClick={() => toast({title: "Filtros Aplicados"})} className="h-9 flex-1 sm:flex-initial">
+                <SearchIcon className="mr-2 h-4 w-4" /> Buscar
+                </Button>
+                <Button type="button" variant="outline" onClick={handleAdvancedFilter} className="h-9 flex-1 sm:flex-initial">
+                <Filter className="mr-2 h-4 w-4" /> Filtros Avançados
+                </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -68,12 +158,50 @@ export default function ConsultarEstoquePage() {
           <CardDescription>Lista de produtos encontrados no estoque.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-            <p className="mb-2">Nenhum produto para exibir ou busca não realizada.</p>
-            <p>Utilize os campos acima para buscar ou filtrar os produtos em estoque.</p>
-          </div>
-          {/* Futuramente, aqui será exibida uma tabela ou lista de produtos */}
+          {filteredProdutos.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome do Produto</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-right">Est. Atual</TableHead>
+                  <TableHead className="text-right">Est. Mínimo</TableHead>
+                  <TableHead className="text-right">Preço Venda (R$)</TableHead>
+                  <TableHead className="text-center">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProdutos.map(produto => (
+                  <TableRow key={produto.id} className={produto.estoqueMinimo !== undefined && produto.estoqueAtual <= produto.estoqueMinimo ? "bg-destructive/10 hover:bg-destructive/20" : ""}>
+                    <TableCell className="font-medium">{produto.nome}</TableCell>
+                    <TableCell>{produto.codigoSku}</TableCell>
+                    <TableCell>{produto.categoria}</TableCell>
+                    <TableCell className="text-right">{produto.estoqueAtual} {produto.unidadeMedida}</TableCell>
+                    <TableCell className="text-right">{produto.estoqueMinimo ?? "-"} {produto.unidadeMedida}</TableCell>
+                    <TableCell className="text-right">{produto.precoVenda.toFixed(2)}</TableCell>
+                    <TableCell className="text-center">
+                      <Button variant="ghost" size="icon" onClick={() => toast({title: `Editar ${produto.nome}`})} title="Editar Produto">
+                        <Edit className="h-4 w-4"/>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
+              <PackageSearch className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+              <p>Nenhum produto encontrado com os filtros atuais.</p>
+              {searchTerm === "" && categoriaFilter === "Todos" && !showOnlyLowStock && (
+                <p className="text-sm">Utilize os campos acima para buscar ou filtrar os produtos.</p>
+              )}
+            </div>
+          )}
         </CardContent>
+        <CardFooter className="pt-4 border-t">
+            <p className="text-xs text-muted-foreground">Total de {filteredProdutos.length} produto(s) listados.</p>
+        </CardFooter>
       </Card>
     </div>
   );

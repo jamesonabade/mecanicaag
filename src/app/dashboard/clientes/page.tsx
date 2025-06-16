@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+// Badge não é usado aqui, mas pode ser para status do cliente no futuro
 import {
   PlusCircle,
   Search,
@@ -43,7 +43,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { getClientes, deleteCliente, Cliente } from "@/lib/mockData/clientes"; // Import from centralized mock
+import { getClientes, deleteCliente, Cliente } from "@/lib/mockData/clientes"; 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -54,7 +54,6 @@ export default function ClientesPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simular carregamento de dados
     setListaClientes(getClientes());
     setIsLoading(false);
   }, []);
@@ -62,7 +61,7 @@ export default function ClientesPage() {
   const handleDeleteCliente = (clienteId: string) => {
     const success = deleteCliente(clienteId);
     if (success) {
-      setListaClientes(getClientes()); // Atualiza a lista
+      setListaClientes(getClientes()); 
       toast({
         title: "Cliente Excluído",
         description: "O cliente foi removido com sucesso.",
@@ -111,6 +110,7 @@ export default function ClientesPage() {
       <Card className="shadow-lg mb-6">
         <CardHeader>
           <CardTitle>Filtrar e Buscar Clientes</CardTitle>
+           <CardDescription>Utilize os campos abaixo para refinar sua busca na lista de clientes.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex-grow">
@@ -129,9 +129,14 @@ export default function ClientesPage() {
               className="h-9"
             />
           </div>
-          <Button onClick={() => toast({title: "Filtro em Desenvolvimento"})} variant="outline" className="w-full sm:w-auto h-9">
-            <Filter className="mr-2 h-4 w-4" /> Filtros Avançados
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+            <Button onClick={() => toast({title: "Filtros Aplicados"})} className="h-9 flex-1 sm:flex-initial">
+              <Search className="mr-2 h-4 w-4" /> Buscar
+            </Button>
+            <Button onClick={() => toast({title: "Filtro Avançado em Desenvolvimento"})} variant="outline" className="h-9 flex-1 sm:flex-initial">
+              <Filter className="mr-2 h-4 w-4" /> Filtros Avançados
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
