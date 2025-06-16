@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from "react"; 
+import React, { useEffect, Suspense } from "react"; 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -75,7 +75,7 @@ type OrcamentoItemPecaValues = z.infer<typeof orcamentoItemPecaSchema>;
 const orcamentoFormSchema = z.object({
   clienteId: z.string({ required_error: "Selecione um cliente." }),
   veiculoId: z.string({ required_error: "Selecione um veículo." }),
-  atendenteId: z.string().optional(), // Será preenchido automaticamente (simulação de usuário logado)
+  atendenteId: z.string().optional(), 
   mecanicoOrcamentistaId: z.string().optional(),
   dataOrcamento: z.date({ required_error: "Data do orçamento é obrigatória." }),
   validadeDias: z.coerce.number().int().min(1, "Validade (mín. 1 dia).").optional().default(7),
@@ -91,7 +91,8 @@ const orcamentoFormSchema = z.object({
 
 type OrcamentoFormValues = z.infer<typeof orcamentoFormSchema>;
 
-export default function NovoOrcamentoPage() {
+
+function OrcamentoForm() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -108,7 +109,7 @@ export default function NovoOrcamentoPage() {
     defaultValues: {
       clienteId: "",
       veiculoId: "",
-      atendenteId: "", // Será definido programaticamente
+      atendenteId: "", 
       mecanicoOrcamentistaId: "",
       dataOrcamento: new Date(),
       validadeDias: 7,
@@ -132,7 +133,6 @@ export default function NovoOrcamentoPage() {
 
   const selectedClienteId = form.watch("clienteId");
 
-  // Carrega dados iniciais e define atendente logado (simulado)
   React.useEffect(() => {
     setClientesState(getClientes());
     const todosAtendentes = getAtendentes();
@@ -146,7 +146,6 @@ export default function NovoOrcamentoPage() {
     }
   }, [form]);
 
-  // Preenche cliente e veículo se vierem da URL
   useEffect(() => {
     const queryClienteId = searchParams.get("clienteId");
     const queryVeiculoId = searchParams.get("veiculoId");
@@ -154,12 +153,7 @@ export default function NovoOrcamentoPage() {
 
     if (queryClienteId) {
       form.setValue("clienteId", queryClienteId);
-      // O useEffect abaixo (para selectedClienteId) cuidará de carregar os veículos.
-      // A seleção do veículo será feita após os veículos do cliente serem carregados.
-      if (queryVeiculoId) {
-        // Apenas preparamos para definir o veiculoId após o cliente ser carregado
-        // A lógica está no useEffect de selectedClienteId
-      }
+      // A seleção do veículo será feita no useEffect abaixo, após os veículos do cliente serem carregados.
     }
     if (queryEntradaId) {
         const currentObs = form.getValues("observacoes") || "";
@@ -168,26 +162,22 @@ export default function NovoOrcamentoPage() {
   }, [searchParams, form]);
 
 
-  // Carrega veículos quando o cliente é selecionado ou muda (incluindo carregamento inicial via URL)
   React.useEffect(() => {
     const queryVeiculoId = searchParams.get("veiculoId");
     if (selectedClienteId) {
       const clienteTemVeiculos = getVeiculosByClienteId(selectedClienteId);
       setVeiculosCliente(clienteTemVeiculos);
       
-      // Se há um veiculoId da URL e a lista de veículos do cliente está carregada,
-      // tentamos selecionar o veículo.
       if (queryVeiculoId && clienteTemVeiculos.length > 0) {
         const veiculoExisteNaLista = clienteTemVeiculos.some(v => v.id === queryVeiculoId);
         if (veiculoExisteNaLista) {
-          // Pequeno delay para garantir que o Select tenha as opções renderizadas
-           setTimeout(() => {
+           setTimeout(() => { // Garante que as opções do Select estejam renderizadas
             form.setValue("veiculoId", queryVeiculoId);
            }, 50);
         } else {
-          form.setValue("veiculoId", ""); // Veículo da URL não pertence ao cliente
+          form.setValue("veiculoId", ""); 
         }
-      } else if (!queryVeiculoId) { // Se não há veiculoId na URL, resetamos
+      } else if (!queryVeiculoId && form.getValues("veiculoId")) { 
          form.setValue("veiculoId", "");
       }
     } else {
@@ -236,13 +226,11 @@ export default function NovoOrcamentoPage() {
 
 
   async function onSubmit(data: OrcamentoFormValues) {
-    // O atendenteId já está no form.values devido ao setValue no useEffect
     console.log("Dados do Orçamento para Salvar:", { ...data, totalServicos, totalPecas, subTotalGeral, totalGeral });
     toast({
       title: "Orçamento Criado (Simulado)",
       description: "O orçamento foi salvo com sucesso (simulação).",
     });
-    // form.reset(); // Opcional
     // router.push("/dashboard/orcamentos");
   }
 
@@ -542,7 +530,7 @@ export default function NovoOrcamentoPage() {
               />
             </CardContent>
             <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 pt-6 border-t">
-                <FormMessage>{form.formState.errors.root?.message}</FormMessage> {/* Para o refine geral */}
+                <FormMessage>{form.formState.errors.root?.message}</FormMessage> 
                 <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                     <Link href="/dashboard/orcamentos">Cancelar</Link>
                 </Button>
@@ -557,3 +545,10 @@ export default function NovoOrcamentoPage() {
   );
 }
 
+export default function NovoOrcamentoPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-10"><p>Carregando formulário de orçamento...</p></div>}>
+      <OrcamentoForm />
+    </Suspense>
+  );
+}
