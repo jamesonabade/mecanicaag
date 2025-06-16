@@ -43,8 +43,11 @@ import {
   Send, 
   Search, 
   Filter,
-  Link2 
+  Link2,
+  LogIn // Adicionado LogIn para o botão
 } from "lucide-react";
+import NovaEntradaDialog, { EntradaEmProgresso } from "@/components/operacional/NovaEntradaDialog";
+import { useRouter } from "next/navigation";
 
 
 const kpiData = [
@@ -151,6 +154,9 @@ export default function DashboardPage() {
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<typeof agendamentosMock>([]);
   const [contasAPagarAlertas, setContasAPagarAlertas] = useState<typeof contasAPagarAlertasMock>([]);
   const { toast } = useToast(); 
+  const router = useRouter();
+
+  const [isNovaEntradaDialogOpenDashboard, setIsNovaEntradaDialogOpenDashboard] = useState(false);
 
   const [simulatedLembreteRevisaoAtivo, setSimulatedLembreteRevisaoAtivo] = useState(true);
   const [simulatedDiasParaRevisao, setSimulatedDiasParaRevisao] = useState(180);
@@ -234,6 +240,24 @@ export default function DashboardPage() {
       title: "Integração com Google Agenda",
       description: "Funcionalidade de conexão com Google Agenda em desenvolvimento.",
     });
+  };
+
+  const handleEntradaCriadaNoDashboard = (entrada: EntradaEmProgresso | null, action?: 'goToOrcamento' | 'addToList') => {
+    setIsNovaEntradaDialogOpenDashboard(false);
+    if (entrada) {
+      if (action === 'goToOrcamento') {
+        toast({ title: "Entrada Registrada", description: `Redirecionando para criar orçamento para ${entrada.id}.` });
+        // O redirecionamento já ocorre dentro do NovaEntradaDialog, mas podemos confirmar aqui se necessário.
+      } else if (action === 'addToList') {
+        toast({ title: "Entrada Adicionada", description: `Entrada ${entrada.id} registrada. Verifique a lista em 'Entradas de Veículos'.` });
+        router.push('/dashboard/operacional/nova-entrada'); // Opcional: levar para a lista
+      } else {
+        toast({ title: "Entrada Processada", description: `Cliente ${entrada.cliente?.nomeCompleto} e veículo ${entrada.veiculo?.placa} selecionados.` });
+      }
+    } else {
+      // Dialog foi fechado ou cancelado
+      toast({ title: "Nova Entrada Cancelada", variant: "default" });
+    }
   };
 
 
@@ -638,62 +662,71 @@ const lembretesRevisaoCard = (
 
 
   return (
-    <ScrollArea className="flex-1">
-      <div className="p-2 sm:p-4 md:p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-                <h1 className="text-2xl font-headline font-semibold md:text-3xl">Painel de Gestão - Mecânica Ágil</h1>
-                <p className="text-sm text-muted-foreground">Bem-vindo de volta! Aqui está um resumo da sua oficina.</p>
-            </div>
-            <div className="flex gap-2 flex-wrap w-full sm:w-auto items-center">
-                <Button variant="outline" size="sm" asChild><Link href="/dashboard/agendamento/novo"><CalendarDays className="mr-2 h-4 w-4"/>Agendar Cliente</Link></Button>
-                <Button size="sm" asChild><Link href="/dashboard/operacional/nova-entrada"><UserPlus className="mr-2 h-4 w-4"/>Iniciar Nova Entrada</Link></Button>
-                <form onSubmit={handleSearchEstoque} className="flex gap-1 items-center">
-                  <Input
-                    type="search"
-                    name="searchTermEstoque"
-                    placeholder="Buscar no estoque..."
-                    className="h-9 text-sm sm:w-auto md:w-[150px] lg:w-[200px]"
-                  />
-                  <Button type="submit" size="sm" variant="outline" className="h-9 px-3">
-                    <Search className="h-4 w-4" />
+    <>
+      <ScrollArea className="flex-1">
+        <div className="p-2 sm:p-4 md:p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                  <h1 className="text-2xl font-headline font-semibold md:text-3xl">Painel de Gestão - Mecânica Ágil</h1>
+                  <p className="text-sm text-muted-foreground">Bem-vindo de volta! Aqui está um resumo da sua oficina.</p>
+              </div>
+              <div className="flex gap-2 flex-wrap w-full sm:w-auto items-center">
+                  <Button variant="outline" size="sm" asChild><Link href="/dashboard/agendamento/novo"><CalendarDays className="mr-2 h-4 w-4"/>Agendar Cliente</Link></Button>
+                  <Button size="sm" onClick={() => setIsNovaEntradaDialogOpenDashboard(true)}>
+                    <LogIn className="mr-2 h-4 w-4"/>Iniciar Nova Entrada
                   </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={handleFilterEstoque} className="h-9 px-3">
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </form>
-            </div>
+                  <form onSubmit={handleSearchEstoque} className="flex gap-1 items-center">
+                    <Input
+                      type="search"
+                      name="searchTermEstoque"
+                      placeholder="Buscar no estoque..."
+                      className="h-9 text-sm sm:w-auto md:w-[150px] lg:w-[200px]"
+                    />
+                    <Button type="submit" size="sm" variant="outline" className="h-9 px-3">
+                      <Search className="h-4 w-4" />
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={handleFilterEstoque} className="h-9 px-3">
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </form>
+              </div>
+          </div>
+          
+          <Separator className="my-4" />
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {kpiData.map(kpiCardComponent)}
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {financialKpiData.map(financialKpiCardComponent)}
+          </div>
+          
+          {calendarAndAppointmentsSection} 
+
+          {contasAPagarAlertsCard}
+          {lembretesRevisaoCard}
+
+          {mainChartSection}
+          {tablesSection}
+          
+          <Card className="shadow-lg bg-gradient-to-r from-primary/80 to-accent/80 text-primary-foreground p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                  <h3 className="text-xl font-bold">Quer mais comodidade e eficiência?</h3>
+                  <p className="text-sm opacity-90">Experimente nosso App Mobile para Clientes e Mecânicos! Gestão na palma da mão.</p>
+              </div>
+              <div className="flex gap-2">
+                  <Button variant="secondary" className="bg-white text-primary hover:bg-white/90">Saiba Mais</Button>
+                  <Button variant="outline" className="border-white text-white hover:bg-white/10">Contratar Módulo</Button>
+              </div>
+          </Card>
         </div>
-        
-        <Separator className="my-4" />
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {kpiData.map(kpiCardComponent)}
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {financialKpiData.map(financialKpiCardComponent)}
-        </div>
-        
-        {calendarAndAppointmentsSection} 
-
-        {contasAPagarAlertsCard}
-        {lembretesRevisaoCard}
-
-        {mainChartSection}
-        {tablesSection}
-        
-        <Card className="shadow-lg bg-gradient-to-r from-primary/80 to-accent/80 text-primary-foreground p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-                <h3 className="text-xl font-bold">Quer mais comodidade e eficiência?</h3>
-                <p className="text-sm opacity-90">Experimente nosso App Mobile para Clientes e Mecânicos! Gestão na palma da mão.</p>
-            </div>
-            <div className="flex gap-2">
-                <Button variant="secondary" className="bg-white text-primary hover:bg-white/90">Saiba Mais</Button>
-                <Button variant="outline" className="border-white text-white hover:bg-white/10">Contratar Módulo</Button>
-            </div>
-        </Card>
-      </div>
-    </ScrollArea>
+      </ScrollArea>
+      <NovaEntradaDialog
+        isOpen={isNovaEntradaDialogOpenDashboard}
+        onOpenChange={setIsNovaEntradaDialogOpenDashboard}
+        onEntradaFinalizada={handleEntradaCriadaNoDashboard}
+      />
+    </>
   );
 }
