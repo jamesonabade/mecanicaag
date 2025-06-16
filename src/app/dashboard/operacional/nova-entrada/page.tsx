@@ -20,9 +20,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFo
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress"; // Importar Progress
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight, LogIn, Edit, Trash2, PlusCircle, ImageIcon } from "lucide-react"; 
+import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight, LogIn, Edit, Trash2, PlusCircle, ImageIcon, ClipboardList } from "lucide-react"; 
 import { Cliente, addCliente as addClienteDB, getClientes as getClientesDB, getClienteById as getClienteDBById } from "@/lib/mockData/clientes";
 import { Veiculo, addVeiculo as addVeiculoDB, getVeiculosByClienteId as getVeiculosDBByClienteId, getVeiculoById as getVeiculoDBById } from "@/lib/mockData/veiculos";
 
@@ -86,6 +86,7 @@ const mockEntradasIniciais: EntradaEmProgresso[] = [
     veiculo: getVeiculoDBById("vec_modelo_001"),
     statusProgressoEntrada: "Aguardando Orçamento",
     dataCriacao: new Date(Date.now() - 10000).toISOString(),
+    entradaId: `ENT-${Date.now() - 10000}`,
   },
   {
     id: `ENT-${Date.now() - 20000}`,
@@ -93,6 +94,7 @@ const mockEntradasIniciais: EntradaEmProgresso[] = [
     veiculo: undefined, 
     statusProgressoEntrada: "Aguardando Veículo",
     dataCriacao: new Date(Date.now() - 20000).toISOString(),
+    entradaId: `ENT-${Date.now() - 20000}`,
   },
   {
     id: `ENT-${Date.now() - 5000}`,
@@ -108,6 +110,7 @@ const mockEntradasIniciais: EntradaEmProgresso[] = [
     veiculo: undefined,
     statusProgressoEntrada: "Aguardando Cliente",
     dataCriacao: new Date(Date.now() - 30000).toISOString(),
+    entradaId: `ENT-${Date.now() - 30000}`,
   },
 ];
 
@@ -119,7 +122,7 @@ export default function PaginaEntradasVeiculos() {
   const [listaEntradas, setListaEntradas] = useState<EntradaEmProgresso[]>(mockEntradasIniciais.sort((a,b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime()));
   const [showNovaEntradaDialog, setShowNovaEntradaDialog] = useState(false);
   
-  const [dialogStep, setDialogStep] = useState<"cliente" | "veiculo" | "finalizar">("cliente");
+  const [dialogStep, setDialogStep] = useState<"cliente" | "veiculo" | "confirmarEntradaEOrcamento">("cliente");
   const [dialogEntradaId, setDialogEntradaId] = useState<string | null>(null);
   const [dialogSelectedCliente, setDialogSelectedCliente] = useState<Cliente | null>(null);
   const [dialogSelectedVeiculo, setDialogSelectedVeiculo] = useState<Veiculo | null>(null);
@@ -207,7 +210,7 @@ export default function PaginaEntradasVeiculos() {
     setSearchTermVeiculo("");
     setSearchResultsVeiculo([]);
     setShowNovoVeiculoForm(false);
-    setDialogStep("finalizar");
+    setDialogStep("confirmarEntradaEOrcamento");
   };
 
   const handleCadastrarVeiculoDialog = (data: VeiculoFormValuesDialog) => {
@@ -216,29 +219,54 @@ export default function PaginaEntradasVeiculos() {
     setVeiculosDataSource(getVeiculosDBByClienteId(dialogSelectedCliente.id)); 
     setDialogSelectedVeiculo(novoVeiculo);
     setShowNovoVeiculoForm(false);
-    setDialogStep("finalizar");
+    setDialogStep("confirmarEntradaEOrcamento");
     toast({ title: "Veículo Cadastrado!", description: `${novoVeiculo.marca} ${novoVeiculo.modelo} (${novoVeiculo.placa}) foi adicionado.` });
     formVeiculoDialog.reset();
   };
 
-  const handleConcluirDialogNovaEntrada = () => {
-    if (dialogEntradaId && dialogSelectedCliente && dialogSelectedVeiculo) {
-      const novaEntrada: EntradaEmProgresso = {
-        id: dialogEntradaId,
-        cliente: dialogSelectedCliente,
-        veiculo: dialogSelectedVeiculo,
-        statusProgressoEntrada: "Aguardando Orçamento",
-        dataCriacao: new Date().toISOString(),
-        entradaId: dialogEntradaId,
-      };
-      setListaEntradas(prev => [...prev.filter(e => e.id !== novaEntrada.id), novaEntrada].sort((a,b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime()));
-      setShowNovaEntradaDialog(false);
-      toast({ title: "Entrada Registrada", description: `Entrada ${novaEntrada.id} pronta para orçamento.` });
+  const upsertEntrada = (status: StatusProgressoEntrada) => {
+    if (!dialogEntradaId || !dialogSelectedCliente || !dialogSelectedVeiculo) {
+      toast({ variant: "destructive", title: "Erro", description: "Cliente e Veículo devem ser definidos para registrar a entrada." });
+      return null;
+    }
+
+    const existingEntryIndex = listaEntradas.findIndex(e => e.id === dialogEntradaId);
+    const entradaData: EntradaEmProgresso = {
+      id: dialogEntradaId,
+      cliente: dialogSelectedCliente,
+      veiculo: dialogSelectedVeiculo,
+      statusProgressoEntrada: status,
+      dataCriacao: existingEntryIndex > -1 ? listaEntradas[existingEntryIndex].dataCriacao : new Date().toISOString(),
+      entradaId: dialogEntradaId,
+    };
+
+    if (existingEntryIndex > -1) {
+      const newList = [...listaEntradas];
+      newList[existingEntryIndex] = entradaData;
+      setListaEntradas(newList.sort((a,b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime()));
     } else {
-      toast({ variant: "destructive", title: "Erro", description: "Cliente e Veículo devem ser definidos." });
+      setListaEntradas(prev => [...prev, entradaData].sort((a,b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime()));
+    }
+    return entradaData;
+  };
+
+  const handleProsseguirParaOrcamentoDialog = () => {
+    const entradaAtualizada = upsertEntrada("Orçamento Iniciado");
+    if (entradaAtualizada) {
+      setShowNovaEntradaDialog(false);
+      toast({ title: "Entrada Registrada", description: `Redirecionando para criar orçamento para ${entradaAtualizada.id}.` });
+      router.push(`/dashboard/orcamentos/novo?clienteId=${entradaAtualizada.cliente!.id}&veiculoId=${entradaAtualizada.veiculo!.id}&entradaId=${entradaAtualizada.id}`);
     }
   };
 
+  const handleAdicionarAListaSemOrcamentoDialog = () => {
+    const entradaAtualizada = upsertEntrada("Aguardando Orçamento");
+    if (entradaAtualizada) {
+      setShowNovaEntradaDialog(false);
+      toast({ title: "Entrada Registrada", description: `Entrada ${entradaAtualizada.id} adicionada à lista, aguardando orçamento.` });
+    }
+  };
+  
   const handleContinuarParaOrcamento = (entradaId: string) => {
     const entrada = listaEntradas.find(e => e.id === entradaId);
     if (entrada && entrada.cliente && entrada.veiculo) {
@@ -321,7 +349,7 @@ export default function PaginaEntradasVeiculos() {
                             setDialogEntradaId(entrada.id);
                             setDialogSelectedCliente(entrada.cliente || null);
                             setDialogSelectedVeiculo(entrada.veiculo || null);
-                            formClienteDialog.reset(entrada.cliente || {});
+                            formClienteDialog.reset(entrada.cliente ? { nomeCompleto: entrada.cliente.nomeCompleto, cpfCnpj: entrada.cliente.cpfCnpj, telefone: entrada.cliente.telefone, email: entrada.cliente.email || "", cep: entrada.cliente.cep || "", logradouro: entrada.cliente.logradouro || "", numero: entrada.cliente.numero || "", complemento: entrada.cliente.complemento || "", bairro: entrada.cliente.bairro || "", cidade: entrada.cliente.cidade || "", estado: entrada.cliente.estado || "", observacoes: entrada.cliente.observacoes || ""} : {});
                             formVeiculoDialog.reset(entrada.veiculo || {});
                             setDialogStep(entrada.statusProgressoEntrada === "Aguardando Cliente" ? "cliente" : "veiculo");
                             setShowNovaEntradaDialog(true);
@@ -355,7 +383,7 @@ export default function PaginaEntradasVeiculos() {
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Nova Entrada de Veículo (ID: {dialogEntradaId || "..."}) - Etapa: {
-                dialogStep === "cliente" ? "1. Cliente" : dialogStep === "veiculo" ? "2. Veículo" : "3. Concluir"
+                dialogStep === "cliente" ? "1. Cliente" : dialogStep === "veiculo" ? "2. Veículo" : "3. Criar Orçamento?"
             }</DialogTitle>
           </DialogHeader>
           
@@ -460,23 +488,51 @@ export default function PaginaEntradasVeiculos() {
             </Card>
             )}
             
-             {dialogStep === "finalizar" && dialogSelectedCliente && dialogSelectedVeiculo && (
-                <Card>
-                    <CardHeader><CardTitle>Entrada Pronta para Orçamento</CardTitle></CardHeader>
-                    <CardContent>
+            {dialogStep === "confirmarEntradaEOrcamento" && dialogSelectedCliente && dialogSelectedVeiculo && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Confirmar Entrada e Próximo Passo</CardTitle>
+                    <CardDescription>
+                        Cliente e veículo definidos. Deseja criar o orçamento agora?
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="p-3 border rounded-md bg-muted/30">
                         <p><strong>Cliente:</strong> {dialogSelectedCliente.nomeCompleto}</p>
                         <p><strong>Veículo:</strong> {dialogSelectedVeiculo.marca} {dialogSelectedVeiculo.modelo} ({dialogSelectedVeiculo.placa})</p>
-                        <p className="mt-4 text-sm text-muted-foreground">Clique em "Concluir Entrada" para adicionar à lista de entradas aguardando orçamento.</p>
-                    </CardContent>
-                </Card>
-             )}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button type="button" onClick={handleProsseguirParaOrcamentoDialog} className="flex-1">
+                            <FilePlus className="mr-2 h-4 w-4"/> Sim, criar orçamento agora
+                        </Button>
+                        <Button type="button" variant="secondary" onClick={handleAdicionarAListaSemOrcamentoDialog} className="flex-1">
+                            <ClipboardList className="mr-2 h-4 w-4"/> Não, adicionar à lista para depois
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+            )}
           </div>
 
           <DialogFooter className="mt-auto pt-4 border-t">
-            <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
-            {dialogStep === "cliente" && dialogSelectedCliente && (<Button type="button" onClick={() => setDialogStep("veiculo")}>Próximo: Veículo <ArrowRight className="ml-1 h-4 w-4"/></Button>)}
-            {dialogStep === "veiculo" && dialogSelectedVeiculo && (<Button type="button" onClick={() => setDialogStep("finalizar")}>Próximo: Confirmar <ArrowRight className="ml-1 h-4 w-4"/></Button>)}
-            {dialogStep === "finalizar" && (<Button type="button" onClick={handleConcluirDialogNovaEntrada}>Concluir Entrada e Adicionar à Lista</Button>)}
+            {dialogStep === "cliente" && (
+                 <>
+                 <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
+                 <Button type="button" onClick={() => setDialogStep("veiculo")} disabled={!dialogSelectedCliente}>Próximo: Veículo <ArrowRight className="ml-1 h-4 w-4"/></Button>
+                 </>
+            )}
+            {dialogStep === "veiculo" && (
+                 <>
+                 <Button type="button" variant="outline" onClick={() => setDialogStep("cliente")}>Voltar (Cliente)</Button>
+                 <Button type="button" onClick={() => setDialogStep("confirmarEntradaEOrcamento")} disabled={!dialogSelectedVeiculo}>Próximo: Confirmar <ArrowRight className="ml-1 h-4 w-4"/></Button>
+                 </>
+            )}
+            {dialogStep === "confirmarEntradaEOrcamento" && (
+                <>
+                <Button type="button" variant="outline" onClick={() => setDialogStep("veiculo")}>Voltar (Veículo)</Button>
+                <DialogClose asChild><Button type="button" variant="outline">Fechar</Button></DialogClose>
+                </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
