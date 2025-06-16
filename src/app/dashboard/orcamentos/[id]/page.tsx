@@ -11,7 +11,7 @@ import { ChevronLeft, Printer, Edit, FileText, CheckCircle, XCircle, Mail, FileS
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React from "react";
-import { format } from "date-fns";
+import { format, parseISO, addDays } from "date-fns"; // Import parseISO and addDays
 import { ptBR } from "date-fns/locale";
 import { getClienteById, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
@@ -160,6 +160,9 @@ export default function VisualizarOrcamentoPage() {
     }
   }
 
+  const dataOrcamentoDate = parseISO(orcamento.dataOrcamento);
+  const dataValidadeDate = addDays(dataOrcamentoDate, orcamento.validadeDias);
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -213,11 +216,11 @@ export default function VisualizarOrcamentoPage() {
             <div className="grid md:grid-cols-2 gap-6 p-4 border rounded-lg bg-muted/20">
                  <div className="flex items-center gap-2">
                     <CalendarIcon className="h-5 w-5 text-primary"/>
-                    <p><strong>Data do Orçamento:</strong> {format(new Date(orcamento.dataOrcamento), "dd/MM/yyyy", { locale: ptBR })}</p>
+                    <p><strong>Data do Orçamento:</strong> {format(dataOrcamentoDate, "dd/MM/yyyy", { locale: ptBR })}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <ClockIcon className="h-5 w-5 text-primary"/>
-                    <p><strong>Validade:</strong> {orcamento.validadeDias} dias (até {format(new Date(new Date(orcamento.dataOrcamento).setDate(new Date(orcamento.dataOrcamento).getDate() + orcamento.validadeDias)), "dd/MM/yyyy", { locale: ptBR })})</p>
+                    <p><strong>Validade:</strong> {orcamento.validadeDias} dias (até {format(dataValidadeDate, "dd/MM/yyyy", { locale: ptBR })})</p>
                 </div>
             </div>
           
@@ -293,7 +296,7 @@ export default function VisualizarOrcamentoPage() {
                     <Button onClick={handleConvertToOS} variant="outline" size="sm"><FileSpreadsheet className="mr-2 h-4 w-4"/> Converter em OS</Button>
                 )}
            </div>
-           <p className="text-xs text-muted-foreground">Orçamento gerado em {format(new Date(orcamento.dataOrcamento), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}.</p>
+           <p className="text-xs text-muted-foreground">Orçamento gerado em {format(dataOrcamentoDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}.</p>
         </CardFooter>
       </Card>
     </div>
