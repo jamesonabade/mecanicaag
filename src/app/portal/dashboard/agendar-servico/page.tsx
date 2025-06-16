@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,15 @@ import React from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AgendarServicoPage() {
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined);
+  const [minCalendarDate, setMinCalendarDate] = React.useState<Date | null>(null);
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    const today = new Date();
+    setSelectedDate(today);
+    setMinCalendarDate(new Date(today.setHours(0,0,0,0)));
+  }, []);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -83,8 +91,9 @@ export default function AgendarServicoPage() {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
+                  defaultMonth={selectedDate}
                   className="rounded-md border"
-                  disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() -1)) } // Disable past dates
+                  disabled={(date) => minCalendarDate ? date < minCalendarDate : true}
                 />
                 <div className="mt-4 w-full">
                     <Label htmlFor="horario">Horário Preferido</Label>

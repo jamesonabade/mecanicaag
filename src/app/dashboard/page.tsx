@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, FormEvent } from "react";
+import React, { useState, useEffect, useMemo, FormEvent, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -66,8 +66,9 @@ const financialKpiData = [
 ];
 
 // Static dates for mock data to ensure hydration stability
-const MOCK_TODAY_ISO = new Date(Date.UTC(2024, 7, 1, 0, 0, 0)).toISOString().split('T')[0]; // Example: Aug 1, 2024
-const MOCK_YESTERDAY_ISO = new Date(Date.UTC(2024, 6, 31, 0, 0, 0)).toISOString().split('T')[0]; // Example: Jul 31, 2024
+const MOCK_TODAY_ISO = new Date(Date.UTC(2024, 6, 15, 0, 0, 0)).toISOString().split('T')[0]; // Example: July 15, 2024
+const MOCK_YESTERDAY_ISO = new Date(Date.UTC(2024, 6, 14, 0, 0, 0)).toISOString().split('T')[0]; // Example: July 14, 2024
+
 
 const contasAPagarAlertasMock = [
   { id: "cp001", descricao: "Fornecedor AutoPeças Gama", valor: "R$ 1.250,70", dataVencimento: MOCK_TODAY_ISO, tipo: "Peças Urgentes" },
@@ -137,7 +138,7 @@ const agendamentosMock = [
   { id: "ag004", data: "2024-07-30T16:00:00Z", horario: "16:00", cliente: "Roberto Lima", veiculo: "VW Gol (JKL-3456)", servico: "Alinhamento", mecanico: "Ana", status: "Chegou" },
   { id: "ag005", data: "2024-08-01T11:00:00Z", horario: "11:00", cliente: "Fernanda Souza", veiculo: "Hyundai HB20 (MNO-7890)", servico: "Revisão dos 10.000km", mecanico: "Pedro", status: "Confirmado" },
   // Static date for "today's" mock appointment to prevent hydration mismatch
-  { id: "ag006", data: new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate(), 15, 0, 0)).toISOString(), horario: "15:00", cliente: "Cliente Teste Hoje", veiculo: "Carro Teste (XXX-0000)", servico: "Teste de Agendamento", mecanico: "Qualquer", status: "Confirmado"},
+  { id: "ag006", data: `${MOCK_TODAY_ISO}T15:00:00Z`, horario: "15:00", cliente: "Cliente Teste Hoje", veiculo: "Carro Teste (XXX-0000)", servico: "Teste de Agendamento", mecanico: "Qualquer", status: "Confirmado"},
 ];
 
 const ordensDeServicoConcluidasMock = [
@@ -145,12 +146,13 @@ const ordensDeServicoConcluidasMock = [
   { id: "os002", clienteNome: "Ricardo Mendes", veiculoInfo: "Chevrolet Onix - DEF4E56", dataConclusao: "2024-06-20", ultimoLembreteEnviado: null },
   { id: "os003", clienteNome: "Beatriz Costa", veiculoInfo: "Hyundai Creta - GHI7F89", dataConclusao: "2023-11-01", ultimoLembreteEnviado: "2024-04-29" }, 
   { id: "os004", clienteNome: "Fernando Lima", veiculoInfo: "Fiat Toro - JKL0G12", dataConclusao: "2023-12-05", ultimoLembreteEnviado: null },
-  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: "2024-02-01", ultimoLembreteEnviado: null }, // Static past date
-  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: "2024-07-01", ultimoLembreteEnviado: null }, // Static recent past date
+  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: "2024-02-01", ultimoLembreteEnviado: null }, 
+  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: "2024-07-01", ultimoLembreteEnviado: null }, 
 ];
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [minCalendarDate, setMinCalendarDate] = useState<Date | null>(null);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<typeof agendamentosMock>([]);
   const [contasAPagarAlertas, setContasAPagarAlertas] = useState<typeof contasAPagarAlertasMock>([]);
   const { toast } = useToast(); 
@@ -163,19 +165,18 @@ export default function DashboardPage() {
 
 
   useEffect(() => {
-    // Set initial date on client-side to avoid hydration mismatch with server-rendered "undefined"
     setSelectedDate(new Date()); 
+    setMinCalendarDate(new Date(new Date().setHours(0,0,0,0)));
   }, []);
 
   useEffect(() => {
-    // Filter appointments and sort alerts once selectedDate is set
     if (selectedDate) {
       filterAppointmentsForDate(selectedDate);
     }
     setContasAPagarAlertas(
       [...contasAPagarAlertasMock].sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime())
     );
-  }, [selectedDate]); // Re-run when selectedDate changes
+  }, [selectedDate]); 
 
   const scheduledDays = useMemo(() => {
     return agendamentosMock.map(ag => parseISO(ag.data));
@@ -192,19 +193,17 @@ export default function DashboardPage() {
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    // filterAppointmentsForDate(date); // This will be handled by the useEffect watching selectedDate
   };
 
   const clientesParaLembreteRevisao = useMemo(() => {
     if (!simulatedLembreteRevisaoAtivo) {
       return [];
     }
-    const hoje = new Date(MOCK_TODAY_ISO + "T00:00:00Z"); // Use a consistent "today" for mock logic
+    const hoje = parseISO(MOCK_TODAY_ISO + "T00:00:00Z");
     return ordensDeServicoConcluidasMock.filter(os => {
       if (os.ultimoLembreteEnviado) return false; 
       const dataConclusao = parseISO(os.dataConclusao + "T00:00:00Z");
       const dataLembrete = addDays(dataConclusao, simulatedDiasParaRevisao);
-      // Check if dataLembrete is today or in the past relative to MOCK_TODAY_ISO
       return isSameDay(dataLembrete, hoje) || isBefore(dataLembrete, hoje);
     });
   }, [simulatedLembreteRevisaoAtivo, simulatedDiasParaRevisao]);
@@ -247,15 +246,13 @@ export default function DashboardPage() {
     if (entrada) {
       if (action === 'goToOrcamento') {
         toast({ title: "Entrada Registrada", description: `Redirecionando para criar orçamento para ${entrada.id}.` });
-        // O redirecionamento já ocorre dentro do NovaEntradaDialog, mas podemos confirmar aqui se necessário.
       } else if (action === 'addToList') {
         toast({ title: "Entrada Adicionada", description: `Entrada ${entrada.id} registrada. Verifique a lista em 'Entradas de Veículos'.` });
-        router.push('/dashboard/operacional/nova-entrada'); // Opcional: levar para a lista
+        router.push('/dashboard/operacional/nova-entrada'); 
       } else {
         toast({ title: "Entrada Processada", description: `Cliente ${entrada.cliente?.nomeCompleto} e veículo ${entrada.veiculo?.placa} selecionados.` });
       }
     } else {
-      // Dialog foi fechado ou cancelado
       toast({ title: "Nova Entrada Cancelada", variant: "default" });
     }
   };
@@ -314,7 +311,7 @@ export default function DashboardPage() {
           <ScrollArea className="max-h-[280px] pr-3">
             <div className="space-y-4">
               {contasAPagarAlertas.map(alerta => {
-                const hoje = new Date(MOCK_TODAY_ISO + "T00:00:00Z"); // Use a consistent "today"
+                const hoje = parseISO(MOCK_TODAY_ISO + "T00:00:00Z"); 
                 const vencimentoDate = parseISO(alerta.dataVencimento + "T00:00:00Z");
 
                 let statusText = "";
@@ -334,7 +331,7 @@ export default function DashboardPage() {
                   iconColorClass = "text-amber-600";
                 } else {
                   const diasParaVencer = differenceInDays(vencimentoDate, hoje); 
-                  if (diasParaVencer <= 7 && diasParaVencer > 0) { // ensure it's in the future
+                  if (diasParaVencer <= 7 && diasParaVencer > 0) { 
                     statusText = `Vence em ${diasParaVencer} dia(s) (${format(vencimentoDate, "dd/MM/yy", { locale: ptBR })})`;
                     statusClasses = "border-yellow-500/40 bg-yellow-500/10 text-yellow-600";
                     IconComponent = ClockIcon;
@@ -343,7 +340,7 @@ export default function DashboardPage() {
                     statusText = `Vence em ${format(vencimentoDate, "dd/MM/yyyy", { locale: ptBR })}`;
                     IconComponent = CalendarDays;
                     iconColorClass = "text-muted-foreground";
-                  } else { // Should not happen if sorted correctly and not past
+                  } else { 
                      statusText = `Vence em ${format(vencimentoDate, "dd/MM/yyyy", { locale: ptBR })}`;
                   }
                 }
@@ -501,9 +498,10 @@ const lembretesRevisaoCard = (
           mode="single"
           selected={selectedDate}
           onSelect={handleDateSelect}
+          defaultMonth={selectedDate}
           className="rounded-md border p-3 w-full"
           locale={ptBR}
-          disabled={(d) => d < new Date(new Date().setHours(0,0,0,0)) } // Disable past dates only
+          disabled={(date) => minCalendarDate ? date < minCalendarDate : true }
           modifiers={{
             scheduled: scheduledDays
           }}

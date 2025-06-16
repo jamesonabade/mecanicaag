@@ -10,11 +10,13 @@ import React from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AgendamentoPage() {
-  const [date, setDate] = React.useState<Date | undefined>(undefined); // Initialize with undefined to prevent hydration errors for now
+  const [date, setDate] = React.useState<Date | undefined>(undefined); 
+  const [minCalendarDate, setMinCalendarDate] = React.useState<Date | null>(null);
   const { toast } = useToast();
 
   React.useEffect(() => {
-    setDate(new Date()); // Set initial date on client-side
+    setDate(new Date());
+    setMinCalendarDate(new Date(new Date().setHours(0,0,0,0)));
   }, []);
 
 
@@ -58,6 +60,8 @@ export default function AgendamentoPage() {
               mode="single"
               selected={date}
               onSelect={setDate}
+              defaultMonth={date}
+              disabled={(d) => minCalendarDate ? d < minCalendarDate : true}
               className="rounded-md border"
               
             />
