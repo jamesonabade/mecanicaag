@@ -72,7 +72,7 @@ interface ChecklistModel {
   itens: ChecklistItemModel[];
 }
 
-const mockChecklistModelsData: ChecklistModel[] = [
+export const mockChecklistModelsData: ChecklistModel[] = [
   {
     id: "chk_model_001",
     nome: "Checklist de Inspeção Veicular Pré-Serviço",
@@ -613,3 +613,7 @@ export default function OrdemServicoDetalhesPage() {
     </div>
   );
 }
+
+// Export mockChecklistModelsData so it can be imported by other files if needed
+// For example, by the catalogo-servicos page for associating checklists.
+// export { mockChecklistModelsData }; // This was commented out, but the error implies it's needed.
