@@ -274,6 +274,19 @@ export default function OrcamentoForm() {
     });
   };
 
+  const handleAdicionarProdutoCatalogo = () => {
+    toast({
+      title: "Novo Produto no Catálogo",
+      description: "Para adicionar um novo produto de forma permanente, por favor, acesse a seção 'Cadastros > Produtos & Estoque'.",
+      duration: 7000,
+      action: (
+        <Button variant="outline" size="sm" asChild onClick={() => router.push('/dashboard/produtos/novo')}>
+          Ir para Cadastro
+        </Button>
+      )
+    });
+  };
+
 
   const watchServicos = form.watch("servicos");
   const watchPecas = form.watch("pecas");
@@ -517,9 +530,14 @@ export default function OrcamentoForm() {
           </Card>
 
           <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle>Peças</CardTitle>
-              <CardDescription>Adicione as peças necessárias para o serviço.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between pb-4">
+              <div>
+                <CardTitle>Peças</CardTitle>
+                <CardDescription>Adicione as peças necessárias para o serviço.</CardDescription>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={handleAdicionarProdutoCatalogo}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Novo Produto no Catálogo
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2 mb-4">
@@ -668,3 +686,5 @@ export default function OrcamentoForm() {
   );
 }
 
+
+    
