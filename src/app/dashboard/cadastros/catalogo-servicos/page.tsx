@@ -20,6 +20,15 @@ import { useToast } from "@/hooks/use-toast";
 import { getServicosCatalogo, addServicoCatalogo, updateServicoCatalogo, deleteServicoCatalogo, ServicoCatalogo } from "@/lib/mockData/catalogoServicos";
 // Import mock checklist models - adjust path if necessary
 import { mockChecklistModelsData as getMockChecklistModels } from "@/app/dashboard/servicos/[id]/page"; 
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const servicoCatalogoFormSchema = z.object({
   nome: z.string().min(5, { message: "Nome do serviço deve ter pelo menos 5 caracteres." }),
