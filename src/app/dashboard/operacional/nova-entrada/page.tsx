@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +105,7 @@ export default function PaginaEntradasVeiculos() {
 
   useEffect(() => {
     setClientesDataSource(getClientesDB());
-  }, [showNovaEntradaDialog]); // Recarrega clientes do "DB" mock quando o dialog é aberto/fechado
+  }, [showNovaEntradaDialog]); 
 
   useEffect(() => {
     if (searchTermCliente.length > 2) {
@@ -158,7 +158,7 @@ export default function PaginaEntradasVeiculos() {
 
   const handleCadastrarClienteDialog = (data: ClienteFormValuesDialog) => {
     const novoCliente = addClienteDB(data);
-    setClientesDataSource(getClientesDB()); // Atualiza a fonte de dados local
+    setClientesDataSource(getClientesDB()); 
     setDialogSelectedCliente(novoCliente);
     setShowNovoClienteForm(false);
     setDialogStep("veiculo");
@@ -177,7 +177,7 @@ export default function PaginaEntradasVeiculos() {
   const handleCadastrarVeiculoDialog = (data: VeiculoFormValuesDialog) => {
     if (!dialogSelectedCliente) return;
     const novoVeiculo = addVeiculoDB({ ...data, clienteId: dialogSelectedCliente.id });
-    setVeiculosDataSource(getVeiculosDBByClienteId(dialogSelectedCliente.id)); // Atualiza fonte de dados local
+    setVeiculosDataSource(getVeiculosDBByClienteId(dialogSelectedCliente.id)); 
     setDialogSelectedVeiculo(novoVeiculo);
     setShowNovoVeiculoForm(false);
     setDialogStep("finalizar");
@@ -225,7 +225,7 @@ export default function PaginaEntradasVeiculos() {
   return (
     <div className="container mx-auto py-10 space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><LogIn className="h-7 w-7"/> Painel de Entradas de Veículos</h1>
+        <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><LogIn className="h-7 w-7"/> Gerenciamento de Entradas de Veículos</h1>
         <div className="flex gap-2">
             <Button onClick={handleIniciarNovaEntrada}><PlusCircle className="mr-2 h-4 w-4"/> Iniciar Nova Entrada</Button>
             <Button variant="outline" asChild><Link href="/dashboard"><ChevronLeft className="mr-2 h-4 w-4"/> Voltar ao Painel</Link></Button>
@@ -234,7 +234,7 @@ export default function PaginaEntradasVeiculos() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Entradas em Progresso</CardTitle>
+          <CardTitle>Entradas de Veículos em Progresso</CardTitle>
           <CardDescription>Acompanhe os veículos que deram entrada e estão aguardando os próximos passos.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -296,7 +296,7 @@ export default function PaginaEntradasVeiculos() {
         </CardFooter>
       </Card>
 
-      {/* Dialog para Nova Entrada */}
+      
       <Dialog open={showNovaEntradaDialog} onOpenChange={setShowNovaEntradaDialog}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
           <DialogHeader>
@@ -331,10 +331,10 @@ export default function PaginaEntradasVeiculos() {
                             <FormField control={formClienteDialog.control} name="cpfCnpj" render={({ field }) => (<FormItem><FormLabel>CPF/CNPJ*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={formClienteDialog.control} name="telefone" render={({ field }) => (<FormItem><FormLabel>Telefone*</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={formClienteDialog.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <div className="flex justify-end gap-2">
+                            <DialogFooter className="pt-4">
                                 <Button type="button" variant="ghost" onClick={() => setShowNovoClienteForm(false)}>Cancelar</Button>
-                                <Button type="submit">Salvar Novo Cliente</Button>
-                            </div>
+                                <Button type="submit">Salvar Cliente</Button>
+                            </DialogFooter>
                         </form>
                         </Form>
                     )}
@@ -380,10 +380,10 @@ export default function PaginaEntradasVeiculos() {
                                 <FormField control={formVeiculoDialog.control} name="anoModelo" render={({ field }) => (<FormItem><FormLabel>Ano Mod.*</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={formVeiculoDialog.control} name="cor" render={({ field }) => (<FormItem><FormLabel>Cor*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </div>
-                             <div className="flex justify-end gap-2">
+                            <DialogFooter className="pt-4">
                                 <Button type="button" variant="ghost" onClick={() => setShowNovoVeiculoForm(false)}>Cancelar</Button>
-                                <Button type="submit">Salvar Novo Veículo</Button>
-                            </div>
+                                <Button type="submit">Salvar Veículo</Button>
+                            </DialogFooter>
                         </form>
                         </Form>
                     )}
@@ -421,3 +421,5 @@ export default function PaginaEntradasVeiculos() {
     </div>
   );
 }
+
+    

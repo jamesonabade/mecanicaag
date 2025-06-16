@@ -25,12 +25,12 @@ import {
   Save,
   ArrowUp,
   ArrowDown,
-  ClipboardList, // Novo para Operacional
-  LogIn, // Novo para Entrada de Veículo
-  ListOrdered, // Novo para Catálogo de Serviços
-  DollarSign, // Para Nova Transação Financeira
-  TrendingUp, // Para Fluxo de Caixa
-  FileText, // Para Relatórios Financeiros
+  ClipboardList, 
+  LogIn, 
+  ListOrdered, 
+  DollarSign, 
+  TrendingUp, 
+  FileText, 
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Logo } from '@/components/shared/Logo';
@@ -63,7 +63,7 @@ const initialNavItems: NavItemEntry[] = [
     label: 'OPERACIONAL',
     icon: ClipboardList,
     subItems: [
-      { href: '/dashboard/operacional/nova-entrada', label: 'Nova Entrada de Veículo', icon: LogIn },
+      { href: '/dashboard/operacional/nova-entrada', label: 'Entradas de Veículos', icon: LogIn },
       { href: '/dashboard/servicos', label: 'Ordens de Serviço', icon: Wrench },
       { href: '/dashboard/orcamentos', label: 'Orçamentos', icon: FileSpreadsheet },
       { href: '/dashboard/pdv', label: 'PDV - Venda Balcão', icon: ShoppingCart },
@@ -99,7 +99,7 @@ const initialNavItems: NavItemEntry[] = [
   { id: 'portal_cliente', href: '/portal', label: 'Portal do Cliente', icon: Globe, target: "_blank" },
 ];
 
-const LOCAL_STORAGE_KEY = 'mecAgilSidebarOrder_v2'; // Use a new key if structure changes significantly
+const LOCAL_STORAGE_KEY = 'mecAgilSidebarOrder_v2'; 
 
 export function StaffSidebarNav() {
   const pathname = usePathname();
@@ -122,7 +122,7 @@ export function StaffSidebarNav() {
             initialItemsMap.delete(id);
           }
         });
-        // Add any new items (not in saved order) to the end, preserving their relative order from initialNavItems
+        
         initialNavItems.forEach(initialItem => {
           if (initialItemsMap.has(initialItem.id)) {
             newOrderedItems.push(initialItem);
@@ -131,16 +131,16 @@ export function StaffSidebarNav() {
         setOrderedNavItems(newOrderedItems);
       } catch (error) {
         console.error("Failed to parse saved sidebar order:", error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear invalid data
-        setOrderedNavItems(initialNavItems); // Fallback to default
+        localStorage.removeItem(LOCAL_STORAGE_KEY); 
+        setOrderedNavItems(initialNavItems); 
       }
     } else {
-        setOrderedNavItems(initialNavItems); // No saved order, use default
+        setOrderedNavItems(initialNavItems); 
     }
   }, []);
 
   const defaultOpenAccordionItems = React.useMemo(() => {
-     return []; // Start with all accordions collapsed
+     return []; 
   }, []);
 
   const handleToggleEditOrder = () => {
@@ -266,13 +266,13 @@ export function StaffSidebarNav() {
                 </AccordionItem>
               );
             }
-            // Render direct links
+            
             return (
               <div key={item.id} className={cn(
                 'flex items-center justify-between gap-0 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground',
                 'uppercase font-semibold text-sm',
                 pathname === item.href && 'bg-sidebar-primary text-sidebar-primary-foreground',
-                'my-0.5'
+                'my-0.5' 
               )}>
                 <Link
                   href={item.href!}
@@ -302,3 +302,5 @@ export function StaffSidebarNav() {
     </div>
   );
 }
+
+    
