@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Search, Filter, Eye, Edit, FileText } from "lucide-react";
+import { PlusCircle, Search, Filter, Eye, Edit, FileText, Wrench } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getClienteById, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
 import { getMecanicos, Funcionario, getFuncionarioById } from "@/lib/mockData/funcionarios";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export interface ItemOS {
@@ -23,7 +24,7 @@ export interface ItemOS {
   descricao: string;
   valor: number;
   tipo: 'servico' | 'peca';
-  quantidade?: number; 
+  quantidade?: number;
 }
 
 interface FotoOS {
@@ -46,8 +47,8 @@ export interface FilledChecklistInfo {
 export const mockOrdensServico = [
   {
     id: "OS001",
-    clienteId: "cli_modelo_001", 
-    veiculoId: "vec_modelo_001", 
+    clienteId: "cli_modelo_001",
+    veiculoId: "vec_modelo_001",
     dataEntrada: "2024-07-25T10:00:00Z",
     dataPrevisaoEntrega: "2024-07-26T17:00:00Z",
     mecanicoId: "func002", // Carlos Alberto
@@ -91,8 +92,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS003",
-    clienteId: "cli_003_carlos", 
-    veiculoId: "vec_004_nivus", 
+    clienteId: "cli_003_carlos",
+    veiculoId: "vec_004_nivus",
     dataEntrada: "2024-07-27T09:15:00Z",
     dataPrevisaoEntrega: "2024-07-27T12:00:00Z",
     mecanicoId: "func002", // Carlos Alberto
@@ -112,8 +113,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS004",
-    clienteId: "cli_modelo_001", 
-    veiculoId: "vec_002_strada", 
+    clienteId: "cli_modelo_001",
+    veiculoId: "vec_002_strada",
     dataEntrada: "2024-07-28T11:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T10:00:00Z",
     mecanicoId: null,
@@ -131,8 +132,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS005",
-    clienteId: "cli_004_ana", 
-    veiculoId: "vec_005_hb20", 
+    clienteId: "cli_004_ana",
+    veiculoId: "vec_005_hb20",
     dataEntrada: "2024-07-29T08:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T17:00:00Z",
     mecanicoId: "func006", // Juliana Alves
@@ -140,7 +141,7 @@ export const mockOrdensServico = [
     descricaoProblema: "Veículo puxando para a direita e volante vibrando em alta velocidade.",
     servicosPecasPlanejadas: "Alinhamento de direção\nBalanceamento das 4 rodas",
     observacoesInternas: "Pneus aparentemente em bom estado.",
-    status: "Aguardando Peças", 
+    status: "Aguardando Peças",
     valorEstimado: 120.00,
     valorFinal: 0,
     itensExecutados: [] as ItemOS[],
@@ -184,9 +185,21 @@ const statusOptions: { value: OSStatus; label: string }[] = [
 export default function ServicosPage() {
   const { toast } = useToast();
   const [mecanicos, setMecanicos] = React.useState<Funcionario[]>([]);
+  const [ordensServico, setOrdensServico] = useState<typeof mockOrdensServico>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<OSStatus | "Todos">("Todos");
+  const [mecanicoFilter, setMecanicoFilter] = useState<string>("Todos");
+
 
   React.useEffect(() => {
-    setMecanicos(getMecanicos());
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setOrdensServico(mockOrdensServico);
+      setMecanicos(getMecanicos());
+      setIsLoading(false);
+    }, 700); // Simulate 0.7 second delay
+    return () => clearTimeout(timer);
   }, []);
 
   const getClienteNome = (clienteId: string) => getClienteById(clienteId)?.nomeCompleto || "N/A";
@@ -198,22 +211,35 @@ export default function ServicosPage() {
 
   const getStatusBadgeVariant = (status: OSStatus): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
-      case "Concluída": return "default"; 
-      case "Em Andamento": return "outline"; 
+      case "Concluída": return "default";
+      case "Em Andamento": return "outline";
       case "Aguardando Aprovação":
       case "Aguardando Diagnóstico":
       case "Aguardando Orçamento":
       case "Aguardando Peças":
-        return "secondary"; 
+        return "secondary";
       case "Cancelada": return "destructive";
       default: return "secondary";
     }
   };
 
-  const handleSimulatedFilter = (type: string) => {
-    toast({ title: `Filtro de ${type} (Simulado)`, description: "Funcionalidade de filtro será implementada." });
-  };
-  
+  const filteredOS = useMemo(() => {
+    return ordensServico.filter(os => {
+      const termLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        os.id.toLowerCase().includes(termLower) ||
+        getClienteNome(os.clienteId).toLowerCase().includes(termLower) ||
+        getVeiculoDesc(os.veiculoId).toLowerCase().includes(termLower) ||
+        os.tipoServico.toLowerCase().includes(termLower);
+
+      const matchesStatus = statusFilter === "Todos" || os.status === statusFilter;
+      const matchesMecanico = mecanicoFilter === "Todos" || os.mecanicoId === mecanicoFilter || (mecanicoFilter === "NaoAtribuido" && !os.mecanicoId);
+
+      return matchesSearch && matchesStatus && matchesMecanico;
+    });
+  }, [ordensServico, searchTerm, statusFilter, mecanicoFilter]);
+
+
   const handleAction = (action: string, osId: string) => {
       if (action === "Gerar Orçamento para") {
         toast({ title: `${action} OS ${osId} (Simulado)`, description: `A OS ${osId} seria associada a um novo orçamento ou um existente.`});
@@ -221,6 +247,28 @@ export default function ServicosPage() {
         toast({ title: `${action} OS ${osId} (Simulado)`, description: `A ação de ${action.toLowerCase()} para a OS ${osId} será implementada.`});
       }
   };
+
+  const renderSkeletonTable = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {[...Array(9)].map((_, i) => <TableHead key={i}><Skeleton className="h-5 w-full" /></TableHead>)}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {[...Array(5)].map((_, i) => (
+          <TableRow key={i}>
+            {[...Array(8)].map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}
+            <TableCell className="text-right space-x-1">
+              <Skeleton className="h-8 w-8 inline-block" />
+              <Skeleton className="h-8 w-8 inline-block" />
+              <Skeleton className="h-8 w-8 inline-block" />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 
 
   return (
@@ -245,18 +293,18 @@ export default function ServicosPage() {
                     <label htmlFor="searchOS" className="block text-sm font-medium text-muted-foreground mb-1">
                     Buscar por Nº OS, Cliente, Placa...
                     </label>
-                    <Input id="searchOS" type="text" placeholder="Digite para buscar..." className="h-9" />
+                    <Input id="searchOS" type="text" placeholder="Digite para buscar..." className="h-9" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 </div>
                 <div>
                     <label htmlFor="filterStatus" className="block text-sm font-medium text-muted-foreground mb-1">
                     Status
                     </label>
-                    <Select onValueChange={() => handleSimulatedFilter("Status")}>
+                    <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as OSStatus | "Todos")}>
                         <SelectTrigger id="filterStatus" className="h-9">
                             <SelectValue placeholder="Todos os Status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="todos">Todos os Status</SelectItem>
+                            <SelectItem value="Todos">Todos os Status</SelectItem>
                             {statusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                         </SelectContent>
                     </Select>
@@ -265,19 +313,19 @@ export default function ServicosPage() {
                     <label htmlFor="filterMecanico" className="block text-sm font-medium text-muted-foreground mb-1">
                     Mecânico
                     </label>
-                    <Select onValueChange={() => handleSimulatedFilter("Mecânico")}>
+                    <Select value={mecanicoFilter} onValueChange={setMecanicoFilter}>
                         <SelectTrigger id="filterMecanico" className="h-9">
                             <SelectValue placeholder="Todos os Mecânicos" />
                         </SelectTrigger>
                         <SelectContent>
-                             <SelectItem value="todos">Todos os Mecânicos</SelectItem>
+                             <SelectItem value="Todos">Todos os Mecânicos</SelectItem>
                             {mecanicos.map(mec => <SelectItem key={mec.id} value={mec.id}>{mec.nome}</SelectItem>)}
-                             <SelectItem value="nao_atribuido">Não Atribuído</SelectItem>
+                             <SelectItem value="NaoAtribuido">Não Atribuído</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
             </div>
-            <Button onClick={() => handleSimulatedFilter("Busca Geral")} className="w-full mt-4 sm:mt-0 sm:w-auto h-9">
+            <Button onClick={() => toast({title: "Filtros aplicados!"})} className="w-full mt-4 sm:mt-0 sm:w-auto h-9">
                 <Search className="mr-2 h-4 w-4" /> Buscar
             </Button>
         </CardContent>
@@ -289,7 +337,8 @@ export default function ServicosPage() {
           <CardDescription>Acompanhe o status e gerencie as OS da oficina.</CardDescription>
         </CardHeader>
         <CardContent>
-          {mockOrdensServico.length > 0 ? (
+          {isLoading ? renderSkeletonTable() :
+           filteredOS.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -305,7 +354,7 @@ export default function ServicosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockOrdensServico.map((os) => (
+                {filteredOS.map((os) => (
                   <TableRow key={os.id}>
                     <TableCell className="font-medium">{os.id}</TableCell>
                     <TableCell>{getClienteNome(os.clienteId)}</TableCell>
@@ -341,13 +390,15 @@ export default function ServicosPage() {
           ) : (
             <div className="p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
               <Wrench className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-              <p>Nenhuma Ordem de Serviço encontrada.</p>
-              <p className="text-sm">Clique em "Nova Ordem de Serviço" para começar.</p>
+              <p>Nenhuma Ordem de Serviço encontrada com os filtros atuais.</p>
+              {searchTerm === "" && statusFilter === "Todos" && mecanicoFilter === "Todos" && (
+                <p className="text-sm">Clique em "Nova Ordem de Serviço" para começar.</p>
+              )}
             </div>
           )}
         </CardContent>
         <CardFooter className="pt-4 border-t">
-            <p className="text-xs text-muted-foreground">Total de {mockOrdensServico.length} ordens de serviço listadas.</p>
+            <p className="text-xs text-muted-foreground">Total de {filteredOS.length} ordens de serviço listadas.</p>
         </CardFooter>
       </Card>
     </div>

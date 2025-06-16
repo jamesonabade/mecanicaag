@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus, UserCheck, UserCog, Search as SearchIcon } from "lucide-react";
+import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus, UserCheck, UserCog, Search as SearchIcon, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
@@ -105,7 +105,7 @@ const orcamentoFormSchema = z.object({
   descontoValor: z.coerce.number().min(0).optional().default(0),
 }).refine(data => (data.servicos && data.servicos.length > 0) || (data.pecas && data.pecas.length > 0), {
   message: "Adicione pelo menos um serviço ou peça ao orçamento.",
-  path: ["servicos"], 
+  path: ["servicos"],
 });
 type OrcamentoFormValues = z.infer<typeof orcamentoFormSchema>;
 
@@ -144,6 +144,8 @@ export default function OrcamentoForm() {
       descontoValor: 0,
     },
   });
+
+  const { formState: { isSubmitting } } = form;
 
   const { fields: servicoFields, append: appendServico, remove: removeServico } = useFieldArray({
     control: form.control,
@@ -304,11 +306,14 @@ export default function OrcamentoForm() {
   const totalGeral = subTotalGeral - (watchDesconto || 0);
 
   async function onSubmit(data: OrcamentoFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     console.log("Dados do Orçamento para Salvar:", { ...data, totalServicos, totalPecas, subTotalGeral, totalGeral });
     toast({
       title: "Orçamento Criado (Simulado)",
       description: "O orçamento foi salvo com sucesso (simulação).",
     });
+    // router.push("/dashboard/orcamentos"); // Optional: redirect after save
   }
 
   return (
@@ -675,8 +680,17 @@ export default function OrcamentoForm() {
                 <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                     <Link href="/dashboard/orcamentos">Cancelar</Link>
                 </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                    <Save className="mr-2 h-4 w-4" /> Salvar Orçamento
+                <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
+                   {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" /> Salvar Orçamento
+                    </>
+                  )}
                 </Button>
             </CardFooter>
           </Card>
@@ -685,6 +699,3 @@ export default function OrcamentoForm() {
     </div>
   );
 }
-
-
-    

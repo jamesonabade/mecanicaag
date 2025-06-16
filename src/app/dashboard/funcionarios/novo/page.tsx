@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, UserPlus, CalendarIcon } from "lucide-react";
+import { ChevronLeft, Save, UserPlus, CalendarIcon, Loader2 } from "lucide-react";
 import { Funcionario } from "@/lib/mockData/funcionarios"; // Importar Funcionario para tipagem
 
 
@@ -75,24 +75,21 @@ export default function NovoFuncionarioPage() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   async function onSubmit(data: FuncionarioFormValues) {
-    // Aqui, você normalmente enviaria os dados para o seu backend ou mock global.
-    // Por enquanto, apenas simulamos o cadastro.
-    
-    // Convertendo cargoId para o nome do cargo para exibição no toast (opcional)
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     const cargoSelecionado = mockCargosSistema.find(c => c.value === data.cargoId);
     const nomeCargo = cargoSelecionado ? cargoSelecionado.label : data.cargoId;
 
     const novoFuncionarioSimulado: Funcionario = {
-        id: `func_novo_${Date.now()}`, // Gerar ID de exemplo
+        id: `func_novo_${Date.now()}`,
         nome: data.nomeCompleto,
-        cargo: nomeCargo as Funcionario['cargo'], // Ajustar se a estrutura de cargo no mock global for diferente
-        // ... outros campos relevantes do mock Funcionario
+        cargo: nomeCargo as Funcionario['cargo'],
     };
 
-    // Adicionar ao mockFuncionarios em lib/mockData/funcionarios.ts (se for persistir em memória)
-    // Ex: addFuncionarioDB(novoFuncionarioSimulado); // Função a ser criada no mock
-    
     console.log("Dados do Funcionário a ser cadastrado:", data);
     console.log("Funcionário Simulado (para mock global):", novoFuncionarioSimulado);
 
@@ -174,7 +171,7 @@ export default function NovoFuncionarioPage() {
                   )}
                 />
               </div>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -283,7 +280,7 @@ export default function NovoFuncionarioPage() {
                   )}
                 />
               </div>
-              
+
                <FormField
                 control={form.control}
                 name="observacoes"
@@ -305,8 +302,17 @@ export default function NovoFuncionarioPage() {
               <Button type="button" variant="outline" asChild>
                 <Link href="/dashboard/funcionarios">Cancelar</Link>
               </Button>
-              <Button type="submit">
-                <Save className="mr-2 h-4 w-4" /> Salvar Funcionário
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Funcionário
+                  </>
+                )}
               </Button>
             </CardFooter>
           </form>

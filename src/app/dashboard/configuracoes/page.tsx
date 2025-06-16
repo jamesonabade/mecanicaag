@@ -8,29 +8,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { 
-    Settings, 
-    MessageSquare, 
-    Save, 
-    Users, 
-    UserCheck, 
-    HeartHandshake, 
-    Repeat, 
-    Gift, 
-    CheckCheck, 
-    CheckCircle, 
-    Clock, 
-    Wrench, 
-    FileText, 
-    Filter as FilterIcon, 
-    Car, 
-    Edit3, 
+import {
+    Settings,
+    MessageSquare,
+    Save,
+    Users,
+    UserCheck,
+    HeartHandshake,
+    Repeat,
+    Gift,
+    CheckCheck,
+    CheckCircle,
+    Clock,
+    Wrench,
+    FileText,
+    Filter as FilterIcon,
+    Car,
+    Edit3,
     PackageSearch,
     Building,
     CalendarCheck,
-    FileArchive, 
-    Info, 
-    AlertTriangle, 
+    FileArchive,
+    Info,
+    AlertTriangle,
+    Loader2
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -73,6 +74,10 @@ const ambientesNFe = [
 export default function ConfiguracoesPage() {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState("");
+  const [isSavingGeneral, setIsSavingGeneral] = useState(false);
+  const [isSavingNFe, setIsSavingNFe] = useState(false);
+  const [isSavingAlerts, setIsSavingAlerts] = useState(false);
+
 
   const [alertasCliente, setAlertasCliente] = useState<Record<string, boolean>>(
     alertasClienteTipos.reduce((acc, curr) => ({ ...acc, [curr.id]: true }), {})
@@ -80,11 +85,11 @@ export default function ConfiguracoesPage() {
   const [alertasFuncionario, setAlertasFuncionario] = useState<Record<string, boolean>>(
     alertasFuncionarioTipos.reduce((acc, curr) => ({ ...acc, [curr.id]: true }), {})
   );
-  
+
   const [diasParaLembretes, setDiasParaLembretes] = useState<Record<string, number>>(
     alertasClienteTipos.reduce((acc, curr) => {
       if (curr.id === "lembreteRevisaoPosServico") {
-        return { ...acc, [curr.id]: 180 }; 
+        return { ...acc, [curr.id]: 180 };
       }
       return acc;
     }, {})
@@ -113,26 +118,35 @@ export default function ConfiguracoesPage() {
   };
 
 
-  const handleSaveAlertSettings = () => {
+  const handleSaveAlertSettings = async () => {
+    setIsSavingAlerts(true);
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
     console.log("Configurações de Alertas Salvas (Simulado):", { apiKey, alertasCliente, alertasFuncionario, diasParaLembretes });
     toast({
       title: "Configurações Salvas (Simulado)",
       description: "Suas preferências de alerta foram salvas.",
     });
+    setIsSavingAlerts(false);
   };
-  
-  const handleSaveGeneralSettings = () => {
+
+  const handleSaveGeneralSettings = async () => {
+    setIsSavingGeneral(true);
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
     toast({
       title: "Configurações Gerais Salvas (Simulado)",
       description: "As configurações gerais da oficina foram atualizadas.",
     });
+    setIsSavingGeneral(false);
   };
 
-  const handleSaveNFeSettings = () => {
+  const handleSaveNFeSettings = async () => {
+    setIsSavingNFe(true);
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
     toast({
       title: "Configurações de NF-e Salvas (Simulado)",
       description: "As configurações de Nota Fiscal foram atualizadas.",
     });
+    setIsSavingNFe(false);
   };
 
 
@@ -183,8 +197,17 @@ export default function ConfiguracoesPage() {
                   </div>
               </CardContent>
               <CardFooter className="flex justify-end pt-6 border-t">
-                <Button onClick={handleSaveGeneralSettings} className="w-full sm:w-auto">
-                  <Save className="mr-2 h-4 w-4" /> Salvar Configurações Gerais
+                <Button onClick={handleSaveGeneralSettings} className="w-full sm:w-auto" disabled={isSavingGeneral}>
+                  {isSavingGeneral ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" /> Salvar Configurações Gerais
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </AccordionContent>
@@ -248,8 +271,17 @@ export default function ConfiguracoesPage() {
                   </div>
               </CardContent>
               <CardFooter className="flex justify-end pt-6 border-t">
-                <Button onClick={handleSaveNFeSettings} className="w-full sm:w-auto">
-                  <Save className="mr-2 h-4 w-4" /> Salvar Configurações de NF-e
+                <Button onClick={handleSaveNFeSettings} className="w-full sm:w-auto" disabled={isSavingNFe}>
+                  {isSavingNFe ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" /> Salvar Configurações de NF-e
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </AccordionContent>
@@ -337,14 +369,23 @@ export default function ConfiguracoesPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end pt-6 border-t">
-                <Button onClick={handleSaveAlertSettings} className="w-full sm:w-auto">
-                  <Save className="mr-2 h-4 w-4" /> Salvar Configurações de Alertas
+                <Button onClick={handleSaveAlertSettings} className="w-full sm:w-auto" disabled={isSavingAlerts}>
+                  {isSavingAlerts ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" /> Salvar Configurações de Alertas
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </AccordionContent>
           </Card>
         </AccordionItem>
-        
+
         <AccordionItem value="documentation">
             <Card className="shadow-lg">
                 <AccordionTrigger className="p-0 hover:no-underline">
@@ -357,7 +398,7 @@ export default function ConfiguracoesPage() {
                 <AccordionContent>
                     <CardContent className="pt-0 space-y-4 text-sm text-muted-foreground">
                         <p><strong>Finalidade do Módulo:</strong> Este módulo tem como objetivo gerenciar as informações fiscais da sua empresa e simular o fluxo de emissão e recebimento de Notas Fiscais Eletrônicas (NF-e).</p>
-                        
+
                         <h4 className="font-semibold text-foreground">Configuração Fiscal:</h4>
                         <ul className="list-disc pl-5 space-y-1">
                             <li>Preencha todos os dados da sua empresa na seção "Configurações de Nota Fiscal" acima. Esses dados são essenciais e constarão em todas as NF-e emitidas.</li>
@@ -386,7 +427,7 @@ export default function ConfiguracoesPage() {
                             <li>Após autorização da SEFAZ, o sistema receberia o XML da NF-e e o link/arquivo do DANFE (Documento Auxiliar da NF-e).</li>
                             <li>Esses arquivos seriam armazenados e poderiam ser gerenciados na seção "Financeiro &gt; Gerenciar Notas Fiscais". O cliente também poderia ter acesso ao DANFE via portal.</li>
                         </ul>
-                        
+
                         <div className="p-3 border border-destructive/50 bg-destructive/10 text-destructive rounded-md">
                             <p className="font-semibold flex items-center gap-1"><AlertTriangle className="h-4 w-4"/> Disclaimer Importante:</p>
                             <p>Este módulo é uma **simulação para fins de prototipagem**. A emissão real de Notas Fiscais Eletrônicas (NF-e) é um processo complexo que exige conformidade legal, certificado digital válido, e integração com os web services da SEFAZ, geralmente através de uma API de terceiros especializada. Consulte seu contador para mais informações.</p>
@@ -399,8 +440,3 @@ export default function ConfiguracoesPage() {
     </div>
   );
 }
-    
-
-    
-
-    

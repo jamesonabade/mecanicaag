@@ -46,6 +46,7 @@ import { getVeiculos, deleteVeiculo, Veiculo } from "@/lib/mockData/veiculos";
 import { getClienteById, Cliente } from "@/lib/mockData/clientes";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function VeiculosPage() {
   const { toast } = useToast();
@@ -54,8 +55,12 @@ export default function VeiculosPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setListaVeiculos(getVeiculos());
-    setIsLoading(false);
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setListaVeiculos(getVeiculos());
+      setIsLoading(false);
+    }, 700); // Simulate 0.7 second delay
+    return () => clearTimeout(timer);
   }, []);
 
   const handleDeleteVeiculo = (veiculoId: string) => {
@@ -92,13 +97,40 @@ export default function VeiculosPage() {
     );
   }, [listaVeiculos, searchTerm]);
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-10">
-        <p>Carregando veículos...</p>
-      </div>
-    );
-  }
+  const renderSkeletonTable = () => (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-32" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-40" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-16" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+            <TableHead className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell className="text-right space-x-1">
+                <Skeleton className="h-8 w-8 inline-block" />
+                <Skeleton className="h-8 w-8 inline-block" />
+                <Skeleton className="h-8 w-8 inline-block" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 
   return (
     <div className="container mx-auto py-10">
@@ -154,7 +186,8 @@ export default function VeiculosPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredVeiculos.length > 0 ? (
+          {isLoading ? renderSkeletonTable() :
+           filteredVeiculos.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

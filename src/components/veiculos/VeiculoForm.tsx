@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, Car, User, Image as ImageIcon } from "lucide-react";
+import { ChevronLeft, Save, Car, User, Image as ImageIcon, Loader2 } from "lucide-react";
 import { addVeiculo } from "@/lib/mockData/veiculos"; // Veiculo interface is also exported from here
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 
@@ -30,7 +30,7 @@ const anoAtual = new Date().getFullYear();
 
 const veiculoFormSchema = z.object({
   clienteId: z.string({ required_error: "Selecione o proprietário (cliente)." }),
-  placa: z.string().min(7, { message: "Placa deve ter pelo menos 7 caracteres." }).max(8, {message: "Placa inválida."}), 
+  placa: z.string().min(7, { message: "Placa deve ter pelo menos 7 caracteres." }).max(8, {message: "Placa inválida."}),
   marca: z.string().min(2, { message: "Marca é obrigatória." }),
   modelo: z.string().min(2, { message: "Modelo é obrigatório." }),
   anoFabricacao: z.coerce.number()
@@ -77,6 +77,8 @@ export default function VeiculoForm() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   useEffect(() => {
     setClientes(getClientes());
     const queryClienteId = searchParams.get("clienteId");
@@ -86,13 +88,15 @@ export default function VeiculoForm() {
   }, [searchParams, form]);
 
   async function onSubmit(data: VeiculoFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     try {
       addVeiculo(data);
       toast({
         title: "Veículo Cadastrado!",
         description: `O veículo ${data.marca} ${data.modelo} (${data.placa}) foi salvo com sucesso.`,
       });
-      router.push("/dashboard/veiculos"); 
+      router.push("/dashboard/veiculos");
     } catch (error) {
         toast({
             variant: "destructive",
@@ -169,8 +173,21 @@ export default function VeiculoForm() {
               <FormField control={form.control} name="observacoes" render={({ field }) => (<FormItem><FormLabel>Observações (Opcional)</FormLabel><FormControl><Textarea placeholder="Detalhes adicionais sobre o veículo..." className="resize-y min-h-[80px]" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </CardContent>
             <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 pt-6 border-t">
-              <Button type="button" variant="outline" asChild className="w-full sm:w-auto"><Link href="/dashboard/veiculos">Cancelar</Link></Button>
-              <Button type="submit" className="w-full sm:w-auto" disabled={form.formState.isSubmitting}><Save className="mr-2 h-4 w-4" /> Salvar Veículo</Button>
+              <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
+                <Link href="/dashboard/veiculos">Cancelar</Link>
+              </Button>
+              <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Veículo
+                  </>
+                )}
+              </Button>
             </CardFooter>
           </form>
         </Form>

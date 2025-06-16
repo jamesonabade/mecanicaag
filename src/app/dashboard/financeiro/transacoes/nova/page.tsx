@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, DollarSign, CalendarIcon, AlignLeft, Tag } from "lucide-react";
+import { ChevronLeft, Save, DollarSign, CalendarIcon, AlignLeft, Tag, Loader2 } from "lucide-react";
 
 const tiposTransacao = [
   { value: "receita", label: "Receita" },
@@ -66,7 +66,11 @@ export default function NovaTransacaoPage() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   async function onSubmit(data: TransacaoFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     console.log(data);
     toast({
       title: "Transação Registrada (Simulado)",
@@ -186,7 +190,7 @@ export default function NovaTransacaoPage() {
                     )}
                  />
               </div>
-              
+
               <FormField
                   control={form.control}
                   name="categoriaId"
@@ -210,7 +214,7 @@ export default function NovaTransacaoPage() {
                     </FormItem>
                   )}
                 />
-              
+
                <FormField
                 control={form.control}
                 name="observacoes"
@@ -233,8 +237,17 @@ export default function NovaTransacaoPage() {
               <Button type="button" variant="outline" asChild>
                 <Link href="/dashboard/financeiro">Cancelar</Link>
               </Button>
-              <Button type="submit">
-                <Save className="mr-2 h-4 w-4" /> Salvar Transação
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Transação
+                  </>
+                )}
               </Button>
             </CardFooter>
           </form>

@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save } from "lucide-react";
+import { ChevronLeft, Save, Loader2 } from "lucide-react";
 import { addCliente } from "@/lib/mockData/clientes"; // Import from centralized mock
 
 const estadosBrasil = [
@@ -75,7 +75,11 @@ export default function NovoClientePage() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   async function onSubmit(data: ClienteFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     try {
       addCliente(data);
       toast({
@@ -304,8 +308,17 @@ export default function NovoClientePage() {
               <Button type="button" variant="outline" asChild>
                 <Link href="/dashboard/clientes">Cancelar</Link>
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                <Save className="mr-2 h-4 w-4" /> Salvar Cliente
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Cliente
+                  </>
+                )}
               </Button>
             </CardFooter>
           </form>

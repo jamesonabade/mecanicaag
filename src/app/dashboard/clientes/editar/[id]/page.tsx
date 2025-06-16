@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, UserCog } from "lucide-react";
+import { ChevronLeft, Save, UserCog, Loader2 } from "lucide-react";
 import { getClienteById, updateCliente, Cliente } from "@/lib/mockData/clientes";
 
 const estadosBrasil = [
@@ -69,6 +69,8 @@ export default function EditarClientePage() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   useEffect(() => {
     if (clienteId) {
       const clienteExistente = getClienteById(clienteId);
@@ -95,6 +97,8 @@ export default function EditarClientePage() {
   }, [clienteId, form, router, toast]);
 
   async function onSubmit(data: ClienteFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     try {
       const success = updateCliente(clienteId, data);
       if (success) {
@@ -175,7 +179,18 @@ export default function EditarClientePage() {
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-6 border-t">
               <Button type="button" variant="outline" asChild><Link href="/dashboard/clientes">Cancelar</Link></Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}><Save className="mr-2 h-4 w-4" /> Salvar Alterações</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Alterações
+                  </>
+                )}
+              </Button>
             </CardFooter>
           </form>
         </Form>

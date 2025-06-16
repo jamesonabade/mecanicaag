@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, CalendarIcon, User, Car, Wrench, Clock } from "lucide-react";
+import { ChevronLeft, Save, CalendarIcon, User, Car, Wrench, Clock, Loader2 } from "lucide-react";
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
 import { getMecanicos, Funcionario } from "@/lib/mockData/funcionarios";
@@ -73,6 +73,8 @@ export default function NovoAgendamentoPage() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   const [clientes, setClientesState] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const [mecanicosDisponiveis, setMecanicosDisponiveis] = React.useState<Funcionario[]>([]);
@@ -86,19 +88,21 @@ export default function NovoAgendamentoPage() {
   React.useEffect(() => {
     if (selectedClienteId) {
       setVeiculosCliente(getVeiculosByClienteId(selectedClienteId));
-      form.setValue("veiculoId", ""); 
+      form.setValue("veiculoId", "");
     } else {
       setVeiculosCliente([]);
     }
   }, [selectedClienteId, form]);
 
   async function onSubmit(data: AgendamentoFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     console.log(data);
     toast({
       title: "Agendamento Criado (Simulado)",
       description: `O agendamento para ${data.dataAgendamento ? format(data.dataAgendamento, "PPP", {locale: ptBR}) : ''} às ${data.horarioAgendamento} foi salvo.`,
     });
-    // form.reset(); 
+    // form.reset();
   }
 
   return (
@@ -122,7 +126,7 @@ export default function NovoAgendamentoPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-6">
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -174,7 +178,7 @@ export default function NovoAgendamentoPage() {
                   )}
                 />
               </div>
-              
+
               <FormField
                   control={form.control}
                   name="tipoServico"
@@ -262,7 +266,7 @@ export default function NovoAgendamentoPage() {
                   )}
                 />
               </div>
-              
+
               <FormField
                   control={form.control}
                   name="mecanicoId"
@@ -304,8 +308,17 @@ export default function NovoAgendamentoPage() {
               <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/agendamento">Cancelar</Link>
               </Button>
-              <Button type="submit" className="w-full sm:w-auto">
-                <Save className="mr-2 h-4 w-4" /> Salvar Agendamento
+              <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Agendamento
+                  </>
+                )}
               </Button>
             </CardFooter>
           </form>

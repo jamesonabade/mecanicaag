@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input"; 
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line as RechartsLine, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, isSameDay, parseISO, isPast, differenceInDays, addDays, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   DollarSign,
@@ -37,11 +38,11 @@ import {
   CheckCircle,
   ClockIcon,
   ChevronRight,
-  AlertTriangle, 
+  AlertTriangle,
   PackageSearch,
-  CalendarClock, 
-  Send, 
-  Search, 
+  CalendarClock,
+  Send,
+  Search,
   Filter,
   Link2,
   LogIn
@@ -144,10 +145,10 @@ const agendamentosMock = [
 const ordensDeServicoConcluidasMock = [
   { id: "os001", clienteNome: "Juliana Alves", veiculoInfo: "VW Nivus - ABC1D23", dataConclusao: "2024-01-10", ultimoLembreteEnviado: null },
   { id: "os002", clienteNome: "Ricardo Mendes", veiculoInfo: "Chevrolet Onix - DEF4E56", dataConclusao: "2024-06-20", ultimoLembreteEnviado: null },
-  { id: "os003", clienteNome: "Beatriz Costa", veiculoInfo: "Hyundai Creta - GHI7F89", dataConclusao: "2023-11-01", ultimoLembreteEnviado: "2024-04-29" }, 
+  { id: "os003", clienteNome: "Beatriz Costa", veiculoInfo: "Hyundai Creta - GHI7F89", dataConclusao: "2023-11-01", ultimoLembreteEnviado: "2024-04-29" },
   { id: "os004", clienteNome: "Fernando Lima", veiculoInfo: "Fiat Toro - JKL0G12", dataConclusao: "2023-12-05", ultimoLembreteEnviado: null },
-  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: "2024-02-01", ultimoLembreteEnviado: null }, 
-  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: "2024-07-01", ultimoLembreteEnviado: null }, 
+  { id: "os005", clienteNome: "Laura Martins", veiculoInfo: "Jeep Renegade - MNO3P45", dataConclusao: "2024-02-01", ultimoLembreteEnviado: null },
+  { id: "os006", clienteNome: "Pedro Barros", veiculoInfo: "Renault Kwid - QRS6T78", dataConclusao: "2024-07-01", ultimoLembreteEnviado: null },
 ];
 
 export default function DashboardPage() {
@@ -155,7 +156,8 @@ export default function DashboardPage() {
   const [minCalendarDate, setMinCalendarDate] = useState<Date | null>(null);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState<typeof agendamentosMock>([]);
   const [contasAPagarAlertas, setContasAPagarAlertas] = useState<typeof contasAPagarAlertasMock>([]);
-  const { toast } = useToast(); 
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
   const router = useRouter();
 
   const [isNovaEntradaDialogOpenDashboard, setIsNovaEntradaDialogOpenDashboard] = useState(false);
@@ -165,18 +167,23 @@ export default function DashboardPage() {
 
 
   useEffect(() => {
-    setSelectedDate(new Date()); 
-    setMinCalendarDate(new Date(new Date().setHours(0,0,0,0)));
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setSelectedDate(new Date());
+      setMinCalendarDate(new Date(new Date().setHours(0,0,0,0)));
+      setContasAPagarAlertas(
+        [...contasAPagarAlertasMock].sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime())
+      );
+      setIsLoading(false);
+    }, 1200); // Increased delay for demonstration
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     if (selectedDate) {
       filterAppointmentsForDate(selectedDate);
     }
-    setContasAPagarAlertas(
-      [...contasAPagarAlertasMock].sort((a, b) => new Date(a.dataVencimento).getTime() - new Date(b.dataVencimento).getTime())
-    );
-  }, [selectedDate]); 
+  }, [selectedDate]);
 
   const scheduledDays = useMemo(() => {
     return agendamentosMock.map(ag => parseISO(ag.data));
@@ -201,7 +208,7 @@ export default function DashboardPage() {
     }
     const hoje = parseISO(MOCK_TODAY_ISO + "T00:00:00Z");
     return ordensDeServicoConcluidasMock.filter(os => {
-      if (os.ultimoLembreteEnviado) return false; 
+      if (os.ultimoLembreteEnviado) return false;
       const dataConclusao = parseISO(os.dataConclusao + "T00:00:00Z");
       const dataLembrete = addDays(dataConclusao, simulatedDiasParaRevisao);
       return isSameDay(dataLembrete, hoje) || isBefore(dataLembrete, hoje);
@@ -223,7 +230,7 @@ export default function DashboardPage() {
       title: "Busca no Estoque (Simulada)",
       description: `Buscando por: "${searchTerm}". Funcionalidade completa em desenvolvimento.`,
     });
-    
+
   };
 
   const handleFilterEstoque = () => {
@@ -231,7 +238,7 @@ export default function DashboardPage() {
       title: "Filtro de Estoque (Simulado)",
       description: "Opções de filtro de estoque serão implementadas aqui.",
     });
-    
+
   };
 
   const handleConnectGoogleCalendar = () => {
@@ -248,7 +255,7 @@ export default function DashboardPage() {
         toast({ title: "Entrada Registrada", description: `Redirecionando para criar orçamento para ${entrada.id}.` });
       } else if (action === 'addToList') {
         toast({ title: "Entrada Adicionada", description: `Entrada ${entrada.id} registrada. Verifique a lista em 'Entradas de Veículos'.` });
-        router.push('/dashboard/operacional/nova-entrada'); 
+        router.push('/dashboard/operacional/nova-entrada');
       } else {
         toast({ title: "Entrada Processada", description: `Cliente ${entrada.cliente?.nomeCompleto} e veículo ${entrada.veiculo?.placa} selecionados.` });
       }
@@ -265,13 +272,15 @@ export default function DashboardPage() {
         <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
+        {isLoading ? <Skeleton className="h-7 w-3/4 mb-1" /> : <div className="text-2xl font-bold text-foreground">{kpi.value}</div>}
         <div className="flex justify-between items-center">
-          <p className="text-xs text-muted-foreground/80">{kpi.previousValue}</p>
-          <Badge variant={kpi.changeType === "positive" ? "default" : kpi.changeType === "negative" ? "destructive" : "secondary"} className="text-xs">
-            {kpi.changeType === "positive" ? <ArrowUp className="h-3 w-3 mr-1" /> : kpi.changeType === "negative" ? <ArrowDown className="h-3 w-3 mr-1" /> : null}
-            {kpi.change}
-          </Badge>
+          {isLoading ? <Skeleton className="h-4 w-1/2" /> : <p className="text-xs text-muted-foreground/80">{kpi.previousValue}</p>}
+          {isLoading ? <Skeleton className="h-5 w-16" /> :
+            <Badge variant={kpi.changeType === "positive" ? "default" : kpi.changeType === "negative" ? "destructive" : "secondary"} className="text-xs">
+              {kpi.changeType === "positive" ? <ArrowUp className="h-3 w-3 mr-1" /> : kpi.changeType === "negative" ? <ArrowDown className="h-3 w-3 mr-1" /> : null}
+              {kpi.change}
+            </Badge>
+          }
         </div>
       </CardContent>
     </Card>
@@ -286,9 +295,19 @@ export default function DashboardPage() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold mb-1">{kpi.value}</div>
-        <p className="text-xs text-muted-foreground mb-2">{kpi.description}</p>
-        {kpi.progress !== undefined && <Progress value={kpi.progress} className="h-2" />}
+        {isLoading ? (
+          <>
+            <Skeleton className="h-8 w-3/5 mb-1" />
+            <Skeleton className="h-4 w-4/5 mb-2" />
+            {kpi.progress !== undefined && <Skeleton className="h-2 w-full" />}
+          </>
+        ) : (
+          <>
+            <div className="text-3xl font-bold mb-1">{kpi.value}</div>
+            <p className="text-xs text-muted-foreground mb-2">{kpi.description}</p>
+            {kpi.progress !== undefined && <Progress value={kpi.progress} className="h-2" />}
+          </>
+        )}
       </CardContent>
        <CardFooter className="pt-2 pb-4">
         <Button variant="link" size="sm" className="text-xs p-0 h-auto text-primary/80 hover:text-primary">
@@ -296,6 +315,26 @@ export default function DashboardPage() {
         </Button>
       </CardFooter>
     </Card>
+  );
+
+  const renderContasPagarSkeleton = () => (
+    <div className="space-y-4">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-muted/30">
+          <div className="flex items-center gap-3 flex-1">
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          </div>
+          <div className="text-right space-y-1">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-3 w-12 ml-auto" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 
   const contasAPagarAlertsCard = (
@@ -307,11 +346,12 @@ export default function DashboardPage() {
         <CardDescription>Contas importantes que requerem sua atenção imediata.</CardDescription>
       </CardHeader>
       <CardContent>
-        {contasAPagarAlertas.length > 0 ? (
+        {isLoading ? renderContasPagarSkeleton() :
+         contasAPagarAlertas.length > 0 ? (
           <ScrollArea className="max-h-[280px] pr-3">
             <div className="space-y-4">
               {contasAPagarAlertas.map(alerta => {
-                const hoje = parseISO(MOCK_TODAY_ISO + "T00:00:00Z"); 
+                const hoje = parseISO(MOCK_TODAY_ISO + "T00:00:00Z");
                 const vencimentoDate = parseISO(alerta.dataVencimento + "T00:00:00Z");
 
                 let statusText = "";
@@ -330,8 +370,8 @@ export default function DashboardPage() {
                   IconComponent = AlertTriangle;
                   iconColorClass = "text-amber-600";
                 } else {
-                  const diasParaVencer = differenceInDays(vencimentoDate, hoje); 
-                  if (diasParaVencer <= 7 && diasParaVencer > 0) { 
+                  const diasParaVencer = differenceInDays(vencimentoDate, hoje);
+                  if (diasParaVencer <= 7 && diasParaVencer > 0) {
                     statusText = `Vence em ${diasParaVencer} dia(s) (${format(vencimentoDate, "dd/MM/yy", { locale: ptBR })})`;
                     statusClasses = "border-yellow-500/40 bg-yellow-500/10 text-yellow-600";
                     IconComponent = ClockIcon;
@@ -340,7 +380,7 @@ export default function DashboardPage() {
                     statusText = `Vence em ${format(vencimentoDate, "dd/MM/yyyy", { locale: ptBR })}`;
                     IconComponent = CalendarDays;
                     iconColorClass = "text-muted-foreground";
-                  } else { 
+                  } else {
                      statusText = `Vence em ${format(vencimentoDate, "dd/MM/yyyy", { locale: ptBR })}`;
                   }
                 }
@@ -372,7 +412,7 @@ export default function DashboardPage() {
           </div>
         )}
       </CardContent>
-      {contasAPagarAlertas.length > 0 && (
+      {contasAPagarAlertas.length > 0 && !isLoading && (
         <CardFooter className="pt-4 mt-2 border-t">
             <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/financeiro?tab=contas-a-pagar">
@@ -391,13 +431,14 @@ const lembretesRevisaoCard = (
           <CalendarClock className="mr-2 h-6 w-6 text-blue-500" /> Lembretes de Revisão Pendentes
         </CardTitle>
         <CardDescription>
-          {simulatedLembreteRevisaoAtivo 
+          {simulatedLembreteRevisaoAtivo
             ? `Clientes com revisão pendente (intervalo de ${simulatedDiasParaRevisao} dias pós-OS).`
             : "O sistema de lembretes de revisão pós-OS está desativado."}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {!simulatedLembreteRevisaoAtivo ? (
+        {isLoading ? renderContasPagarSkeleton() : // Reusing skeleton for similar structure
+         !simulatedLembreteRevisaoAtivo ? (
           <div className="p-4 text-center text-muted-foreground">
             <p>Ative os lembretes na <Link href="/dashboard/configuracoes" className="underline text-primary">página de configurações</Link>.</p>
           </div>
@@ -431,7 +472,7 @@ const lembretesRevisaoCard = (
           </div>
         )}
       </CardContent>
-      {simulatedLembreteRevisaoAtivo && clientesParaLembreteRevisao.length > 0 && (
+      {simulatedLembreteRevisaoAtivo && clientesParaLembreteRevisao.length > 0 && !isLoading && (
          <CardFooter className="pt-4 mt-2 border-t">
             <p className="text-xs text-muted-foreground">Total de {clientesParaLembreteRevisao.length} lembretes pendentes.</p>
         </CardFooter>
@@ -448,6 +489,7 @@ const lembretesRevisaoCard = (
           <CardDescription>Comparativo mensal do lucro obtido em relação ao orçado.</CardDescription>
         </CardHeader>
         <CardContent className="p-4">
+          {isLoading ? <Skeleton className="h-[250px] w-full" /> :
           <ChartContainer config={chartConfigLucro} className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart data={lucroChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
@@ -461,6 +503,7 @@ const lembretesRevisaoCard = (
               </RechartsLineChart>
             </ResponsiveContainer>
           </ChartContainer>
+          }
         </CardContent>
       </Card>
       <Card className="shadow-lg lg:col-span-1">
@@ -469,6 +512,7 @@ const lembretesRevisaoCard = (
           <CardDescription>Total de vendas diárias na semana atual.</CardDescription>
         </CardHeader>
         <CardContent className="p-4">
+          {isLoading ? <Skeleton className="h-[250px] w-full" /> :
           <ChartContainer config={chartConfigVendas} className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsBarChart data={vendasSemanaData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
@@ -480,6 +524,7 @@ const lembretesRevisaoCard = (
               </RechartsBarChart>
             </ResponsiveContainer>
           </ChartContainer>
+          }
         </CardContent>
       </Card>
     </div>
@@ -494,6 +539,7 @@ const lembretesRevisaoCard = (
         <CardDescription>Selecione uma data para ver os compromissos. Conecte sua agenda para sincronizar.</CardDescription>
       </CardHeader>
       <CardContent className="p-4 flex justify-center">
+        {isLoading ? <Skeleton className="h-[280px] w-full rounded-md" /> :
         <Calendar
           mode="single"
           selected={selectedDate}
@@ -506,7 +552,7 @@ const lembretesRevisaoCard = (
             scheduled: scheduledDays
           }}
           modifiersClassNames={{
-            scheduled: 'day-scheduled' 
+            scheduled: 'day-scheduled'
           }}
           components={{
             DayContent: (props) => {
@@ -522,6 +568,7 @@ const lembretesRevisaoCard = (
             }
           }}
         />
+        }
       </CardContent>
       <CardFooter className="border-t pt-4">
         <Button variant="outline" onClick={handleConnectGoogleCalendar} className="w-full">
@@ -531,17 +578,37 @@ const lembretesRevisaoCard = (
     </Card>
   );
 
+  const renderAppointmentsSkeleton = () => (
+    <div className="space-y-4 p-6">
+      {[...Array(3)].map((_, i) => (
+        <React.Fragment key={i}>
+          <div className="flex items-start gap-3 p-3 rounded-lg">
+            <Skeleton className="h-5 w-5 rounded-full mt-1" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-2/3" />
+            </div>
+            <Skeleton className="h-7 w-20 rounded-md" />
+          </div>
+          {i < 2 && <Separator />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+
   const appointmentsCard = (
     <Card className="shadow-lg flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline text-xl">
-          Agendamentos para {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : "o dia selecionado"}
+          Agendamentos para {isLoading || !selectedDate ? <Skeleton className="h-6 w-32 inline-block" /> : format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
         </CardTitle>
         <CardDescription>Lista dos serviços agendados para este dia.</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 p-0">
         <ScrollArea className="h-[350px] sm:h-[400px] md:h-[450px] px-6">
-          {agendamentosDoDia.length > 0 ? (
+          {isLoading ? renderAppointmentsSkeleton() :
+           agendamentosDoDia.length > 0 ? (
             <div className="space-y-4">
               {agendamentosDoDia.map((ag, index) => (
                 <React.Fragment key={ag.id}>
@@ -575,9 +642,9 @@ const lembretesRevisaoCard = (
        </CardFooter>
     </Card>
   );
-  
+
   const calendarAndAppointmentsSection = (
-     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> 
+     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {calendarCard}
         {appointmentsCard}
     </div>
@@ -595,6 +662,11 @@ const lembretesRevisaoCard = (
           </div>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -622,6 +694,7 @@ const lembretesRevisaoCard = (
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
       <Card className="shadow-lg">
@@ -633,6 +706,11 @@ const lembretesRevisaoCard = (
           </div>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -653,6 +731,7 @@ const lembretesRevisaoCard = (
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -689,7 +768,7 @@ const lembretesRevisaoCard = (
                   </form>
               </div>
           </div>
-          
+
           <Separator className="my-4" />
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -699,15 +778,15 @@ const lembretesRevisaoCard = (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {financialKpiData.map(financialKpiCardComponent)}
           </div>
-          
-          {calendarAndAppointmentsSection} 
+
+          {calendarAndAppointmentsSection}
 
           {contasAPagarAlertsCard}
           {lembretesRevisaoCard}
 
           {mainChartSection}
           {tablesSection}
-          
+
           <Card className="shadow-lg bg-gradient-to-r from-primary/80 to-accent/80 text-primary-foreground p-6 flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                   <h3 className="text-xl font-bold">Quer mais comodidade e eficiência?</h3>

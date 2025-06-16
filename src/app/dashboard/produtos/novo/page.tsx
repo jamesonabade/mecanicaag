@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, PackagePlus, FileArchive, CalendarIcon as CalendarLucideIcon } from "lucide-react";
+import { ChevronLeft, Save, PackagePlus, FileArchive, CalendarIcon as CalendarLucideIcon, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ const unidadesMedida = [
 
 const produtoFormSchema = z.object({
   nome: z.string().min(3, { message: "Nome do produto deve ter pelo menos 3 caracteres." }),
-  codigoSku: z.string().optional().or(z.literal('')), 
+  codigoSku: z.string().optional().or(z.literal('')),
   descricao: z.string().optional(),
   categoriaId: z.string({ required_error: "Selecione uma categoria." }),
   fornecedorId: z.string().optional(),
@@ -68,7 +68,7 @@ const produtoFormSchema = z.object({
   precoVenda: z.coerce.number().min(0, { message: "Preço de venda não pode ser negativo." }),
   estoqueAtual: z.coerce.number().int().min(0, { message: "Estoque não pode ser negativo." }).default(0),
   estoqueMinimo: z.coerce.number().int().min(0, { message: "Estoque mínimo não pode ser negativo." }).optional(),
-  localizacao: z.string().optional(), 
+  localizacao: z.string().optional(),
   observacoes: z.string().optional(),
   // NF-e de Compra
   nfeCompraChave: z.string().length(44, {message: "Chave de acesso deve ter 44 dígitos."}).optional().or(z.literal('')),
@@ -101,13 +101,17 @@ export default function NovoProdutoPage() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   async function onSubmit(data: ProdutoFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     console.log(data);
     toast({
       title: "Produto Cadastrado (Simulado)",
       description: `O produto "${data.nome}" foi salvo com sucesso (simulação).`,
     });
-    // form.reset(); 
+    // form.reset();
   }
 
   return (
@@ -182,7 +186,7 @@ export default function NovoProdutoPage() {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="descricao"
@@ -313,7 +317,7 @@ export default function NovoProdutoPage() {
                     </FormItem>
                   )}
                 />
-                
+
                 <Separator className="my-4" />
                 <h3 className="text-lg font-medium flex items-center gap-2"><FileArchive className="h-5 w-5 text-muted-foreground"/> Dados da Nota Fiscal de Compra (Entrada - Opcional)</h3>
                 <FormField
@@ -409,8 +413,17 @@ export default function NovoProdutoPage() {
               <Button type="button" variant="outline" asChild>
                 <Link href="/dashboard/produtos">Cancelar</Link>
               </Button>
-              <Button type="submit">
-                <Save className="mr-2 h-4 w-4" /> Salvar Produto
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Produto
+                  </>
+                )}
               </Button>
             </CardFooter>
           </form>
@@ -419,6 +432,3 @@ export default function NovoProdutoPage() {
     </div>
   );
 }
-
-
-    

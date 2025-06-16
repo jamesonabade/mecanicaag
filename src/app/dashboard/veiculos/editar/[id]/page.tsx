@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, Car, User, Image as ImageIcon, Edit3 } from "lucide-react";
+import { ChevronLeft, Save, Car, User, Image as ImageIcon, Edit3, Loader2 } from "lucide-react";
 import { getVeiculoById, updateVeiculo, Veiculo } from "@/lib/mockData/veiculos";
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 
@@ -30,7 +30,7 @@ const anoAtual = new Date().getFullYear();
 
 const veiculoFormSchema = z.object({
   clienteId: z.string({ required_error: "Selecione o proprietário (cliente)." }),
-  placa: z.string().min(7, { message: "Placa deve ter pelo menos 7 caracteres." }).max(8, {message: "Placa inválida."}), 
+  placa: z.string().min(7, { message: "Placa deve ter pelo menos 7 caracteres." }).max(8, {message: "Placa inválida."}),
   marca: z.string().min(2, { message: "Marca é obrigatória." }),
   modelo: z.string().min(2, { message: "Modelo é obrigatório." }),
   anoFabricacao: z.coerce.number()
@@ -69,6 +69,8 @@ export default function EditarVeiculoPage() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   useEffect(() => {
     setClientes(getClientes());
     if (veiculoId) {
@@ -96,6 +98,8 @@ export default function EditarVeiculoPage() {
   }, [veiculoId, form, router, toast]);
 
   async function onSubmit(data: VeiculoFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     try {
       const success = updateVeiculo(veiculoId, data);
       if (success) {
@@ -114,7 +118,7 @@ export default function EditarVeiculoPage() {
   }
 
   if (!veiculoId) {
-    return <p>Carregando...</p>; 
+    return <p>Carregando...</p>;
   }
 
   return (
@@ -173,7 +177,18 @@ export default function EditarVeiculoPage() {
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-6 border-t">
               <Button type="button" variant="outline" asChild><Link href="/dashboard/veiculos">Cancelar</Link></Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}><Save className="mr-2 h-4 w-4" /> Salvar Alterações</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Alterações
+                  </>
+                )}
+              </Button>
             </CardFooter>
           </form>
         </Form>

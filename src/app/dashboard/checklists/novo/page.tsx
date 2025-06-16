@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, PlusCircle, Trash2, GripVertical } from "lucide-react";
+import { ChevronLeft, Save, PlusCircle, Trash2, GripVertical, Loader2 } from "lucide-react";
 
 const itemChecklistSchema = z.object({
   id: z.string().optional(), // Para itens existentes, se houver edição futura
@@ -61,12 +61,16 @@ export default function NovoChecklistPage() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "itens",
   });
 
   async function onSubmit(data: ChecklistFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     console.log(data);
     toast({
       title: "Checklist Criado (Simulado)",
@@ -267,8 +271,17 @@ export default function NovoChecklistPage() {
               <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/checklists">Cancelar</Link>
               </Button>
-              <Button type="submit" className="w-full sm:w-auto">
-                <Save className="mr-2 h-4 w-4" /> Salvar Modelo de Checklist
+              <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
+                 {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Modelo de Checklist
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label"; // Ensure Label is imported
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ListOrdered, PlusCircle, Edit, Trash2, Search, Filter as FilterIcon, ChevronLeft } from "lucide-react";
+import { ListOrdered, PlusCircle, Edit, Trash2, Search, Filter as FilterIcon, ChevronLeft, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { getServicosCatalogo, addServicoCatalogo, updateServicoCatalogo, deleteServicoCatalogo, ServicoCatalogo } from "@/lib/mockData/catalogoServicos";
 // Import mock checklist models - adjust path if necessary
-import { mockChecklistModelsData as getMockChecklistModels } from "@/app/dashboard/servicos/[id]/page"; 
+import { mockChecklistModelsData as getMockChecklistModels } from "@/app/dashboard/servicos/[id]/page";
 import {
   Form,
   FormControl,
@@ -29,6 +29,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"; // Ensure Form and related components are imported
+import { Skeleton } from "@/components/ui/skeleton";
 
 const servicoCatalogoFormSchema = z.object({
   nome: z.string().min(5, { message: "Nome do serviço deve ter pelo menos 5 caracteres." }),
@@ -52,7 +53,8 @@ export default function CatalogoServicosPage() {
   const [editingServico, setEditingServico] = useState<ServicoCatalogo | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("Todas");
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   const checklistModels = useMemo(() => getMockChecklistModels, []);
 
   const form = useForm<ServicoCatalogoFormValues>({
@@ -67,9 +69,16 @@ export default function CatalogoServicosPage() {
       checklistAssociadoId: "", // Keep as empty string for form state
     },
   });
+  const { formState: { isSubmitting: isDialogSubmitting } } = form;
+
 
   useEffect(() => {
-    setServicos(getServicosCatalogo());
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setServicos(getServicosCatalogo());
+      setIsLoading(false);
+    }, 700); // Simulate 0.7 second delay
+    return () => clearTimeout(timer);
   }, []);
 
   const filteredServicos = useMemo(() => {
@@ -101,7 +110,8 @@ export default function CatalogoServicosPage() {
     setIsFormOpen(true);
   };
 
-  const onSubmit = (data: ServicoCatalogoFormValues) => {
+  const onSubmit = async (data: ServicoCatalogoFormValues) => {
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
     const servicoDataPayload = {
       ...data,
       itensInclusos: data.itensInclusos ? data.itensInclusos.split(',').map(item => item.trim()).filter(item => item) : [],
@@ -127,6 +137,33 @@ export default function CatalogoServicosPage() {
     toast({ title: "Serviço Excluído!", description: "O serviço foi removido do catálogo." });
   };
 
+  const renderSkeletonTable = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead><Skeleton className="h-5 w-32" /></TableHead>
+          <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+          <TableHead className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableHead>
+          <TableHead className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableHead>
+          <TableHead className="text-center"><Skeleton className="h-5 w-20 mx-auto" /></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {[...Array(3)].map((_, i) => (
+          <TableRow key={i}>
+            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+            <TableCell className="flex justify-center gap-1">
+              <Skeleton className="h-8 w-8" /> <Skeleton className="h-8 w-8" />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -149,10 +186,10 @@ export default function CatalogoServicosPage() {
           <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="searchServicoCatalogo">Buscar (Nome, Descrição)</Label>
-              <Input 
-                id="searchServicoCatalogo" 
-                placeholder="Digite para buscar..." 
-                value={searchTerm} 
+              <Input
+                id="searchServicoCatalogo"
+                placeholder="Digite para buscar..."
+                value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="h-9"
               />
@@ -187,7 +224,8 @@ export default function CatalogoServicosPage() {
           <CardDescription>Gerencie os serviços oferecidos pela oficina.</CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredServicos.length > 0 ? (
+          {isLoading ? renderSkeletonTable() :
+           filteredServicos.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -326,11 +364,21 @@ export default function CatalogoServicosPage() {
           </div>
           <DialogFooter className="mt-auto pt-4 border-t">
             <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
-            <Button type="submit" onClick={form.handleSubmit(onSubmit)}>Salvar Serviço</Button>
+            <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={isDialogSubmitting}>
+              {isDialogSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" /> Salvar Serviço
+                </>
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-

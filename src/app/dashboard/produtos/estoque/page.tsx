@@ -1,16 +1,17 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react"; // Added useState and useMemo
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"; // Added Table components
-import { Badge } from "@/components/ui/badge"; // Added Badge
-import { ChevronLeft, PackageSearch, Filter, Search as SearchIcon, Edit, PlusCircle } from "lucide-react"; // Added Edit and PlusCircle
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, PackageSearch, Filter, Search as SearchIcon, Edit, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProdutoEstoque {
   id: string;
@@ -48,6 +49,17 @@ export default function ConsultarEstoquePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("Todas");
   const [showOnlyLowStock, setShowOnlyLowStock] = useState(false);
+  const [produtos, setProdutos] = useState<ProdutoEstoque[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setProdutos(mockProdutosEstoque);
+      setIsLoading(false);
+    }, 700); // Simulate 0.7 second delay
+    return () => clearTimeout(timer);
+  }, []);
 
 
   const handleAdvancedFilter = () => {
@@ -58,20 +70,39 @@ export default function ConsultarEstoquePage() {
   }
 
   const filteredProdutos = useMemo(() => {
-    return mockProdutosEstoque.filter(produto => {
+    return produtos.filter(produto => {
       const searchTermLower = searchTerm.toLowerCase();
-      const matchesSearchTerm = 
+      const matchesSearchTerm =
         produto.nome.toLowerCase().includes(searchTermLower) ||
         produto.codigoSku.toLowerCase().includes(searchTermLower) ||
         (produto.fornecedor && produto.fornecedor.toLowerCase().includes(searchTermLower));
-      
+
       const matchesCategoria = categoriaFilter === "Todas" || produto.categoria === categoriaFilter;
-      
+
       const matchesLowStock = !showOnlyLowStock || (produto.estoqueMinimo !== undefined && produto.estoqueAtual <= produto.estoqueMinimo);
 
       return matchesSearchTerm && matchesCategoria && matchesLowStock;
     });
-  }, [searchTerm, categoriaFilter, showOnlyLowStock]);
+  }, [produtos, searchTerm, categoriaFilter, showOnlyLowStock]);
+
+  const renderSkeletonTable = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {[...Array(7)].map((_, i) => <TableHead key={i}><Skeleton className="h-5 w-full" /></TableHead>)}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {[...Array(5)].map((_, i) => (
+          <TableRow key={i}>
+            {[...Array(6)].map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}
+            <TableCell className="text-center"><Skeleton className="h-8 w-8" /></TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
 
   return (
     <div className="container mx-auto py-10">
@@ -103,10 +134,10 @@ export default function ConsultarEstoquePage() {
                 <label htmlFor="searchProdutoEstoque" className="block text-sm font-medium text-muted-foreground mb-1">
                   Buscar (Nome, SKU, Fornecedor)
                 </label>
-                <Input 
-                    id="searchProdutoEstoque" 
-                    type="text" 
-                    placeholder="Digite para buscar..." 
+                <Input
+                    id="searchProdutoEstoque"
+                    type="text"
+                    placeholder="Digite para buscar..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="h-9"
@@ -158,7 +189,8 @@ export default function ConsultarEstoquePage() {
           <CardDescription>Lista de produtos encontrados no estoque.</CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredProdutos.length > 0 ? (
+          {isLoading ? renderSkeletonTable() :
+           filteredProdutos.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>

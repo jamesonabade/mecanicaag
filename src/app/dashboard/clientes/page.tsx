@@ -43,9 +43,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { getClientes, deleteCliente, Cliente } from "@/lib/mockData/clientes"; 
+import { getClientes, deleteCliente, Cliente } from "@/lib/mockData/clientes";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClientesPage() {
   const { toast } = useToast();
@@ -54,14 +55,18 @@ export default function ClientesPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setListaClientes(getClientes());
-    setIsLoading(false);
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setListaClientes(getClientes());
+      setIsLoading(false);
+    }, 700); // Simulate 0.7 second delay
+    return () => clearTimeout(timer);
   }, []);
 
   const handleDeleteCliente = (clienteId: string) => {
     const success = deleteCliente(clienteId);
     if (success) {
-      setListaClientes(getClientes()); 
+      setListaClientes(getClientes());
       toast({
         title: "Cliente Excluído",
         description: "O cliente foi removido com sucesso.",
@@ -86,13 +91,38 @@ export default function ClientesPage() {
     );
   }, [listaClientes, searchTerm]);
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-10">
-        <p>Carregando clientes...</p>
-      </div>
-    );
-  }
+  const renderSkeletonTable = () => (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead><Skeleton className="h-5 w-32" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-40" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+            <TableHead className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+              <TableCell className="text-right space-x-1">
+                <Skeleton className="h-8 w-8 inline-block" />
+                <Skeleton className="h-8 w-8 inline-block" />
+                <Skeleton className="h-8 w-8 inline-block" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 
   return (
     <div className="container mx-auto py-10">
@@ -148,7 +178,8 @@ export default function ClientesPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredClientes.length > 0 ? (
+          {isLoading ? renderSkeletonTable() :
+           filteredClientes.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

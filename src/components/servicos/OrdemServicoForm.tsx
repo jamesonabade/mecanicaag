@@ -1,12 +1,12 @@
 
 "use client";
 
-import React, { useEffect, useState, useMemo }  from "react"; 
+import React, { useEffect, useState, useMemo }  from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form"; // Added useFieldArray
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation"; 
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, CalendarIcon, Wrench, User, Car, PlusCircle, Trash2, Search as SearchIcon, DollarSign, Percent } from "lucide-react"; // Added Trash2, SearchIcon
+import { ChevronLeft, Save, CalendarIcon, Wrench, User, Car, PlusCircle, Trash2, Search as SearchIcon, DollarSign, Percent, Loader2 } from "lucide-react"; // Added Trash2, SearchIcon
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
 import { getMecanicos, Funcionario } from "@/lib/mockData/funcionarios";
@@ -43,7 +43,7 @@ interface TipoServicoPadrao {
   valorPadrao?: number;
   tempoEstimadoHoras?: number;
   checklistModeloIdObrigatorio?: string;
-  nomeChecklistObrigatorio?: string; 
+  nomeChecklistObrigatorio?: string;
   categoria?: 'Mecânica Geral' | 'Elétrica' | 'Funilaria' | 'Revisão' | 'Diagnóstico' | 'Diversos';
 }
 
@@ -103,7 +103,7 @@ const osFormSchema = z.object({
   descontoValor: z.coerce.number().min(0).optional().default(0), // Added from budget form
 }).refine(data => (data.servicos && data.servicos.length > 0) || (data.pecas && data.pecas.length > 0), {
   message: "Adicione pelo menos um serviço ou peça à Ordem de Serviço.",
-  path: ["servicos"], 
+  path: ["servicos"],
 });
 
 type OsFormValues = z.infer<typeof osFormSchema>;
@@ -116,10 +116,10 @@ export default function OrdemServicoForm() {
   const [clientes, setClientesState] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const [mecanicos, setMecanicos] = React.useState<Funcionario[]>([]);
-  
+
   const [searchTermServico, setSearchTermServico] = useState("");
   const [searchResultsServico, setSearchResultsServico] = useState<TipoServicoPadrao[]>([]);
-  
+
   const [searchTermPeca, setSearchTermPeca] = useState("");
   const [searchResultsPeca, setSearchResultsPeca] = useState<Produto[]>([]);
   const [availableProdutos, setAvailableProdutos] = useState<Produto[]>(mockProdutosCatalogo);
@@ -142,6 +142,8 @@ export default function OrdemServicoForm() {
     },
   });
 
+  const { formState: { isSubmitting } } = form;
+
   const { fields: servicoFields, append: appendServico, remove: removeServico } = useFieldArray({
     control: form.control,
     name: "servicos",
@@ -163,7 +165,7 @@ export default function OrdemServicoForm() {
    useEffect(() => {
     const queryClienteId = searchParams.get("clienteId");
     const queryVeiculoId = searchParams.get("veiculoId");
-    const queryOrcamentoId = searchParams.get("orcamentoId"); 
+    const queryOrcamentoId = searchParams.get("orcamentoId");
     const queryEntradaId = searchParams.get("entradaId");
 
 
@@ -198,11 +200,11 @@ export default function OrdemServicoForm() {
       setVeiculosCliente(clienteTemVeiculos);
       const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === form.getValues("veiculoId"));
       if (!veiculoAtualPertenceAoCliente) {
-         form.setValue("veiculoId", ""); 
+         form.setValue("veiculoId", "");
       }
     } else {
       setVeiculosCliente([]);
-       form.setValue("veiculoId", ""); 
+       form.setValue("veiculoId", "");
     }
   }, [selectedClienteId, form]);
 
@@ -235,7 +237,7 @@ export default function OrdemServicoForm() {
     setSearchTermServico("");
     setSearchResultsServico([]);
   };
-  
+
   useEffect(() => {
     if (searchTermPeca.trim().length > 1) {
       const lowerSearchTerm = searchTermPeca.toLowerCase();
@@ -279,6 +281,8 @@ export default function OrdemServicoForm() {
 
 
   async function onSubmit(data: OsFormValues) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     const dataToSubmit = {
         ...data,
         totalServicos,
@@ -291,6 +295,7 @@ export default function OrdemServicoForm() {
       title: "Ordem de Serviço Criada (Simulado)",
       description: "A OS foi salva com sucesso (simulação).",
     });
+    // router.push("/dashboard/servicos"); // Optional: redirect after save
   }
 
   const handleAdicionarServicoCatalogo = () => {
@@ -305,7 +310,7 @@ export default function OrdemServicoForm() {
       )
     });
   };
-  
+
   const handleAdicionarProdutoCatalogo = () => {
     toast({
       title: "Novo Produto no Catálogo",
@@ -384,7 +389,7 @@ export default function OrdemServicoForm() {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="descricaoProblema"
@@ -427,7 +432,7 @@ export default function OrdemServicoForm() {
                   </FormItem>
                 )}/>
               </div>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 <FormField control={form.control} name="mecanicoId" render={({ field }) => (
                   <FormItem>
@@ -502,7 +507,7 @@ export default function OrdemServicoForm() {
                         <p className="text-sm text-muted-foreground mt-1">Nenhum serviço encontrado com "{searchTermServico}".</p>
                     )}
                 </div>
-                
+
               {servicoFields.length > 0 && <Separator className="my-4" />}
               {servicoFields.map((item, index) => (
                 <div key={item.id} className="p-4 border rounded-md space-y-3 bg-muted/30 relative">
@@ -651,8 +656,17 @@ export default function OrdemServicoForm() {
               <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/dashboard/servicos">Cancelar</Link>
               </Button>
-              <Button type="submit" className="w-full sm:w-auto">
-                <Save className="mr-2 h-4 w-4" /> Salvar Ordem de Serviço
+              <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
+                 {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Salvar Ordem de Serviço
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>
@@ -661,5 +675,3 @@ export default function OrdemServicoForm() {
     </div>
   );
 }
-
-    
