@@ -152,16 +152,11 @@ export default function OrdemServicoDetalhesPage() {
   const [checklistResponses, setChecklistResponses] = useState<Record<string, any>>({});
   const [checklistResponsavel, setChecklistResponsavel] = useState("");
   const [filledChecklistsForOS, setFilledChecklistsForOS] = useState<FilledChecklist[]>(
-    // Se mockOrdensServico tiver a estrutura completa, podemos usar diretamente
-    // Por agora, vamos assumir que `checklistsPreenchidos` em `mockOrdensServico` é apenas `FilledChecklistInfo[]`
-    // e precisaremos simular o preenchimento ou buscar de outro local no futuro.
-    // Para esta demo, vamos simular que a OS pode já ter checklists com respostas.
     osDataFound?.checklistsPreenchidos.map(info => ({
         ...info,
         respostas: mockChecklistModelsData.find(m => m.id === info.modelId)?.itens.map(item => ({
             itemId: item.id,
             texto: item.texto,
-            // Resposta mockada aqui para visualização, em um caso real viria do DB
             resposta: item.tipoResposta === 'sim_nao' ? 'Sim' : item.tipoResposta === 'texto_curto' ? 'Ok' : null 
         })) || []
     })) || []
@@ -174,14 +169,11 @@ export default function OrdemServicoDetalhesPage() {
       setCurrentStatus(osDataFound.status as OSStatus);
       setDiagnostico(osDataFound.diagnosticoTecnico || "");
       setItensServico(osDataFound.itensExecutados || []);
-      // Atualizar filledChecklistsForOS com base nos dados carregados da OS
-      // Isso simula que a OS já pode ter checklists preenchidos com respostas
        const loadedFilledChecklists = osDataFound.checklistsPreenchidos.map(info => {
         const model = mockChecklistModelsData.find(m => m.id === info.modelId);
         return {
           ...info,
           respostas: model?.itens.map(item => {
-            // Simulação de busca de resposta, em um caso real viria do DB/OS
             const mockResposta = `Resposta para ${item.texto.substring(0,10)}...`; 
             return {
               itemId: item.id,
@@ -226,7 +218,6 @@ export default function OrdemServicoDetalhesPage() {
 
   const handleSaveDiagnostico = () => {
     console.log("Diagnóstico salvo:", diagnostico);
-    // Aqui, atualizaria o mockOrdensServico ou faria uma chamada API
     const osIndex = mockOrdensServico.findIndex(os => os.id === osData.id);
     if (osIndex > -1) {
       mockOrdensServico[osIndex].diagnosticoTecnico = diagnostico;
@@ -237,7 +228,7 @@ export default function OrdemServicoDetalhesPage() {
   const handleAddItem = (tipo: 'servico' | 'peca') => {
     const newItem: ItemOS = {
         id: `new_${tipo}_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-        descricao: "", 
+        descricao: tipo === 'servico' ? "Novo Serviço (detalhar)" : "Nova Peça (detalhar)",
         valor: 0,
         tipo: tipo,
         ...(tipo === 'peca' && { quantidade: 1 }),
@@ -325,11 +316,9 @@ export default function OrdemServicoDetalhesPage() {
 
     setFilledChecklistsForOS(prev => [...prev, newFilledChecklist]);
     
-    // Atualizar o mockOrdensServico global (simulação)
     const osIndex = mockOrdensServico.findIndex(os => os.id === osData.id);
     if (osIndex > -1) {
       const currentChecklistsInfo = mockOrdensServico[osIndex].checklistsPreenchidos || [];
-      // Adicionamos apenas a info, já que 'respostas' seria grande para o mock da lista
       const newChecklistInfo: FilledChecklistInfo = {
         id: newFilledChecklist.id,
         modelId: newFilledChecklist.modelId,
