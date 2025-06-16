@@ -7,34 +7,32 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ChevronLeft, Edit, UserCircle, Phone, Mail, MapPin, FileText, Car } from "lucide-react";
+import { ChevronLeft, Edit, UserCircle, Phone, Mail, MapPin, FileText, Car, Wrench, PlusCircle } from "lucide-react";
 import { getClienteById, Cliente } from "@/lib/mockData/clientes";
+import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-// Mock para veículos, em uma aplicação real, viria do backend
-import { mockVeiculos } from "@/lib/mockData/veiculos"; 
 
 export default function VisualizarClientePage() {
   const router = useRouter();
   const params = useParams();
   const clienteId = params.id as string;
   const [cliente, setCliente] = useState<Cliente | null>(null);
+  const [veiculosDoCliente, setVeiculosDoCliente] = useState<Veiculo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (clienteId) {
-      const data = getClienteById(clienteId);
-      if (data) {
-        setCliente(data);
+      const dataCliente = getClienteById(clienteId);
+      if (dataCliente) {
+        setCliente(dataCliente);
+        setVeiculosDoCliente(getVeiculosByClienteId(dataCliente.id));
       } else {
-        // Adicionar um toast ou mensagem se o cliente não for encontrado
-        router.push("/dashboard/clientes"); // Redireciona se não encontrar
+        router.push("/dashboard/clientes"); 
       }
       setIsLoading(false);
     }
   }, [clienteId, router]);
-
-  const veiculosDoCliente = cliente ? mockVeiculos.filter(v => v.clienteId === cliente.id) : [];
 
   if (isLoading) {
     return <div className="container mx-auto py-10"><p>Carregando dados do cliente...</p></div>;
@@ -134,9 +132,15 @@ export default function VisualizarClientePage() {
                 <div className="space-y-3">
                     {veiculosDoCliente.map(veiculo => (
                         <Card key={veiculo.id} className="bg-card border p-3 hover:shadow-md">
-                            <p className="font-semibold">{veiculo.marca} {veiculo.modelo} - <span className="font-normal text-muted-foreground">{veiculo.placa}</span></p>
-                            <p className="text-xs text-muted-foreground">Cor: {veiculo.cor} | Ano Fab/Mod: {veiculo.anoFabricacao}/{veiculo.anoModelo}</p>
-                            {/* Adicionar link para detalhes do veículo no futuro */}
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="font-semibold">{veiculo.marca} {veiculo.modelo} - <span className="font-normal text-muted-foreground">{veiculo.placa}</span></p>
+                                    <p className="text-xs text-muted-foreground">Cor: {veiculo.cor || 'N/A'} | Ano Fab/Mod: {veiculo.anoFabricacao || 'N/A'}/{veiculo.anoModelo || 'N/A'}</p>
+                                </div>
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href={`/dashboard/veiculos/${veiculo.id}`}>Ver Detalhes</Link>
+                                </Button>
+                            </div>
                         </Card>
                     ))}
                 </div>
@@ -160,7 +164,6 @@ export default function VisualizarClientePage() {
                 <p>O histórico de ordens de serviço e orçamentos deste cliente será exibido aqui.</p>
             </div>
           </section>
-
 
         </CardContent>
         <CardFooter className="border-t pt-6">

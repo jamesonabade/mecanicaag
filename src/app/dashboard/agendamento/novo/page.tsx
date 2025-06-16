@@ -78,12 +78,12 @@ export default function NovoAgendamentoPage() {
     },
   });
 
-  const [clientes, setClientes] = React.useState<Cliente[]>([]);
+  const [clientes, setClientesState] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const selectedClienteId = form.watch("clienteId");
 
   React.useEffect(() => {
-    setClientes(getClientes());
+    setClientesState(getClientes());
   }, []);
 
   React.useEffect(() => {

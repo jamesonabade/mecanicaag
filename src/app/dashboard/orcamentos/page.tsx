@@ -11,39 +11,15 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import React from "react"; 
+import { getClienteById, Cliente } from "@/lib/mockData/clientes";
+import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
 
 // Mock data - Mover para um arquivo central no futuro
-interface Cliente {
-  id: string;
-  nome: string;
-  cpfCnpj?: string; 
-}
-interface Veiculo {
-  id: string;
-  clienteId: string;
-  modelo: string;
-  placa: string;
-  marca?: string; 
-}
-
-const mockClientes: Cliente[] = [
-  { id: "cli001", nome: "João da Silva", cpfCnpj: "111.111.111-11" },
-  { id: "cli002", nome: "Maria Oliveira", cpfCnpj: "222.222.222-22" },
-  { id: "cli003", nome: "Carlos Pereira", cpfCnpj: "333.333.333-33" },
-];
-
-const mockVeiculos: Veiculo[] = [
-  { id: "vec001", clienteId: "cli001", marca: "Honda", modelo: "Civic", placa: "ABC-1234" },
-  { id: "vec002", clienteId: "cli001", marca: "Fiat", modelo: "Strada", placa: "DEF-5678" },
-  { id: "vec003", clienteId: "cli002", marca: "Toyota", modelo: "Corolla", placa: "GHI-9012" },
-  { id: "vec004", clienteId: "cli003", marca: "VW", modelo: "Nivus", placa: "JKL-3456" },
-];
-
 const mockOrcamentosData = [
   {
     id: "ORC001",
-    clienteId: "cli001",
-    veiculoId: "vec001",
+    clienteId: "cli_modelo_001", // Cliente Modelo
+    veiculoId: "vec_modelo_001", // Veículo Modelo
     dataOrcamento: "2024-07-28T10:00:00Z",
     validadeDias: 15,
     totalGeral: 485.00,
@@ -51,8 +27,8 @@ const mockOrcamentosData = [
   },
   {
     id: "ORC002",
-    clienteId: "cli002",
-    veiculoId: "vec003",
+    clienteId: "cli_002_maria",
+    veiculoId: "vec_003_corolla",
     dataOrcamento: "2024-07-29T14:30:00Z",
     validadeDias: 7,
     totalGeral: 1250.75,
@@ -60,8 +36,8 @@ const mockOrcamentosData = [
   },
   {
     id: "ORC003",
-    clienteId: "cli001",
-    veiculoId: "vec002",
+    clienteId: "cli_modelo_001",
+    veiculoId: "vec_002_strada", // Outro veículo do cliente modelo
     dataOrcamento: "2024-07-30T09:15:00Z",
     validadeDias: 10,
     totalGeral: 320.00,
@@ -69,8 +45,8 @@ const mockOrcamentosData = [
   },
   {
     id: "ORC004",
-    clienteId: "cli003",
-    veiculoId: "vec004",
+    clienteId: "cli_003_carlos", // Precisa existir no mock de clientes
+    veiculoId: "vec_004_nivus", // Precisa existir no mock de veículos
     dataOrcamento: "2024-07-30T11:00:00Z",
     validadeDias: 5,
     totalGeral: 880.50,
@@ -81,9 +57,9 @@ const mockOrcamentosData = [
 export default function OrcamentosPage() {
   const { toast } = useToast();
 
-  const getClienteNome = (clienteId: string) => mockClientes.find(c => c.id === clienteId)?.nome || "Desconhecido";
+  const getClienteNome = (clienteId: string) => getClienteById(clienteId)?.nomeCompleto || "Desconhecido";
   const getVeiculoDescricao = (veiculoId: string) => {
-    const veiculo = mockVeiculos.find(v => v.id === veiculoId);
+    const veiculo = getVeiculoById(veiculoId);
     return veiculo ? `${veiculo.marca} ${veiculo.modelo} (${veiculo.placa})` : "Desconhecido";
   };
 
@@ -194,4 +170,3 @@ export default function OrcamentosPage() {
     </div>
   );
 }
-

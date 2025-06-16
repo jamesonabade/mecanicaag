@@ -93,7 +93,7 @@ export default function NovoOrcamentoPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [clientes, setClientes] = React.useState<Cliente[]>([]);
+  const [clientes, setClientesState] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
 
   const form = useForm<OrcamentoFormValues>({
@@ -124,7 +124,7 @@ export default function NovoOrcamentoPage() {
   const selectedClienteId = form.watch("clienteId");
 
   React.useEffect(() => {
-    setClientes(getClientes());
+    setClientesState(getClientes());
   }, []);
 
   // Preencher cliente e veículo se vierem da query
@@ -162,7 +162,7 @@ export default function NovoOrcamentoPage() {
       setVeiculosCliente([]);
       form.setValue("veiculoId", "");
     }
-  }, [selectedClienteId, form, searchParams]);
+  }, [selectedClienteId, form]); // Removido searchParams daqui para evitar loop com o useEffect acima
 
 
   const watchServicos = form.watch("servicos");

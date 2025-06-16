@@ -39,8 +39,8 @@ const mockOrcamentosFullData = [
   },
   {
     id: "ORC002",
-    clienteId: "cli_002_maria", // Corrigido para ID válido de mockClientes (se existir)
-    veiculoId: "vec_003_corolla", // Corrigido para ID válido de mockVeiculos (se existir)
+    clienteId: "cli_002_maria", 
+    veiculoId: "vec_003_corolla", 
     dataOrcamento: "2024-07-29T14:30:00Z",
     validadeDias: 7,
     servicos: [
@@ -57,7 +57,7 @@ const mockOrcamentosFullData = [
    {
     id: "ORC003",
     clienteId: "cli_modelo_001", 
-    veiculoId: "vec_002_strada", // Veículo Fiat Strada do cliente modelo
+    veiculoId: "vec_002_strada", 
     dataOrcamento: "2024-07-30T09:15:00Z",
     validadeDias: 10,
     servicos: [ { id: "s1_orc3", descricao: "Verificação e recarga do ar condicionado", valor: 320.00 } ],
@@ -68,8 +68,8 @@ const mockOrcamentosFullData = [
   },
    {
     id: "ORC004",
-    clienteId: "cli_003_carlos", // Supondo que existe cli_003_carlos
-    veiculoId: "vec_004_nivus", // Supondo que existe vec_004_nivus
+    clienteId: "cli_003_carlos", 
+    veiculoId: "vec_004_nivus", 
     dataOrcamento: "2024-07-30T11:00:00Z",
     validadeDias: 5,
     servicos: [ { id: "s1_orc4", descricao: "Instalação de kit multimídia", valor: 300.00 } ],
@@ -207,7 +207,7 @@ export default function VisualizarOrcamentoPage() {
                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Car className="h-5 w-5 text-primary"/> Veículo</h3>
                     <p><strong>Marca/Modelo:</strong> {veiculo?.marca} {veiculo?.modelo || 'N/A'}</p>
                     <p><strong>Placa:</strong> {veiculo?.placa || 'N/A'}</p>
-                    <p><strong>Ano Fab/Mod:</strong> {veiculo?.anoFabricacao}/{veiculo?.anoModelo || 'N/A'}</p>
+                    <p><strong>Ano Fab/Mod:</strong> {veiculo?.anoFabricacao || 'N/A'}/{veiculo?.anoModelo || 'N/A'}</p>
                 </div>
             </div>
             <div className="grid md:grid-cols-2 gap-6 p-4 border rounded-lg bg-muted/20">

@@ -82,7 +82,7 @@ export default function NovaOrdemServicoPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [clientes, setClientes] = React.useState<Cliente[]>([]);
+  const [clientes, setClientesState] = React.useState<Cliente[]>([]);
   const [veiculosCliente, setVeiculosCliente] = React.useState<Veiculo[]>([]);
   const [checklistRecomendado, setChecklistRecomendado] = React.useState<string | null>(null);
 
@@ -108,7 +108,7 @@ export default function NovaOrdemServicoPage() {
   const selectedTipoServicoId = form.watch("tipoServicoId");
 
   React.useEffect(() => {
-    setClientes(getClientes());
+    setClientesState(getClientes());
   }, []);
 
    // Preencher cliente e veículo se vierem da query

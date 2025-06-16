@@ -88,8 +88,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS003",
-    clienteId: "cli_003_carlos", // Supondo que existe
-    veiculoId: "vec_004_nivus", // Supondo que existe
+    clienteId: "cli_003_carlos", 
+    veiculoId: "vec_004_nivus", 
     dataEntrada: "2024-07-27T09:15:00Z",
     dataPrevisaoEntrega: "2024-07-27T12:00:00Z",
     mecanicoId: "mec001",
@@ -128,8 +128,8 @@ export const mockOrdensServico = [
   },
   {
     id: "OS005",
-    clienteId: "cli_004_ana", // Supondo que existe
-    veiculoId: "vec_005_hb20", // Supondo que existe
+    clienteId: "cli_004_ana", 
+    veiculoId: "vec_005_hb20", 
     dataEntrada: "2024-07-29T08:00:00Z",
     dataPrevisaoEntrega: "2024-07-29T17:00:00Z",
     mecanicoId: "mec003",

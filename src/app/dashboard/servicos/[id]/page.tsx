@@ -419,7 +419,7 @@ export default function OrdemServicoDetalhesPage() {
           <div>
             <p className="font-semibold flex items-center gap-1 mb-0.5"><Car className="h-4 w-4 text-primary"/> Veículo:</p>
             <p className="ml-1">{veiculo?.marca} {veiculo?.modelo} ({veiculo?.placa})</p>
-            <p className="ml-1 text-xs text-muted-foreground">Ano Fab/Mod: {veiculo?.anoFabricacao || '?'}/{veiculo?.anoModelo || '?'} | Cor: {veiculo?.cor || '?'} | KM: {veiculo?.quilometragem || '?'}</p>
+            <p className="ml-1 text-xs text-muted-foreground">Ano Fab/Mod: {veiculo?.anoFabricacao || '?'}/{veiculo?.anoModelo || '?'} | Cor: {veiculo?.cor || '?'} | KM: {veiculo?.quilometragem ? `${veiculo.quilometragem.toLocaleString('pt-BR')} km` : "N/A"}</p>
           </div>
            <div>
             <p className="font-semibold flex items-center gap-1 mb-0.5"><User className="h-4 w-4 text-primary"/> Mecânico Responsável:</p>
