@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label"; // Ensure Label is imported
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ListOrdered, PlusCircle, Edit, Trash2, Search, Filter as FilterIcon, ChevronLeft } from "lucide-react";
@@ -28,7 +28,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/components/ui/form"; // Ensure Form and related components are imported
 
 const servicoCatalogoFormSchema = z.object({
   nome: z.string().min(5, { message: "Nome do serviço deve ter pelo menos 5 caracteres." }),
@@ -43,6 +43,7 @@ const servicoCatalogoFormSchema = z.object({
 type ServicoCatalogoFormValues = z.infer<typeof servicoCatalogoFormSchema>;
 
 const mockCategoriasServico = ["Revisões", "Mecânica Geral", "Diagnóstico", "Suspensão e Direção", "Ar Condicionado", "Elétrica", "Funilaria", "Outros"];
+const NO_CHECKLIST_VALUE = "__NO_CHECKLIST__"; // Unique value for "Nenhum"
 
 export default function CatalogoServicosPage() {
   const { toast } = useToast();
@@ -63,7 +64,7 @@ export default function CatalogoServicosPage() {
       categoria: "",
       tempoEstimadoHoras: undefined,
       itensInclusos: "",
-      checklistAssociadoId: "",
+      checklistAssociadoId: "", // Keep as empty string for form state
     },
   });
 
@@ -95,7 +96,7 @@ export default function CatalogoServicosPage() {
       });
     } else {
       setEditingServico(null);
-      form.reset();
+      form.reset(); // Resets to defaultValues, including checklistAssociadoId: ""
     }
     setIsFormOpen(true);
   };
@@ -104,6 +105,7 @@ export default function CatalogoServicosPage() {
     const servicoDataPayload = {
       ...data,
       itensInclusos: data.itensInclusos ? data.itensInclusos.split(',').map(item => item.trim()).filter(item => item) : [],
+      checklistAssociadoId: data.checklistAssociadoId === NO_CHECKLIST_VALUE ? "" : data.checklistAssociadoId, // Ensure empty string if "Nenhum"
     };
 
     if (editingServico) {
@@ -288,22 +290,37 @@ export default function CatalogoServicosPage() {
                 <FormField control={form.control} name="itensInclusos" render={({ field }) => (
                     <FormItem><FormLabel>Itens/Etapas Inclusas (Opcional, separado por vírgula)</FormLabel><FormControl><Textarea placeholder="Ex: Troca de óleo, Filtro de ar, Verificação de níveis" {...field} rows={2} /></FormControl><FormMessage /></FormItem>
                 )}/>
-                 <FormField control={form.control} name="checklistAssociadoId" render={({ field }) => (
+                 <FormField
+                  control={form.control}
+                  name="checklistAssociadoId"
+                  render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Checklist Associado (Opcional)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Nenhum checklist específico" /></SelectTrigger></FormControl>
+                      <FormLabel>Checklist Associado (Opcional)</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(value === NO_CHECKLIST_VALUE ? "" : value)}
+                        value={field.value === "" ? NO_CHECKLIST_VALUE : field.value || NO_CHECKLIST_VALUE}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Nenhum checklist específico" />
+                          </SelectTrigger>
+                        </FormControl>
                         <SelectContent>
-                            <SelectItem value="">Nenhum</SelectItem>
-                            {checklistModels.map(model => (
-                            <SelectItem key={model.id} value={model.id}>{model.nome}</SelectItem>
-                            ))}
+                          <SelectItem value={NO_CHECKLIST_VALUE}>Nenhum</SelectItem>
+                          {checklistModels.map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.nome}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
-                        </Select>
-                        <FormDescription className="text-xs">Checklist a ser preenchido ao realizar este serviço.</FormDescription>
-                        <FormMessage />
+                      </Select>
+                      <FormDescription className="text-xs">
+                        Checklist a ser preenchido ao realizar este serviço.
+                      </FormDescription>
+                      <FormMessage />
                     </FormItem>
-                )}/>
+                  )}
+                />
               </form>
             </Form>
           </div>
