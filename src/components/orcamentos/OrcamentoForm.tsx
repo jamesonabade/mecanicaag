@@ -180,7 +180,7 @@ export default function OrcamentoForm() {
     }
     if (queryEntradaId) {
         const currentObs = form.getValues("observacoes") || "";
-        form.setValue("observacoes", `Baseado na Entrada ID: ${queryEntradaId}${currentObs ? `\n${currentObs}` : ""}`);
+        form.setValue("observacoes", `Baseado na Entrada ID: ${queryEntradaId}${currentObs ? `\\n${currentObs}` : ""}`);
     }
   }, [searchParams, form]);
 
@@ -492,11 +492,8 @@ export default function OrcamentoForm() {
                 </div>
               ))}
               {servicoFields.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-2">Nenhum serviço adicionado. Use a busca acima ou adicione manualmente.</p>
+                <p className="text-sm text-muted-foreground text-center py-2">Nenhum serviço adicionado. Use a busca acima.</p>
               )}
-              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => appendServico({ id: crypto.randomUUID(), descricao: "", valor: 0 })}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Serviço Manualmente
-              </Button>
                <FormMessage>{form.formState.errors.servicos?.message || form.formState.errors.servicos?.root?.message}</FormMessage>
             </CardContent>
           </Card>
