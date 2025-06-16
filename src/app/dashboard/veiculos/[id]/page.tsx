@@ -8,7 +8,7 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ChevronLeft, Edit, Car, UserCircle, FileText, CalendarIcon, Gauge, Palette, Ticket } from "lucide-react";
+import { ChevronLeft, Edit, Car, UserCircle, FileText, CalendarIcon, Gauge, Palette, Ticket, Wrench } from "lucide-react";
 import { getVeiculoById, Veiculo } from "@/lib/mockData/veiculos";
 import { getClienteById, Cliente } from "@/lib/mockData/clientes";
 import { format } from "date-fns";
