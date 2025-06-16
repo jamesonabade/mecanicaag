@@ -27,11 +27,13 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus, UserCheck, UserCog } from "lucide-react";
+import { ChevronLeft, Save, FilePlus, User, Car, CalendarIcon, PlusCircle, Trash2, DollarSign, Percent, ListPlus, UserCheck, UserCog, Search as SearchIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { getClientes, Cliente } from "@/lib/mockData/clientes";
 import { getVeiculosByClienteId, Veiculo } from "@/lib/mockData/veiculos";
 import { getAtendentes, getMecanicos, Funcionario } from "@/lib/mockData/funcionarios";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 interface TipoServicoPadrao {
   id: string;
@@ -51,6 +53,28 @@ const mockTiposServicoPadrao: TipoServicoPadrao[] = [
   { id: "alinh_balanc", nome: "Alinhamento e Balanceamento (4 rodas)", valorPadrao: 120, categoria: "Mecânica Geral" },
   { id: "outro_serv", nome: "Outro Serviço (Manual)", valorPadrao: 0, categoria: "Diversos"},
 ];
+
+// Interface para Produto (baseado no mockProdutosEstoque de PDV)
+interface Produto {
+  id: string;
+  nome: string;
+  codigoSku: string;
+  precoVenda: number;
+  estoqueAtual: number;
+}
+
+// Mock data de produtos (baseado no mockProdutosEstoque de PDV)
+const mockProdutosCatalogo: Produto[] = [
+  { id: "prod001", nome: "Óleo Motor 5W30 Sintético (Litro)", codigoSku: "SKU001", precoVenda: 45.00, estoqueAtual: 50 },
+  { id: "prod002", nome: "Filtro de Óleo Original Honda Civic", codigoSku: "SKU002", precoVenda: 35.00, estoqueAtual: 30 },
+  { id: "prod003", nome: "Pastilha de Freio Dianteira XYZ", codigoSku: "SKU003", precoVenda: 120.00, estoqueAtual: 15 },
+  { id: "prod004", nome: "Lâmpada H4 Super Branca (Par)", codigoSku: "SKU004", precoVenda: 60.00, estoqueAtual: 25 },
+  { id: "prod005", nome: "Aditivo Radiador Concentrado (Litro)", codigoSku: "SKU005", precoVenda: 25.00, estoqueAtual: 40 },
+  { id: "prod006", nome: "Kit Correia Dentada (Tensor + Correia)", codigoSku: "SKU006", precoVenda: 280.00, estoqueAtual: 10 },
+  { id: "prod007", nome: "Amortecedor Dianteiro (Unidade)", codigoSku: "SKU007", precoVenda: 180.00, estoqueAtual: 8 },
+  { id: "prod008", nome: "Vela de Ignição NGK (Unidade)", codigoSku: "SKU008", precoVenda: 22.50, estoqueAtual: 100 },
+];
+
 
 const orcamentoItemServicoSchema = z.object({
   id: z.string().optional(),
@@ -83,7 +107,7 @@ const orcamentoFormSchema = z.object({
   servicoPreCadastradoSelecionado: z.string().optional(),
 }).refine(data => (data.servicos && data.servicos.length > 0) || (data.pecas && data.pecas.length > 0), {
   message: "Adicione pelo menos um serviço ou peça ao orçamento.",
-  path: ["servicos"],
+  path: ["servicos"], 
 });
 type OrcamentoFormValues = z.infer<typeof orcamentoFormSchema>;
 
@@ -98,6 +122,12 @@ export default function OrcamentoForm() {
   const [atendentes, setAtendentes] = React.useState<Funcionario[]>([]);
   const [mecanicosOrcamentistas, setMecanicosOrcamentistas] = React.useState<Funcionario[]>([]);
   const [atendenteLogado, setAtendenteLogado] = React.useState<Funcionario | null>(null);
+
+  // State for part search
+  const [searchTermPeca, setSearchTermPeca] = useState("");
+  const [searchResultsPeca, setSearchResultsPeca] = useState<Produto[]>([]);
+  const [availableProdutos, setAvailableProdutos] = useState<Produto[]>(mockProdutosCatalogo);
+
 
   const form = useForm<OrcamentoFormValues>({
     resolver: zodResolver(orcamentoFormSchema),
@@ -135,6 +165,7 @@ export default function OrcamentoForm() {
     const todosAtendentes = getAtendentes();
     setAtendentes(todosAtendentes);
     setMecanicosOrcamentistas(getMecanicos());
+    setAvailableProdutos(mockProdutosCatalogo);
 
     if (todosAtendentes.length > 0) {
       const primeiroAtendente = todosAtendentes[0];
@@ -195,6 +226,33 @@ export default function OrcamentoForm() {
       }
     }
   }, [watchServicoPreCadastrado, appendServico, form]);
+
+  // Effect for part search
+  useEffect(() => {
+    if (searchTermPeca.trim().length > 1) {
+      const lowerSearchTerm = searchTermPeca.toLowerCase();
+      const results = availableProdutos.filter(
+        (produto) =>
+          produto.nome.toLowerCase().includes(lowerSearchTerm) ||
+          produto.codigoSku.toLowerCase().includes(lowerSearchTerm)
+      );
+      setSearchResultsPeca(results);
+    } else {
+      setSearchResultsPeca([]);
+    }
+  }, [searchTermPeca, availableProdutos]);
+
+  const handleSelectProduto = (produto: Produto) => {
+    appendPeca({
+      id: crypto.randomUUID(),
+      codigo: produto.codigoSku,
+      nome: produto.nome,
+      quantidade: 1,
+      valorUnitario: produto.precoVenda,
+    });
+    setSearchTermPeca("");
+    setSearchResultsPeca([]);
+  };
 
 
   const watchServicos = form.watch("servicos");
@@ -426,47 +484,96 @@ export default function OrcamentoForm() {
               <CardDescription>Adicione as peças necessárias para o serviço.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {pecaFields.map((item, index) => (
-                <div key={item.id} className="p-4 border rounded-md space-y-3 bg-muted/30 relative">
-                   <div className="flex justify-between items-center">
-                        <FormLabel className="font-semibold">Peça {index + 1}</FormLabel>
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removePeca(index)} className="text-destructive hover:text-destructive absolute top-2 right-2 h-7 w-7">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name={`pecas.${index}.codigo`}
-                      render={({ field }) => (
-                        <FormItem><FormLabel>Código da Peça (Opcional)</FormLabel><FormControl><Input placeholder="Ex: XYZ-123" {...field} /></FormControl><FormMessage /></FormItem>
-                      )}
-                    />
-                    <FormField control={form.control} name={`pecas.${index}.nome`}
-                      render={({ field }) => (
-                        <FormItem><FormLabel>Nome da Peça*</FormLabel><FormControl><Input placeholder="Ex: Pastilha de Freio Dianteira XPTO" {...field} /></FormControl><FormMessage /></FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <FormField control={form.control} name={`pecas.${index}.quantidade`}
-                      render={({ field }) => (
-                        <FormItem><FormLabel>Quantidade*</FormLabel><FormControl><Input type="number" placeholder="Ex: 2" {...field} /></FormControl><FormMessage /></FormItem>
-                      )}
-                    />
-                    <FormField control={form.control} name={`pecas.${index}.valorUnitario`}
-                      render={({ field }) => (
-                        <FormItem><FormLabel>Valor Unit. (R$)*</FormLabel><FormControl><Input type="number" placeholder="Ex: 85.50" {...field} /></FormControl><FormMessage /></FormItem>
-                      )}
-                    />
-                     <FormItem>
-                        <FormLabel>Valor Total Peça (R$)</FormLabel>
-                        <Input readOnly disabled value={((form.watch(`pecas.${index}.valorUnitario`) || 0) * (form.watch(`pecas.${index}.quantidade`) || 0)).toFixed(2)} />
-                    </FormItem>
-                  </div>
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="searchPeca" className="flex items-center gap-1"><SearchIcon className="h-4 w-4"/> Buscar e Adicionar Peça</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="searchPeca"
+                    placeholder="Digite nome ou código da peça..."
+                    value={searchTermPeca}
+                    onChange={(e) => setSearchTermPeca(e.target.value)}
+                  />
                 </div>
-              ))}
-              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => appendPeca({ id: crypto.randomUUID(), nome: "", quantidade: 1, valorUnitario: 0 })}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Peça
-              </Button>
+                {searchTermPeca && searchResultsPeca.length > 0 && (
+                  <Card className="mt-2 max-h-48 overflow-y-auto border shadow-md">
+                    <CardContent className="p-1 space-y-0.5">
+                      {searchResultsPeca.map((produto) => (
+                        <Button
+                          key={produto.id}
+                          type="button"
+                          variant="ghost"
+                          className="w-full justify-start h-auto p-2 text-left hover:bg-muted/80"
+                          onClick={() => handleSelectProduto(produto)}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-sm">{produto.nome}</span>
+                            <span className="text-xs text-muted-foreground">
+                              SKU: {produto.codigoSku || 'N/A'} | Preço: R$ {produto.precoVenda.toFixed(2)} | Estoque: {produto.estoqueAtual ?? 'N/A'}
+                            </span>
+                          </div>
+                        </Button>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+                {searchTermPeca && searchResultsPeca.length === 0 && (
+                  <p className="text-sm text-muted-foreground mt-1">Nenhuma peça encontrada com "{searchTermPeca}".</p>
+                )}
+              </div>
+
+              {pecaFields.length > 0 && (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[200px]">Nome da Peça*</TableHead>
+                        <TableHead>Código (Opc.)</TableHead>
+                        <TableHead className="w-[100px] text-center">Qtd.*</TableHead>
+                        <TableHead className="w-[120px] text-right">Vlr. Unit.*</TableHead>
+                        <TableHead className="w-[120px] text-right">Vlr. Total</TableHead>
+                        <TableHead className="w-[60px] text-center">Ação</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pecaFields.map((item, index) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <FormField control={form.control} name={`pecas.${index}.nome`}
+                              render={({ field }) => (<FormItem><FormControl><Input placeholder="Ex: Pastilha XPTO" {...field} className="h-9"/></FormControl><FormMessage className="text-xs"/></FormItem>)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                             <FormField control={form.control} name={`pecas.${index}.codigo`}
+                              render={({ field }) => (<FormItem><FormControl><Input placeholder="Ex: XYZ-123" {...field} className="h-9"/></FormControl><FormMessage className="text-xs"/></FormItem>)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                             <FormField control={form.control} name={`pecas.${index}.quantidade`}
+                              render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="1" {...field} className="h-9 text-center"/></FormControl><FormMessage className="text-xs"/></FormItem>)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <FormField control={form.control} name={`pecas.${index}.valorUnitario`}
+                              render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="85.50" {...field} className="h-9 text-right"/></FormControl><FormMessage className="text-xs"/></FormItem>)}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right h-9 leading-9">
+                            R$ {((form.watch(`pecas.${index}.valorUnitario`) || 0) * (form.watch(`pecas.${index}.quantidade`) || 0)).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removePeca(index)} className="text-destructive hover:text-destructive h-8 w-8">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              {pecaFields.length === 0 && (
+                 <p className="text-sm text-muted-foreground text-center py-2">Nenhuma peça adicionada. Use a busca acima.</p>
+              )}
               <FormMessage>{form.formState.errors.pecas?.message || form.formState.errors.pecas?.root?.message}</FormMessage>
             </CardContent>
           </Card>
@@ -522,5 +629,3 @@ export default function OrcamentoForm() {
     </div>
   );
 }
-
-    
