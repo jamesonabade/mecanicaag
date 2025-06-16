@@ -43,7 +43,7 @@ export default function CatalogoServicosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("Todas");
   
-  const checklistModels = useMemo(() => getMockChecklistModels(), []);
+  const checklistModels = useMemo(() => getMockChecklistModels, []);
 
   const form = useForm<ServicoCatalogoFormValues>({
     resolver: zodResolver(servicoCatalogoFormSchema),
@@ -307,3 +307,4 @@ export default function CatalogoServicosPage() {
     </div>
   );
 }
+
