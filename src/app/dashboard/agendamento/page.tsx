@@ -6,6 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge"; // Added import for Badge
 import { PlusCircle, ListFilter, Search } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect, useMemo } from "react";
@@ -190,6 +191,7 @@ export default function AgendamentoPage() {
               defaultMonth={date}
               disabled={(d) => minCalendarDate ? d < minCalendarDate : true}
               className="rounded-md border"
+              locale={ptBR}
             />
           </CardContent>
         </Card>
