@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, FileSpreadsheet, Eye, Edit, Search, Printer } from "lucide-react";
+import { PlusCircle, FileSpreadsheet, Eye, RefreshCw, Search, Printer } from "lucide-react"; // Alterado Edit para RefreshCw
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -139,14 +139,20 @@ export default function OrcamentosPage() {
                     <TableCell className="text-center">
                       <Badge variant={getStatusBadgeVariant(orcamento.status)}>{getStatusLabel(orcamento.status)}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-1">
                       <Button variant="ghost" size="icon" asChild title="Visualizar">
                         <Link href={`/dashboard/orcamentos/${orcamento.id}`}>
                           <Eye className="h-4 w-4" />
                         </Link>
                       </Button>
-                      <Button variant="ghost" size="icon" title="Editar" onClick={() => toast({ title: "Edição em desenvolvimento"})}>
-                        <Edit className="h-4 w-4" />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => toast({ title: "Atualização de Andamento em Desenvolvimento", description: "Esta funcionalidade será implementada em breve."})}
+                        title="Atualizar Andamento do Orçamento"
+                        className="h-8"
+                      >
+                        <RefreshCw className="mr-1.5 h-3 w-3" /> Atualizar Andamento
                       </Button>
                       <Button variant="ghost" size="icon" title="Imprimir" onClick={() => toast({ title: "Impressão em desenvolvimento"})}>
                         <Printer className="h-4 w-4" />
