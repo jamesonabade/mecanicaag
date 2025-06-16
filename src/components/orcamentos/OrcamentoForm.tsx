@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Added missing import
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -55,7 +55,6 @@ const mockTiposServicoPadrao: TipoServicoPadrao[] = [
   { id: "outro_serv", nome: "Outro Serviço (Manual)", valorPadrao: 0, categoria: "Diversos"},
 ];
 
-// Interface para Produto (baseado no mockProdutosEstoque de PDV)
 interface Produto {
   id: string;
   nome: string;
@@ -64,7 +63,6 @@ interface Produto {
   estoqueAtual: number;
 }
 
-// Mock data de produtos (baseado no mockProdutosEstoque de PDV)
 const mockProdutosCatalogo: Produto[] = [
   { id: "prod001", nome: "Óleo Motor 5W30 Sintético (Litro)", codigoSku: "SKU001", precoVenda: 45.00, estoqueAtual: 50 },
   { id: "prod002", nome: "Filtro de Óleo Original Honda Civic", codigoSku: "SKU002", precoVenda: 35.00, estoqueAtual: 30 },
@@ -105,7 +103,6 @@ const orcamentoFormSchema = z.object({
   pecas: z.array(orcamentoItemPecaSchema).optional(),
   observacoes: z.string().optional(),
   descontoValor: z.coerce.number().min(0).optional().default(0),
-  servicoPreCadastradoSelecionado: z.string().optional(),
 }).refine(data => (data.servicos && data.servicos.length > 0) || (data.pecas && data.pecas.length > 0), {
   message: "Adicione pelo menos um serviço ou peça ao orçamento.",
   path: ["servicos"], 
@@ -124,10 +121,12 @@ export default function OrcamentoForm() {
   const [mecanicosOrcamentistas, setMecanicosOrcamentistas] = React.useState<Funcionario[]>([]);
   const [atendenteLogado, setAtendenteLogado] = React.useState<Funcionario | null>(null);
 
-  // State for part search
   const [searchTermPeca, setSearchTermPeca] = useState("");
   const [searchResultsPeca, setSearchResultsPeca] = useState<Produto[]>([]);
   const [availableProdutos, setAvailableProdutos] = useState<Produto[]>(mockProdutosCatalogo);
+
+  const [searchTermServico, setSearchTermServico] = useState("");
+  const [searchResultsServico, setSearchResultsServico] = useState<TipoServicoPadrao[]>([]);
 
 
   const form = useForm<OrcamentoFormValues>({
@@ -143,7 +142,6 @@ export default function OrcamentoForm() {
       pecas: [],
       observacoes: "",
       descontoValor: 0,
-      servicoPreCadastradoSelecionado: "",
     },
   });
 
@@ -158,8 +156,6 @@ export default function OrcamentoForm() {
   });
 
   const selectedClienteId = form.watch("clienteId");
-  const watchServicoPreCadastrado = form.watch("servicoPreCadastradoSelecionado");
-
 
   useEffect(() => {
     setClientesState(getClientes());
@@ -210,26 +206,6 @@ export default function OrcamentoForm() {
 
 
   useEffect(() => {
-    if (watchServicoPreCadastrado) {
-      const servico = mockTiposServicoPadrao.find(s => s.id === watchServicoPreCadastrado);
-      if (servico && servico.id !== "outro_serv") {
-        const novoServico: OrcamentoItemServicoValues = {
-            id: crypto.randomUUID(),
-            servicoId: servico.id,
-            descricao: servico.nome,
-            valor: servico.valorPadrao || 0,
-        };
-        appendServico(novoServico);
-        form.setValue("servicoPreCadastradoSelecionado", "");
-      } else if (servico && servico.id === "outro_serv") {
-         appendServico({ id: crypto.randomUUID(), servicoId: "outro_serv", descricao: "", valor: 0 });
-         form.setValue("servicoPreCadastradoSelecionado", "");
-      }
-    }
-  }, [watchServicoPreCadastrado, appendServico, form]);
-
-  // Effect for part search
-  useEffect(() => {
     if (searchTermPeca.trim().length > 1) {
       const lowerSearchTerm = searchTermPeca.toLowerCase();
       const results = availableProdutos.filter(
@@ -255,6 +231,36 @@ export default function OrcamentoForm() {
     setSearchResultsPeca([]);
   };
 
+  useEffect(() => {
+    if (searchTermServico.trim().length > 1) {
+      const lowerSearchTerm = searchTermServico.toLowerCase();
+      const results = mockTiposServicoPadrao.filter(
+        (servico) =>
+          servico.nome.toLowerCase().includes(lowerSearchTerm) ||
+          (servico.descricaoCurta && servico.descricaoCurta.toLowerCase().includes(lowerSearchTerm)) ||
+          (servico.categoria && servico.categoria.toLowerCase().includes(lowerSearchTerm))
+      );
+      setSearchResultsServico(results);
+    } else {
+      setSearchResultsServico([]);
+    }
+  }, [searchTermServico]);
+
+  const handleSelectServico = (servico: TipoServicoPadrao) => {
+    if (servico.id === "outro_serv") {
+        appendServico({ id: crypto.randomUUID(), servicoId: "outro_serv", descricao: "", valor: 0 });
+    } else {
+        appendServico({
+        id: crypto.randomUUID(),
+        servicoId: servico.id,
+        descricao: servico.nome,
+        valor: servico.valorPadrao || 0,
+        });
+    }
+    setSearchTermServico("");
+    setSearchResultsServico([]);
+  };
+
 
   const watchServicos = form.watch("servicos");
   const watchPecas = form.watch("pecas");
@@ -277,7 +283,6 @@ export default function OrcamentoForm() {
       title: "Orçamento Criado (Simulado)",
       description: "O orçamento foi salvo com sucesso (simulação).",
     });
-    // router.push("/dashboard/orcamentos");
   }
 
   return (
@@ -420,26 +425,43 @@ export default function OrcamentoForm() {
               <CardDescription>Adicione os serviços a serem realizados.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-               <FormField
-                  control={form.control}
-                  name="servicoPreCadastradoSelecionado"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-1"><ListPlus className="h-4 w-4"/> Adicionar Serviço Pré-Cadastrado</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Selecione um serviço para adicionar..." /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          {mockTiposServicoPadrao.map(serv => (
-                            <SelectItem key={serv.id} value={serv.id}>
-                              {serv.nome} {serv.valorPadrao ? `(R$ ${serv.valorPadrao.toFixed(2)})` : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>Selecionar um serviço aqui o adicionará à lista abaixo. "Outro Serviço" adiciona um item em branco.</FormDescription>
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2 mb-4">
+                    <Label htmlFor="searchServico" className="flex items-center gap-1"><SearchIcon className="h-4 w-4"/> Buscar e Adicionar Serviço</Label>
+                    <div className="flex gap-2">
+                        <Input
+                        id="searchServico"
+                        placeholder="Digite nome, categoria ou descrição do serviço..."
+                        value={searchTermServico}
+                        onChange={(e) => setSearchTermServico(e.target.value)}
+                        />
+                    </div>
+                    {searchTermServico && searchResultsServico.length > 0 && (
+                        <Card className="mt-2 max-h-48 overflow-y-auto border shadow-md">
+                        <CardContent className="p-1 space-y-0.5">
+                            {searchResultsServico.map((servico) => (
+                            <Button
+                                key={servico.id}
+                                type="button"
+                                variant="ghost"
+                                className="w-full justify-start h-auto p-2 text-left hover:bg-muted/80"
+                                onClick={() => handleSelectServico(servico)}
+                            >
+                                <div className="flex flex-col">
+                                <span className="font-semibold text-sm">{servico.nome}</span>
+                                <span className="text-xs text-muted-foreground">
+                                    Cat: {servico.categoria || 'N/A'} | Preço Padrão: R$ {(servico.valorPadrao || 0).toFixed(2)}
+                                </span>
+                                </div>
+                            </Button>
+                            ))}
+                        </CardContent>
+                        </Card>
+                    )}
+                    {searchTermServico && searchResultsServico.length === 0 && (
+                        <p className="text-sm text-muted-foreground mt-1">Nenhum serviço encontrado com "{searchTermServico}".</p>
+                    )}
+                </div>
+                
               {servicoFields.length > 0 && <Separator className="my-4" />}
               {servicoFields.map((item, index) => (
                 <div key={item.id} className="p-4 border rounded-md space-y-3 bg-muted/30 relative">
@@ -470,7 +492,7 @@ export default function OrcamentoForm() {
                 </div>
               ))}
               {servicoFields.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-2">Nenhum serviço adicionado. Use o seletor acima ou adicione um serviço manual.</p>
+                <p className="text-sm text-muted-foreground text-center py-2">Nenhum serviço adicionado. Use a busca acima ou adicione manualmente.</p>
               )}
               <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => appendServico({ id: crypto.randomUUID(), descricao: "", valor: 0 })}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Serviço Manualmente
