@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFo
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress"; // Importar Progress
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight, LogIn, Edit, Trash2, PlusCircle, ImageIcon } from "lucide-react"; 
 import { Cliente, addCliente as addClienteDB, getClientes as getClientesDB, getClienteById as getClienteDBById } from "@/lib/mockData/clientes";
@@ -35,7 +36,7 @@ interface EntradaEmProgresso {
   veiculo?: Veiculo;
   statusProgressoEntrada: StatusProgressoEntrada;
   dataCriacao: string;
-  entradaId?: string; // Adicionado para referenciar a entrada original, se aplicável
+  entradaId?: string; 
 }
 
 // --- Schemas Zod (para os formulários do Dialog) ---
@@ -254,8 +255,18 @@ export default function PaginaEntradasVeiculos() {
 
   const getStatusBadgeVariant = (status: StatusProgressoEntrada): "default" | "secondary" | "outline" | "destructive" => {
     if (status === "Aguardando Orçamento") return "default";
-    if (status === "Orçamento Iniciado") return "outline"; // Azul
-    return "secondary"; // Cinza para os outros
+    if (status === "Orçamento Iniciado") return "outline"; 
+    return "secondary"; 
+  };
+
+  const calculateProgress = (status: StatusProgressoEntrada): number => {
+    switch (status) {
+      case "Aguardando Cliente": return 10;
+      case "Aguardando Veículo": return 40;
+      case "Aguardando Orçamento": return 70;
+      case "Orçamento Iniciado": return 100;
+      default: return 0;
+    }
   };
 
   return (
@@ -282,7 +293,7 @@ export default function PaginaEntradasVeiculos() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Veículo</TableHead>
                   <TableHead>Data</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Status / Progresso</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -293,7 +304,12 @@ export default function PaginaEntradasVeiculos() {
                     <TableCell>{entrada.cliente?.nomeCompleto || "N/A"}</TableCell>
                     <TableCell>{entrada.veiculo ? `${entrada.veiculo.marca} ${entrada.veiculo.modelo} (${entrada.veiculo.placa})` : "N/A"}</TableCell>
                     <TableCell>{format(new Date(entrada.dataCriacao), "dd/MM/yyyy HH:mm", { locale: ptBR })}</TableCell>
-                    <TableCell><Badge variant={getStatusBadgeVariant(entrada.statusProgressoEntrada)}>{entrada.statusProgressoEntrada}</Badge></TableCell>
+                    <TableCell>
+                        <Badge variant={getStatusBadgeVariant(entrada.statusProgressoEntrada)} className="mb-1 block w-fit">
+                            {entrada.statusProgressoEntrada}
+                        </Badge>
+                        <Progress value={calculateProgress(entrada.statusProgressoEntrada)} className="h-2 w-full sm:w-3/4 md:w-1/2" />
+                    </TableCell>
                     <TableCell className="text-right space-x-1">
                       {entrada.statusProgressoEntrada === "Aguardando Orçamento" && (
                         <Button variant="default" size="sm" onClick={() => handleContinuarParaOrcamento(entrada.id)}>
