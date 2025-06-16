@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 
 // Carregar dinamicamente o OrcamentoForm com SSR desabilitado
 const OrcamentoForm = dynamic(() => import('@/components/orcamentos/OrcamentoForm'), {
-  ssr: false, // Importante: desabilita a renderização do lado do servidor para este componente
   loading: () => <div className="container mx-auto py-10 flex justify-center items-center min-h-[300px]"><p className="text-lg text-muted-foreground">Carregando formulário de orçamento...</p></div>,
 });
 
