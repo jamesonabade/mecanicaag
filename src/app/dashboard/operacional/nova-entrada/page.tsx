@@ -21,7 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight, LogIn, Edit, Trash2 } from "lucide-react"; // Removido PlusCircle não usado aqui diretamente
+import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight, LogIn, Edit, Trash2, PlusCircle, ImageIcon } from "lucide-react"; 
 import { Cliente, addCliente as addClienteDB, getClientes as getClientesDB, getClienteById as getClienteDBById } from "@/lib/mockData/clientes";
 import { Veiculo, addVeiculo as addVeiculoDB, getVeiculosByClienteId as getVeiculosDBByClienteId, getVeiculoById as getVeiculoDBById } from "@/lib/mockData/veiculos";
 
@@ -35,6 +35,7 @@ interface EntradaEmProgresso {
   veiculo?: Veiculo;
   statusProgressoEntrada: StatusProgressoEntrada;
   dataCriacao: string;
+  entradaId?: string; // Adicionado para referenciar a entrada original, se aplicável
 }
 
 // --- Schemas Zod (para os formulários do Dialog) ---
@@ -66,12 +67,13 @@ const veiculoFormSchemaDialog = z.object({
   placa: z.string().min(7, { message: "Placa deve ter pelo menos 7 caracteres." }).max(8, {message: "Placa inválida."}),
   marca: z.string().min(2, { message: "Marca é obrigatória." }),
   modelo: z.string().min(2, { message: "Modelo é obrigatório." }),
-  anoFabricacao: z.coerce.number().int().min(1900).max(anoAtual),
-  anoModelo: z.coerce.number().int().min(1900).max(anoAtual + 1),
-  cor: z.string().min(2, { message: "Cor é obrigatória." }),
+  anoFabricacao: z.coerce.number().int().min(1900, { message: "Ano de fabricação inválido." }).max(anoAtual, { message: `Ano de fabricação não pode ser futuro (máx. ${anoAtual}).` }).optional(),
+  anoModelo: z.coerce.number().int().min(1900, { message: "Ano do modelo inválido." }).max(anoAtual + 1, { message: `Ano do modelo não pode ser muito futuro (máx. ${anoAtual + 1}).` }).optional(),
+  cor: z.string().min(2, { message: "Cor é obrigatória." }).optional(),
   chassi: z.string().length(17, { message: "Chassi deve ter 17 caracteres." }).optional().or(z.literal('')),
-  renavam: z.string().min(9).max(11).optional().or(z.literal('')),
-  quilometragem: z.coerce.number().int().min(0).optional(),
+  renavam: z.string().min(9, { message: "RENAVAM inválido (mín 9 dígitos)."}).max(11, { message: "RENAVAM inválido (máx 11 dígitos)."}).optional().or(z.literal('')),
+  quilometragem: z.coerce.number().int().min(0, { message: "Quilometragem não pode ser negativa." }).optional(),
+  imageUrl: z.string().url({ message: "URL da imagem inválido. Ex: https://exemplo.com/imagem.png" }).optional().or(z.literal('')),
   observacoes: z.string().optional(),
 });
 type VeiculoFormValuesDialog = z.infer<typeof veiculoFormSchemaDialog>;
@@ -97,6 +99,7 @@ const mockEntradasIniciais: EntradaEmProgresso[] = [
     veiculo: getVeiculoDBById("vec_002_strada"),
     statusProgressoEntrada: "Orçamento Iniciado", 
     dataCriacao: new Date(Date.now() - 5000).toISOString(),
+    entradaId: `ENT-${Date.now() - 5000}`
   },
     {
     id: `ENT-${Date.now() - 30000}`,
@@ -150,10 +153,11 @@ export default function PaginaEntradasVeiculos() {
 
   useEffect(() => {
     if (dialogSelectedCliente) {
-      setVeiculosDataSource(getVeiculosDBByClienteId(dialogSelectedCliente.id));
+      const veiculosDoCliente = getVeiculosDBByClienteId(dialogSelectedCliente.id);
+      setVeiculosDataSource(veiculosDoCliente);
       if (searchTermVeiculo.length >= 2) {
         setSearchResultsVeiculo(
-          getVeiculosDBByClienteId(dialogSelectedCliente.id).filter(v => v.placa.toLowerCase().includes(searchTermVeiculo.toLowerCase()) || v.modelo.toLowerCase().includes(searchTermVeiculo.toLowerCase()))
+          veiculosDoCliente.filter(v => v.placa.toLowerCase().includes(searchTermVeiculo.toLowerCase()) || v.modelo.toLowerCase().includes(searchTermVeiculo.toLowerCase()))
         );
       } else {
         setSearchResultsVeiculo([]);
@@ -224,6 +228,7 @@ export default function PaginaEntradasVeiculos() {
         veiculo: dialogSelectedVeiculo,
         statusProgressoEntrada: "Aguardando Orçamento",
         dataCriacao: new Date().toISOString(),
+        entradaId: dialogEntradaId,
       };
       setListaEntradas(prev => [...prev.filter(e => e.id !== novaEntrada.id), novaEntrada].sort((a,b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime()));
       setShowNovaEntradaDialog(false);
@@ -258,7 +263,7 @@ export default function PaginaEntradasVeiculos() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><LogIn className="h-7 w-7"/> Gerenciamento de Entradas de Veículos</h1>
         <div className="flex gap-2">
-            <Button onClick={handleIniciarNovaEntrada}><UserPlus className="mr-2 h-4 w-4"/> Iniciar Nova Entrada</Button>
+            <Button onClick={handleIniciarNovaEntrada}><PlusCircle className="mr-2 h-4 w-4"/> Iniciar Nova Entrada</Button>
             <Button variant="outline" asChild><Link href="/dashboard"><ChevronLeft className="mr-2 h-4 w-4"/> Voltar ao Painel</Link></Button>
         </div>
       </div>
@@ -364,9 +369,9 @@ export default function PaginaEntradasVeiculos() {
                             <FormField control={formClienteDialog.control} name="cpfCnpj" render={({ field }) => (<FormItem><FormLabel>CPF/CNPJ*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={formClienteDialog.control} name="telefone" render={({ field }) => (<FormItem><FormLabel>Telefone*</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={formClienteDialog.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                             {/* Campos adicionais de endereço podem ser adicionados aqui conforme schema */}
+                            <FormField control={formClienteDialog.control} name="observacoes" render={({ field }) => (<FormItem><FormLabel>Observações</FormLabel><FormControl><Textarea placeholder="Preferências, etc." {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <DialogFooter className="pt-4">
-                                <Button type="button" variant="ghost" onClick={() => setShowNovoClienteForm(false)}>Cancelar</Button>
+                                <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
                                 <Button type="submit">Salvar Cliente</Button>
                             </DialogFooter>
                         </form>
@@ -404,17 +409,23 @@ export default function PaginaEntradasVeiculos() {
                     {showNovoVeiculoForm && (
                         <Form {...formVeiculoDialog}>
                         <form onSubmit={formVeiculoDialog.handleSubmit(handleCadastrarVeiculoDialog)} className="space-y-3 pt-3 border-t">
-                            <FormField control={formVeiculoDialog.control} name="placa" render={({ field }) => (<FormItem><FormLabel>Placa*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={formVeiculoDialog.control} name="placa" render={({ field }) => (<FormItem><FormLabel>Placa*</FormLabel><FormControl><Input placeholder="AAA-0000 ou AAA0A00" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <div className="grid grid-cols-2 gap-4">
-                                <FormField control={formVeiculoDialog.control} name="marca" render={({ field }) => (<FormItem><FormLabel>Marca*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={formVeiculoDialog.control} name="modelo" render={({ field }) => (<FormItem><FormLabel>Modelo*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={formVeiculoDialog.control} name="marca" render={({ field }) => (<FormItem><FormLabel>Marca*</FormLabel><FormControl><Input placeholder="Ex: Volkswagen" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={formVeiculoDialog.control} name="modelo" render={({ field }) => (<FormItem><FormLabel>Modelo*</FormLabel><FormControl><Input placeholder="Ex: Gol" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </div>
                             <div className="grid grid-cols-3 gap-4">
-                                <FormField control={formVeiculoDialog.control} name="anoFabricacao" render={({ field }) => (<FormItem><FormLabel>Ano Fab.*</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={formVeiculoDialog.control} name="anoModelo" render={({ field }) => (<FormItem><FormLabel>Ano Mod.*</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={formVeiculoDialog.control} name="cor" render={({ field }) => (<FormItem><FormLabel>Cor*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={formVeiculoDialog.control} name="anoFabricacao" render={({ field }) => (<FormItem><FormLabel>Ano Fab.</FormLabel><FormControl><Input type="number" placeholder="Ex: 2020" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={formVeiculoDialog.control} name="anoModelo" render={({ field }) => (<FormItem><FormLabel>Ano Mod.</FormLabel><FormControl><Input type="number" placeholder="Ex: 2021" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={formVeiculoDialog.control} name="cor" render={({ field }) => (<FormItem><FormLabel>Cor</FormLabel><FormControl><Input placeholder="Ex: Prata" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </div>
-                             {/* Campos adicionais de veículo podem ser adicionados aqui conforme schema */}
+                             <div className="grid md:grid-cols-2 gap-4">
+                                 <FormField control={formVeiculoDialog.control} name="chassi" render={({ field }) => (<FormItem><FormLabel>Chassi (Opcional)</FormLabel><FormControl><Input placeholder="Número do Chassi (17 caracteres)" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={formVeiculoDialog.control} name="renavam" render={({ field }) => (<FormItem><FormLabel>RENAVAM (Opcional)</FormLabel><FormControl><Input placeholder="Número do RENAVAM" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            </div>
+                             <FormField control={formVeiculoDialog.control} name="quilometragem" render={({ field }) => (<FormItem><FormLabel>Quilometragem Atual (Opcional)</FormLabel><FormControl><Input type="number" placeholder="Ex: 55000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={formVeiculoDialog.control} name="imageUrl" render={({ field }) => (<FormItem><FormLabel className="flex items-center gap-1"><ImageIcon className="h-4 w-4 text-muted-foreground"/> URL da Imagem (Opcional)</FormLabel><FormControl><Input type="url" placeholder="https://exemplo.com/foto-do-carro.jpg" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={formVeiculoDialog.control} name="observacoes" render={({ field }) => (<FormItem><FormLabel>Observações (Opcional)</FormLabel><FormControl><Textarea placeholder="Detalhes adicionais sobre o veículo..." className="resize-y min-h-[80px]" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <DialogFooter className="pt-4">
                                 <Button type="button" variant="ghost" onClick={() => setShowNovoVeiculoForm(false)}>Cancelar</Button>
                                 <Button type="submit">Salvar Veículo</Button>
@@ -447,8 +458,8 @@ export default function PaginaEntradasVeiculos() {
 
           <DialogFooter className="mt-auto pt-4 border-t">
             <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
-            {dialogStep === "cliente" && dialogSelectedCliente && (<Button type="button" onClick={() => setDialogStep("veiculo")}>Próximo: Veículo <ArrowRight className="ml-1"/></Button>)}
-            {dialogStep === "veiculo" && dialogSelectedVeiculo && (<Button type="button" onClick={() => setDialogStep("finalizar")}>Próximo: Confirmar <ArrowRight className="ml-1"/></Button>)}
+            {dialogStep === "cliente" && dialogSelectedCliente && (<Button type="button" onClick={() => setDialogStep("veiculo")}>Próximo: Veículo <ArrowRight className="ml-1 h-4 w-4"/></Button>)}
+            {dialogStep === "veiculo" && dialogSelectedVeiculo && (<Button type="button" onClick={() => setDialogStep("finalizar")}>Próximo: Confirmar <ArrowRight className="ml-1 h-4 w-4"/></Button>)}
             {dialogStep === "finalizar" && (<Button type="button" onClick={handleConcluirDialogNovaEntrada}>Concluir Entrada e Adicionar à Lista</Button>)}
           </DialogFooter>
         </DialogContent>
