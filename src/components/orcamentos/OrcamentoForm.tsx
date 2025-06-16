@@ -261,6 +261,19 @@ export default function OrcamentoForm() {
     setSearchResultsServico([]);
   };
 
+  const handleAdicionarServicoCatalogo = () => {
+    toast({
+      title: "Novo Serviço no Catálogo",
+      description: "Para adicionar um novo serviço de forma permanente, por favor, acesse a seção 'Cadastros > Catálogo de Serviços'.",
+      duration: 7000,
+      action: (
+        <Button variant="outline" size="sm" asChild onClick={() => router.push('/dashboard/cadastros/catalogo-servicos')}>
+          Ir para Catálogo
+        </Button>
+      )
+    });
+  };
+
 
   const watchServicos = form.watch("servicos");
   const watchPecas = form.watch("pecas");
@@ -420,9 +433,14 @@ export default function OrcamentoForm() {
           </Card>
 
           <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle>Serviços (Mão de Obra)</CardTitle>
-              <CardDescription>Adicione os serviços a serem realizados.</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between pb-4">
+              <div>
+                <CardTitle>Serviços (Mão de Obra)</CardTitle>
+                <CardDescription>Adicione os serviços a serem realizados.</CardDescription>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={handleAdicionarServicoCatalogo}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Novo Serviço no Catálogo
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2 mb-4">
