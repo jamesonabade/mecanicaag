@@ -131,6 +131,7 @@ export default function NovoOrcamentoPage() {
   useEffect(() => {
     const queryClienteId = searchParams.get("clienteId");
     const queryVeiculoId = searchParams.get("veiculoId");
+    const queryEntradaId = searchParams.get("entradaId");
 
     if (queryClienteId) {
       form.setValue("clienteId", queryClienteId);
@@ -140,8 +141,12 @@ export default function NovoOrcamentoPage() {
          // Isso ocorre porque o useEffect que carrega os veículos do cliente depende de selectedClienteId, que é setado aqui.
         setTimeout(() => {
           form.setValue("veiculoId", queryVeiculoId);
-        }, 50);
+        }, 100); // Aumentado ligeiramente o timeout para garantir
       }
+    }
+    if (queryEntradaId) {
+        const currentObs = form.getValues("observacoes") || "";
+        form.setValue("observacoes", `Baseado na Entrada ID: ${queryEntradaId}${currentObs ? `\n${currentObs}` : ""}`);
     }
   }, [searchParams, form]);
 
@@ -154,7 +159,9 @@ export default function NovoOrcamentoPage() {
       const veiculoAtualValor = form.getValues("veiculoId");
       const veiculoAtualPertenceAoCliente = clienteTemVeiculos.some(v => v.id === veiculoAtualValor);
 
-      if (!veiculoAtualPertenceAoCliente) {
+      // Só limpa o veiculoId se ele não pertencer ao novo cliente E não for o veiculoId vindo da URL (para evitar limpar antes de preencher)
+      const queryVeiculoId = searchParams.get("veiculoId");
+      if (!veiculoAtualPertenceAoCliente && veiculoAtualValor !== queryVeiculoId) {
           form.setValue("veiculoId", "");
       }
 
@@ -162,7 +169,7 @@ export default function NovoOrcamentoPage() {
       setVeiculosCliente([]);
       form.setValue("veiculoId", "");
     }
-  }, [selectedClienteId, form]); // Removido searchParams daqui para evitar loop com o useEffect acima
+  }, [selectedClienteId, form, searchParams]);
 
 
   const watchServicos = form.watch("servicos");
@@ -210,6 +217,7 @@ export default function NovoOrcamentoPage() {
       description: "O orçamento foi salvo com sucesso (simulação).",
     });
     // form.reset(); // Opcional
+    // router.push("/dashboard/orcamentos");
   }
 
   return (

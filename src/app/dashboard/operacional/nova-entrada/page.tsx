@@ -21,8 +21,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight, LogIn, Edit, Trash2, PlusCircle } from "lucide-react";
-import { Cliente, addCliente as addClienteDB, getClientes as getClientesDB } from "@/lib/mockData/clientes";
+import { ChevronLeft, Search, UserPlus, CarIcon, FilePlus, ArrowRight, LogIn, Edit, Trash2 } from "lucide-react"; // Removido PlusCircle não usado aqui diretamente
+import { Cliente, addCliente as addClienteDB, getClientes as getClientesDB, getClienteById as getClienteDBById } from "@/lib/mockData/clientes";
 import { Veiculo, addVeiculo as addVeiculoDB, getVeiculosByClienteId as getVeiculosDBByClienteId, getVeiculoById as getVeiculoDBById } from "@/lib/mockData/veiculos";
 
 
@@ -76,12 +76,43 @@ const veiculoFormSchemaDialog = z.object({
 });
 type VeiculoFormValuesDialog = z.infer<typeof veiculoFormSchemaDialog>;
 
+const mockEntradasIniciais: EntradaEmProgresso[] = [
+  {
+    id: `ENT-${Date.now() - 10000}`,
+    cliente: getClienteDBById("cli_modelo_001"),
+    veiculo: getVeiculoDBById("vec_modelo_001"),
+    statusProgressoEntrada: "Aguardando Orçamento",
+    dataCriacao: new Date(Date.now() - 10000).toISOString(),
+  },
+  {
+    id: `ENT-${Date.now() - 20000}`,
+    cliente: getClienteDBById("cli_002_maria"),
+    veiculo: undefined, 
+    statusProgressoEntrada: "Aguardando Veículo",
+    dataCriacao: new Date(Date.now() - 20000).toISOString(),
+  },
+  {
+    id: `ENT-${Date.now() - 5000}`,
+    cliente: getClienteDBById("cli_modelo_001"),
+    veiculo: getVeiculoDBById("vec_002_strada"),
+    statusProgressoEntrada: "Orçamento Iniciado", 
+    dataCriacao: new Date(Date.now() - 5000).toISOString(),
+  },
+    {
+    id: `ENT-${Date.now() - 30000}`,
+    cliente: undefined, 
+    veiculo: undefined,
+    statusProgressoEntrada: "Aguardando Cliente",
+    dataCriacao: new Date(Date.now() - 30000).toISOString(),
+  },
+];
+
 
 export default function PaginaEntradasVeiculos() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const [listaEntradas, setListaEntradas] = useState<EntradaEmProgresso[]>([]);
+  const [listaEntradas, setListaEntradas] = useState<EntradaEmProgresso[]>(mockEntradasIniciais.sort((a,b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime()));
   const [showNovaEntradaDialog, setShowNovaEntradaDialog] = useState(false);
   
   const [dialogStep, setDialogStep] = useState<"cliente" | "veiculo" | "finalizar">("cliente");
@@ -218,8 +249,8 @@ export default function PaginaEntradasVeiculos() {
 
   const getStatusBadgeVariant = (status: StatusProgressoEntrada): "default" | "secondary" | "outline" | "destructive" => {
     if (status === "Aguardando Orçamento") return "default";
-    if (status === "Orçamento Iniciado") return "outline";
-    return "secondary";
+    if (status === "Orçamento Iniciado") return "outline"; // Azul
+    return "secondary"; // Cinza para os outros
   };
 
   return (
@@ -227,7 +258,7 @@ export default function PaginaEntradasVeiculos() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2"><LogIn className="h-7 w-7"/> Gerenciamento de Entradas de Veículos</h1>
         <div className="flex gap-2">
-            <Button onClick={handleIniciarNovaEntrada}><PlusCircle className="mr-2 h-4 w-4"/> Iniciar Nova Entrada</Button>
+            <Button onClick={handleIniciarNovaEntrada}><UserPlus className="mr-2 h-4 w-4"/> Iniciar Nova Entrada</Button>
             <Button variant="outline" asChild><Link href="/dashboard"><ChevronLeft className="mr-2 h-4 w-4"/> Voltar ao Painel</Link></Button>
         </div>
       </div>
@@ -269,6 +300,8 @@ export default function PaginaEntradasVeiculos() {
                             setDialogEntradaId(entrada.id);
                             setDialogSelectedCliente(entrada.cliente || null);
                             setDialogSelectedVeiculo(entrada.veiculo || null);
+                            formClienteDialog.reset(entrada.cliente || {});
+                            formVeiculoDialog.reset(entrada.veiculo || {});
                             setDialogStep(entrada.statusProgressoEntrada === "Aguardando Cliente" ? "cliente" : "veiculo");
                             setShowNovaEntradaDialog(true);
                          }}>
@@ -331,6 +364,7 @@ export default function PaginaEntradasVeiculos() {
                             <FormField control={formClienteDialog.control} name="cpfCnpj" render={({ field }) => (<FormItem><FormLabel>CPF/CNPJ*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={formClienteDialog.control} name="telefone" render={({ field }) => (<FormItem><FormLabel>Telefone*</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={formClienteDialog.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                             {/* Campos adicionais de endereço podem ser adicionados aqui conforme schema */}
                             <DialogFooter className="pt-4">
                                 <Button type="button" variant="ghost" onClick={() => setShowNovoClienteForm(false)}>Cancelar</Button>
                                 <Button type="submit">Salvar Cliente</Button>
@@ -380,6 +414,7 @@ export default function PaginaEntradasVeiculos() {
                                 <FormField control={formVeiculoDialog.control} name="anoModelo" render={({ field }) => (<FormItem><FormLabel>Ano Mod.*</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                 <FormField control={formVeiculoDialog.control} name="cor" render={({ field }) => (<FormItem><FormLabel>Cor*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </div>
+                             {/* Campos adicionais de veículo podem ser adicionados aqui conforme schema */}
                             <DialogFooter className="pt-4">
                                 <Button type="button" variant="ghost" onClick={() => setShowNovoVeiculoForm(false)}>Cancelar</Button>
                                 <Button type="submit">Salvar Veículo</Button>
