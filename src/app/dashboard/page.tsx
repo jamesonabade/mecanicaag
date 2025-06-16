@@ -44,7 +44,7 @@ import {
   Search, 
   Filter,
   Link2,
-  LogIn // Adicionado LogIn para o botão
+  LogIn
 } from "lucide-react";
 import NovaEntradaDialog, { EntradaEmProgresso } from "@/components/operacional/NovaEntradaDialog";
 import { useRouter } from "next/navigation";
@@ -450,10 +450,10 @@ const lembretesRevisaoCard = (
           <CardTitle className="font-headline text-xl">Lucro (Real vs Orçado)</CardTitle>
           <CardDescription>Comparativo mensal do lucro obtido em relação ao orçado.</CardDescription>
         </CardHeader>
-        <CardContent className="pl-0 pr-4">
+        <CardContent className="p-4">
           <ChartContainer config={chartConfigLucro} className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <RechartsLineChart data={lucroChartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+              <RechartsLineChart data={lucroChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
                 <XAxis dataKey="name" tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <YAxis tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(value) => `R$${value/1000}k`} />
@@ -471,10 +471,10 @@ const lembretesRevisaoCard = (
           <CardTitle className="font-headline text-xl">Vendas na Semana</CardTitle>
           <CardDescription>Total de vendas diárias na semana atual.</CardDescription>
         </CardHeader>
-        <CardContent className="pl-0 pr-4">
+        <CardContent className="p-4">
           <ChartContainer config={chartConfigVendas} className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <RechartsBarChart data={vendasSemanaData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+              <RechartsBarChart data={vendasSemanaData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border)/0.5)" />
                 <XAxis dataKey="day" tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <YAxis tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(value) => `R$${value/1000}k`} />
